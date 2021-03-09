@@ -1,0 +1,184 @@
+﻿<Window x:Class="AssetCatalog.MainWindow"
+        x:Name="Window"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:local="clr-namespace:AssetCatalog"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        ui:TitleBar.ExtendViewIntoTitleBar="True"
+        ui:TitleBar.Style="{DynamicResource AppTitleBarStyle}"
+        ui:ThemeManager.RequestedTheme="Dark"
+        mc:Ignorable="d"
+        DataContext="{x:Static local:App.Catalog}"
+        Title="{Binding Status, Converter={StaticResource CatalogStatusToTitle}}" Height="1024" Width="1440">
+
+    <Window.Resources>
+        <Style x:Key="AppTitleBarStyle" TargetType="ui:TitleBarControl">
+            <Setter Property="ui:ThemeManager.RequestedTheme" Value="Dark" />
+        </Style>
+        <Style x:Key="AppTitleBarButtonStyle" TargetType="ui:TitleBarButton">
+            <Setter Property="IsActive" Value="{Binding IsActive, ElementName=Window}" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Title bar -->
+        <Grid
+            x:Name="AppTitleBar"
+            Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+            Height="{Binding ElementName=Window, Path=(ui:TitleBar.Height)}"
+            ui:ThemeManager.RequestedTheme="Dark">
+
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsActive, ElementName=Window}" Value="False">
+                            <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemControlDisabledBaseMediumLowBrush}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="{Binding ElementName=Window, Path=(ui:TitleBar.SystemOverlayRightInset), Converter={StaticResource PixelsToGridLength}}" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Icon -->
+            <Rectangle
+                Grid.Column="0"
+                Fill="{Binding ElementName=AppTitleBar, Path=(TextElement.Foreground)}"
+                Width="16"
+                Margin="8,8" />
+
+            <!-- Horizontally centered title -->
+            <TextBlock
+                Grid.Column="0"
+                Grid.ColumnSpan="5"
+                FontSize="13"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="{Binding ElementName=Window, Path=Title}" />
+
+            <!-- Right Side Info -->
+            <StackPanel
+                DataContext="{Binding Source={x:Static local:App.Catalog}}"
+                Grid.Column="3"
+                Orientation="Horizontal">
+                <ui:TitleBarButton
+                    Style="{StaticResource AppTitleBarButtonStyle}"
+                    FontFamily="{DynamicResource ContentControlThemeFontFamily}"
+                    FontSize="13"
+                    Width="NaN"
+                    Padding="16,0"
+                    Content="{Binding OpenedForge, Converter={StaticResource ForgeToTitleMsg}}" />
+                <Rectangle
+                    Fill="{Binding ElementName=AppTitleBar, Path=(TextElement.Foreground)}"
+                    Width="1"
+                    Margin="8,8" />
+            </StackPanel>
+        </Grid>
+
+        <Menu Grid.Row="1" Background="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}">
+            <MenuItem Header="File">
+                <MenuItem
+                    Header="Open Forge"
+                    InputGestureText="Ctrl+O"
+                    Click="OpenForge_OnClick" />
+                <MenuItem
+                    Header="Exit"
+                    InputGestureText="Ctrl+E"
+                    Command="Close" />
+            </MenuItem>
+
+            <MenuItem Header="Help">
+                <MenuItem
+                    Header="About"
+                    InputGestureText="Ctrl+I" />
+            </MenuItem>
+        </Menu>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="3" />
+                <ColumnDefinition Width="4*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="2" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Expander
+                    Margin="6"
+                    Header="Filter"
+                    ExpandDirection="Down"
+                    VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBox ui:ControlHelper.Header="Asset UID" ui:ControlHelper.PlaceholderText="1234567890" />
+                        <TextBox ui:ControlHelper.Header="Catalog Tag" ui:ControlHelper.PlaceholderText="Black Ice" />
+                        <ui:RadioButtons
+                            Header="Catalog State">
+                            <RadioButton Content="All" IsChecked="True" />
+                            <RadioButton Content="Complete" />
+                            <RadioButton Content="Incomplete" />
+                        </ui:RadioButtons>
+                    </StackPanel>
+                </Expander>
+
+                <ui:ListView
+                    Grid.Row="2"
+                    ScrollViewer.VerticalScrollBarVisibility="Visible"
+                    ItemsSource="{Binding OpenedForge.Entries}">
+                    <ui:ListView.ItemContainerStyle>
+                        <Style TargetType="ui:ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ui:ListView.ItemContainerStyle>
+                    <ui:ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid HorizontalAlignment="Stretch">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <ui:FontIcon Margin="0,0,6,0" Grid.Column="0" Style="{StaticResource ListIcon}" Glyph="{Binding Converter={StaticResource  ForgeEntryToCatalogIcon}}" />
+                                <ui:FontIcon Margin="0,0,6,0" Grid.Column="1" Style="{StaticResource ListIcon}" Glyph="{Binding Converter={StaticResource  ForgeEntryToIcon}}" />
+                                <TextBlock Grid.Column="3" HorizontalAlignment="Right" Text="{Binding Uid}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ui:ListView.ItemTemplate>
+                </ui:ListView>
+            </Grid>
+
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                          Background="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                          ResizeBehavior="PreviousAndNext" />
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
