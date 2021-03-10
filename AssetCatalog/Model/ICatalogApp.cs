@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using RainbowForge.Forge;
 
 namespace AssetCatalog.Model
@@ -7,7 +8,10 @@ namespace AssetCatalog.Model
 	{
 		public string Status { get; set; }
 
+		public ICatalogDb CatalogDb { get; }
 		public Forge OpenedForge { get; }
+
+		public IEnumerable<Entry> FilteredEntries { get; }
 
 		public void OpenForge(Stream stream);
 	}

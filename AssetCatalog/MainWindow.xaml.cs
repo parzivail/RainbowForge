@@ -13,6 +13,11 @@ namespace AssetCatalog
 			InitializeComponent();
 		}
 
+		private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+		{
+			App.Catalog.CatalogDb.Connect();
+		}
+
 		private void OpenForge_OnClick(object sender, RoutedEventArgs e)
 		{
 			var dialog = new OpenFileDialog

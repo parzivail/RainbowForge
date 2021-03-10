@@ -6,12 +6,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:local="clr-namespace:AssetCatalog"
+        xmlns:bindingSources="clr-namespace:AssetCatalog.BindingSources"
+        xmlns:model="clr-namespace:AssetCatalog.Model"
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.ExtendViewIntoTitleBar="True"
         ui:TitleBar.Style="{DynamicResource AppTitleBarStyle}"
         ui:ThemeManager.RequestedTheme="Dark"
         mc:Ignorable="d"
         DataContext="{x:Static local:App.Catalog}"
+        Loaded="MainWindow_OnLoaded"
         Title="{Binding Status, Converter={StaticResource CatalogStatusToTitle}}" Height="1024" Width="1440">
 
     <Window.Resources>
@@ -117,33 +120,51 @@
                 <ColumnDefinition Width="4*" />
             </Grid.ColumnDefinitions>
 
-            <Grid Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="2" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Expander
-                    Margin="6"
-                    Header="Filter"
-                    ExpandDirection="Down"
-                    VerticalAlignment="Top">
-                    <StackPanel>
-                        <TextBox ui:ControlHelper.Header="Asset UID" ui:ControlHelper.PlaceholderText="1234567890" />
-                        <TextBox ui:ControlHelper.Header="Catalog Tag" ui:ControlHelper.PlaceholderText="Black Ice" />
-                        <ui:RadioButtons
-                            Header="Catalog State">
-                            <RadioButton Content="All" IsChecked="True" />
-                            <RadioButton Content="Complete" />
-                            <RadioButton Content="Incomplete" />
-                        </ui:RadioButtons>
-                    </StackPanel>
-                </Expander>
+                <StackPanel>
+                    <Expander
+                        Margin="6"
+                        Header="Search"
+                        ExpandDirection="Down"
+                        VerticalAlignment="Top">
+                        <ui:SimpleStackPanel Margin="8,4" Spacing="6">
+                            <TextBox ui:ControlHelper.Header="Asset UID" ui:ControlHelper.PlaceholderText="1234567890" />
+                            <TextBox ui:ControlHelper.Header="Catalog Tag" ui:ControlHelper.PlaceholderText="Black Ice" />
+                        </ui:SimpleStackPanel>
+                    </Expander>
+                    <Expander
+                        Margin="6"
+                        Header="Filter"
+                        ExpandDirection="Down"
+                        VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock
+                                Margin="4"
+                                Style="{DynamicResource BaseTextBlockStyle}">
+                                Catalog Status
+                            </TextBlock>
+                            <ui:ListView SelectionMode="Multiple" ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogEntryStatus}}}" />
+
+                            <TextBlock
+                                Margin="4"
+                                Style="{DynamicResource BaseTextBlockStyle}">
+                                Asset Category
+                            </TextBlock>
+                            <ui:ListView SelectionMode="Multiple" ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogAssetCategory}}}" />
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
 
                 <ui:ListView
                     Grid.Row="2"
                     ScrollViewer.VerticalScrollBarVisibility="Visible"
+                    VirtualizingPanel.VirtualizationMode="Recycling"
                     ItemsSource="{Binding OpenedForge.Entries}">
                     <ui:ListView.ItemContainerStyle>
                         <Style TargetType="ui:ListViewItem">
@@ -156,13 +177,21 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <ui:FontIcon Margin="0,0,6,0" Grid.Column="0" Style="{StaticResource ListIcon}" Glyph="{Binding Converter={StaticResource  ForgeEntryToCatalogIcon}}" />
-                                <ui:FontIcon Margin="0,0,6,0" Grid.Column="1" Style="{StaticResource ListIcon}" Glyph="{Binding Converter={StaticResource  ForgeEntryToIcon}}" />
-                                <TextBlock Grid.Column="3" HorizontalAlignment="Right" Text="{Binding Uid}" />
+                                <!--Icons-->
+                                <ui:FontIcon Grid.Column="0" Margin="0,0,6,0" Style="{StaticResource ListIcon}" Glyph="&#xE739;"
+                                             Foreground="{Binding Converter={StaticResource  ForgeEntryToCatalogIconBrush}}" />
+                                <ui:FontIcon Grid.Column="0" ToolTip="Catalog Status" Margin="0,0,6,0" Style="{StaticResource ListIcon}"
+                                             Glyph="{Binding Converter={StaticResource  ForgeEntryToCatalogIcon}}"
+                                             Foreground="{Binding Converter={StaticResource  ForgeEntryToCatalogIconBrush}}" />
+                                <ui:FontIcon Grid.Column="1" ToolTip="Asset Type" Style="{StaticResource ListIcon}"
+                                             Glyph="{Binding Converter={StaticResource  ForgeEntryToIcon}}" />
+
+                                <TextBlock Padding="12,0" Grid.Column="2" TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" Text="{Binding Uid}" />
+                                <TextBlock Grid.Column="3" TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" Text="{Binding Converter={StaticResource ForgeEntryToListDesc}}" />
                             </Grid>
                         </DataTemplate>
                     </ui:ListView.ItemTemplate>
@@ -171,13 +200,26 @@
 
             <GridSplitter Grid.Column="1" ResizeDirection="Columns"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          Background="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                          Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                           ResizeBehavior="PreviousAndNext" />
 
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="3" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
+
+                <GridSplitter Grid.Row="1" ResizeDirection="Rows"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                              Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                              ResizeBehavior="PreviousAndNext" />
+
+                <ui:SimpleStackPanel Spacing="6" Margin="6" Grid.Row="2">
+                    <TextBox ui:ControlHelper.Header="Name" ui:ControlHelper.PlaceholderText="Asset Name" />
+                    <ComboBox ui:ControlHelper.Header="Category" ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogAssetCategory}}}" />
+                    <TextBox ui:ControlHelper.Header="Notes" MinLines="3" />
+                </ui:SimpleStackPanel>
             </Grid>
         </Grid>
     </Grid>

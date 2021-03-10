@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using AssetCatalog.Model;
@@ -36,6 +38,8 @@ namespace AssetCatalog
 			}
 		}
 
+		public ICatalogDb CatalogDb { get; } = new FirestoreCatalogDb("parzi-rainbowforge");
+
 		public Forge OpenedForge
 		{
 			get => _openedForge;
@@ -45,6 +49,9 @@ namespace AssetCatalog
 				OnPropertyChanged();
 			}
 		}
+
+		/// <inheritdoc />
+		public IEnumerable<Entry> FilteredEntries => OpenedForge.Entries.Where(entry => entry.Uid % 2 == 0);
 
 		public void OpenForge(Stream stream)
 		{
