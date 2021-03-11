@@ -17,8 +17,8 @@ namespace AssetCatalog.Model
 		public CatalogEntryStatus Status { get; set; } = CatalogEntryStatus.PartiallyComplete;
 		public CatalogAssetCategory Category { get; set; } = CatalogAssetCategory.Uncategorized;
 
-		public string Name { get; set; }
-		public string Notes { get; set; }
+		public string Name { get; set; } = "";
+		public string Notes { get; set; } = "";
 
 		/// <inheritdoc />
 		public override string ToString()

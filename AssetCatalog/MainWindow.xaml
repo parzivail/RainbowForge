@@ -8,12 +8,13 @@
         xmlns:local="clr-namespace:AssetCatalog"
         xmlns:bindingSources="clr-namespace:AssetCatalog.BindingSources"
         xmlns:model="clr-namespace:AssetCatalog.Model"
+        xmlns:otk="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.ExtendViewIntoTitleBar="True"
         ui:TitleBar.Style="{DynamicResource AppTitleBarStyle}"
         ui:ThemeManager.RequestedTheme="Dark"
         mc:Ignorable="d"
-        DataContext="{x:Static local:App.Catalog}"
+        DataContext="{x:Static local:ForgeCatalog.Instance}"
         Loaded="MainWindow_OnLoaded"
         Title="{Binding Status, Converter={StaticResource CatalogStatusToTitle}}" Height="1024" Width="1440">
 
@@ -77,7 +78,6 @@
 
             <!-- Right Side Info -->
             <StackPanel
-                DataContext="{Binding Source={x:Static local:App.Catalog}}"
                 Grid.Column="3"
                 Orientation="Horizontal">
                 <ui:TitleBarButton
@@ -116,7 +116,7 @@
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="3" />
+                <ColumnDefinition Width="2" />
                 <ColumnDefinition Width="4*" />
             </Grid.ColumnDefinitions>
 
@@ -134,8 +134,8 @@
                         ExpandDirection="Down"
                         VerticalAlignment="Top">
                         <ui:SimpleStackPanel Margin="8,4" Spacing="6">
-                            <TextBox ui:ControlHelper.Header="Asset UID" ui:ControlHelper.PlaceholderText="1234567890" />
-                            <TextBox ui:ControlHelper.Header="Catalog Tag" ui:ControlHelper.PlaceholderText="Black Ice" />
+                            <TextBox x:Name="AssetUidFilterTextbox" TextChanged="OnFilterChanged" ui:ControlHelper.Header="Asset UID" ui:ControlHelper.PlaceholderText="1234567890" />
+                            <TextBox x:Name="AssetNameFilterTextbox" TextChanged="OnFilterChanged" ui:ControlHelper.Header="Catalog Name" ui:ControlHelper.PlaceholderText="Black Ice" />
                         </ui:SimpleStackPanel>
                     </Expander>
                     <Expander
@@ -149,14 +149,16 @@
                                 Style="{DynamicResource BaseTextBlockStyle}">
                                 Catalog Status
                             </TextBlock>
-                            <ui:ListView SelectionMode="Multiple" ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogEntryStatus}}}" />
+                            <ui:ListView x:Name="StatusFilterList" SelectionMode="Multiple" SelectionChanged="OnFilterChanged"
+                                         ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogEntryStatus}}}" />
 
                             <TextBlock
                                 Margin="4"
                                 Style="{DynamicResource BaseTextBlockStyle}">
                                 Asset Category
                             </TextBlock>
-                            <ui:ListView SelectionMode="Multiple" ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogAssetCategory}}}" />
+                            <ui:ListView x:Name="CategoryFilterList" SelectionMode="Multiple" SelectionChanged="OnFilterChanged"
+                                         ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogAssetCategory}}}" />
                         </StackPanel>
                     </Expander>
                 </StackPanel>
@@ -165,7 +167,8 @@
                     Grid.Row="2"
                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                     VirtualizingPanel.VirtualizationMode="Recycling"
-                    ItemsSource="{Binding OpenedForge.Entries}">
+                    ItemsSource="{Binding FilteredEntries}"
+                    SelectedItem="{Binding SelectedEntry}">
                     <ui:ListView.ItemContainerStyle>
                         <Style TargetType="ui:ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -206,20 +209,50 @@
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*" />
-                    <RowDefinition Height="3" />
+                    <RowDefinition Height="2" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
+
+                <otk:GLWpfControl
+                    Grid.Row="0"
+                    x:Name="ModelViewport"
+                    MouseMove="ModelViewport_OnMouseMove"
+                    MouseDown="ModelViewport_OnMouseDown"
+                    MouseWheel="ModelViewport_OnMouseWheel"
+                    Render="ModelViewport_OnRender" />
 
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                               ResizeBehavior="PreviousAndNext" />
 
-                <ui:SimpleStackPanel Spacing="6" Margin="6" Grid.Row="2">
-                    <TextBox ui:ControlHelper.Header="Name" ui:ControlHelper.PlaceholderText="Asset Name" />
-                    <ComboBox ui:ControlHelper.Header="Category" ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogAssetCategory}}}" />
-                    <TextBox ui:ControlHelper.Header="Notes" MinLines="3" />
-                </ui:SimpleStackPanel>
+                <Grid Grid.Row="2" Visibility="{Binding IsEntrySelected, Converter={StaticResource BooleanToVisibility}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <ui:SimpleStackPanel Spacing="6" Margin="6" Grid.Column="0" DataContext="{Binding SelectedCatalogEntry }">
+                        <TextBox ui:ControlHelper.Header="Name" ui:ControlHelper.PlaceholderText="Asset Name" Text="{Binding Name}" />
+                        <ComboBox ui:ControlHelper.Header="Category"
+                                  SelectedItem="{Binding Category}"
+                                  ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogAssetCategory}}}" />
+                        <ui:RadioButtons Header="Catalog Status" SelectedItem="{Binding Status}"
+                                         ItemsSource="{Binding Source={bindingSources:EnumBindingSource {x:Type model:CatalogEntryStatus}}}" />
+                        <TextBox ui:ControlHelper.Header="Notes" MinLines="3" MaxLines="8" AcceptsReturn="True" Text="{Binding Notes}" />
+                    </ui:SimpleStackPanel>
+
+                    <ui:SimpleStackPanel HorizontalAlignment="Stretch" Spacing="6" Margin="6" Grid.Column="1" DataContext="{Binding SelectedEntry }">
+                        <TextBlock HorizontalAlignment="Right" Text="Asset UID" />
+                        <ui:SimpleStackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="6">
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Uid}" Style="{StaticResource UidTextBlock}" />
+                            <Button ToolTip="Copy UID" Click="OnCopyUid_Click">
+                                <ui:FontIcon Glyph="&#xE8C8;" />
+                            </Button>
+                        </ui:SimpleStackPanel>
+                        <Button Click="OnSaveEntry_Click" Content="Save Entry" HorizontalAlignment="Right" Style="{DynamicResource AccentButtonStyle}" />
+                    </ui:SimpleStackPanel>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>

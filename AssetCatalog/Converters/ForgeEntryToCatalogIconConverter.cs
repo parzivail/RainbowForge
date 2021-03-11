@@ -13,7 +13,7 @@ namespace AssetCatalog.Converters
 			if (value is not Entry forgeEntry)
 				return "\uE7BA";
 
-			var catalogEntry = App.Catalog.CatalogDb.Get(forgeEntry.Uid);
+			var catalogEntry = ForgeCatalog.Instance.CatalogDb.Get(forgeEntry.Uid);
 
 			switch (catalogEntry.Status)
 			{

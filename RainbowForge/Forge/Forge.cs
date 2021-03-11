@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -6,6 +7,7 @@ namespace RainbowForge.Forge
 {
 	public class Forge
 	{
+		private readonly Dictionary<ulong, int> _uidToEntryIndexMap;
 		public uint Version { get; }
 		public uint HeaderOffset { get; }
 		public uint NumEntries { get; }
@@ -20,6 +22,11 @@ namespace RainbowForge.Forge
 			NumEntries = numEntries;
 			Entries = entries;
 			Stream = stream;
+
+			_uidToEntryIndexMap = new Dictionary<ulong, int>();
+
+			for (var i = 0; i < entries.Length; i++)
+				_uidToEntryIndexMap[entries[i].Uid] = i;
 		}
 
 		public static Forge Read(BinaryReader r)
@@ -73,6 +80,11 @@ namespace RainbowForge.Forge
 			// TODO: LOSTFOUND
 
 			return new Forge(version, headerOffset, numEntries, entries, r);
+		}
+
+		public Container GetContainer(ulong entryUid)
+		{
+			return GetContainer(_uidToEntryIndexMap[entryUid]);
 		}
 
 		public Container GetContainer(int i)

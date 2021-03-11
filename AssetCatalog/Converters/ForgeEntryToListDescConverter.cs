@@ -1,32 +1,20 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using System.Windows.Media;
-using AssetCatalog.Model;
 using RainbowForge.Forge;
 
 namespace AssetCatalog.Converters
 {
-	public class ForgeEntryToCatalogIconBrushConverter : IValueConverter
+	public class ForgeEntryToListDescConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is not Entry forgeEntry)
-				return Brushes.DarkGray;
+				return "Invalid Entry";
 
 			var catalogEntry = ForgeCatalog.Instance.CatalogDb.Get(forgeEntry.Uid);
 
-			switch (catalogEntry.Status)
-			{
-				case CatalogEntryStatus.Incomplete:
-					return Brushes.Red;
-				case CatalogEntryStatus.PartiallyComplete:
-					return Brushes.Orange;
-				case CatalogEntryStatus.Complete:
-					return Brushes.LimeGreen;
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
+			return catalogEntry.Name;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

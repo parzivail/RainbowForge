@@ -34,6 +34,14 @@
                 <Setter Property="Foreground" Value="{DynamicResource SystemControlDisabledBaseMediumHighBrush}" />
             </Style>
 
+            <Style
+                TargetType="TextBlock"
+                x:Key="UidTextBlock">
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontFamily" Value="Courier New" />
+            </Style>
+
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
             <converters:ForgeEntryToIconConverter x:Key="ForgeEntryToIcon" />
             <converters:ForgeEntryToCatalogIconConverter x:Key="ForgeEntryToCatalogIcon" />
             <converters:ForgeEntryToCatalogIconBrushConverter x:Key="ForgeEntryToCatalogIconBrush" />
