@@ -110,5 +110,18 @@ namespace RainbowForge.Forge
 					throw new InvalidDataException($"No constructor for container {i} of style 0x{containerMagic:X} (from 0x{start:X} to 0x{end:X}), skipping");
 			}
 		}
+
+		public BinaryReader GetAssetStream(Entry entry)
+		{
+			var container = GetContainer(entry.Uid);
+
+			if (container is not ForgeAsset file)
+				throw new InvalidDataException("Entry with asset header was not file");
+
+			if (file.FileBlock == null)
+				throw new InvalidDataException("Asset file contained no file block");
+
+			return new BinaryReader(file.FileBlock.GetDecompressedStream(Stream));
+		}
 	}
 }

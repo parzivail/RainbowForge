@@ -8,30 +8,38 @@ namespace AssetCatalog.Model
 {
 	public class FirestoreCatalogDb : ICatalogDb
 	{
-		private readonly FirestoreDb _db;
+		private readonly string _project;
 		private QuerySnapshot _catalog;
+		private FirestoreDb _db;
 
 		public FirestoreCatalogDb(string project)
 		{
-			_db = FirestoreDb.Create(project);
+			_project = project;
 		}
 
 		/// <inheritdoc />
-		public Task Connect()
+		public async Task Connect()
 		{
+			_db = await FirestoreDb.CreateAsync(_project);
+
 			var collection = _db.Collection("catalog");
 			collection.Listen(snapshot =>
 			{
 				_catalog = snapshot;
 				ForgeCatalog.Instance.OnCatalogChanged();
 			});
-
-			return Task.CompletedTask;
 		}
 
 		/// <inheritdoc />
 		public CatalogEntry Get(ulong uid)
 		{
+			if (_catalog == null)
+				return new CatalogEntry
+				{
+					Status = CatalogEntryStatus.Incomplete,
+					Category = CatalogAssetCategory.Uncategorized
+				};
+
 			var uidStr = uid.ToString();
 			var document = _catalog.Documents.FirstOrDefault(snapshot => snapshot.Id == uidStr);
 			if (document == null)

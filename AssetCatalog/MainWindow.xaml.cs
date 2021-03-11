@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -10,7 +9,6 @@ using Microsoft.Win32;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
 using RainbowForge;
-using RainbowForge.Forge;
 using RainbowForge.Mesh;
 using RainbowForge.Texture;
 
@@ -93,29 +91,42 @@ namespace AssetCatalog
 				{
 					case AssetType.Mesh:
 					{
-						using var stream = GetAssetStream(entry);
-						var header = MeshHeader.Read(stream);
-						var mesh = Mesh.Read(stream, header);
+						try
+						{
+							using var stream = ForgeCatalog.Instance.OpenedForge.GetAssetStream(entry);
+							var header = MeshHeader.Read(stream);
+							var mesh = Mesh.Read(stream, header);
 
-						_modelRenderer.BuildModelQuads(mesh);
-						_modelRenderer.SetTexture(null);
+							_modelRenderer.BuildModelQuads(mesh);
+							_modelRenderer.SetTexture(null);
+							_modelRenderer.SetPartBounds(header.ObjectBoundingBoxes.Take((int) (header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
+						}
+						catch (Exception e)
+						{
+							ShowError(e);
+						}
 
-						_modelRenderer.SetPartBounds(header.ObjectBoundingBoxes.Take((int) (header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
 
 						break;
 					}
 					case AssetType.Texture:
 					{
-						using var stream = GetAssetStream(entry);
+						try
+						{
+							using var stream = ForgeCatalog.Instance.OpenedForge.GetAssetStream(entry);
+							var texture = Texture.Read(stream);
 
-						var texture = Texture.Read(stream);
+							var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));
 
-						var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));
+							_modelRenderer.BuildTextureMesh(texture);
+							_modelRenderer.SetTexture(bmp);
+							_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
+						}
+						catch (Exception e)
+						{
+							ShowError(e);
+						}
 
-						_modelRenderer.BuildTextureMesh(texture);
-						_modelRenderer.SetTexture(bmp);
-
-						_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
 						break;
 					}
 				}
@@ -132,18 +143,10 @@ namespace AssetCatalog
 			GL.Finish();
 		}
 
-		private static BinaryReader GetAssetStream(Entry entry)
+		private void ShowError(Exception e)
 		{
-			var forge = ForgeCatalog.Instance.OpenedForge;
-			var container = forge.GetContainer(entry.Uid);
-
-			if (container is not ForgeAsset file)
-				throw new InvalidDataException("Entry with asset header was not file");
-
-			if (file.FileBlock == null)
-				throw new InvalidDataException("Asset file contained no file block");
-
-			return new BinaryReader(file.FileBlock.GetDecompressedStream(forge.Stream));
+			ErrorDialogContent.Text = e.Message;
+			ErrorDialog.ShowAsync();
 		}
 
 		private void ModelViewport_OnMouseMove(object sender, MouseEventArgs e)

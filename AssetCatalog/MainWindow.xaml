@@ -255,5 +255,17 @@
                 </Grid>
             </Grid>
         </Grid>
+
+        <ui:ContentDialog
+            Title="Error"
+            CloseButtonText="Close"
+            DefaultButton="Close"
+            x:Name="ErrorDialog">
+            <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <!-- Content body -->
+                <TextBlock Text="There was an error loading the asset:" TextWrapping="Wrap" />
+                <TextBlock x:Name="ErrorDialogContent" FontFamily="Courier New" TextWrapping="Wrap" />
+            </StackPanel>
+        </ui:ContentDialog>
     </Grid>
 </Window>

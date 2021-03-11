@@ -82,7 +82,7 @@ namespace AssetCatalog
 				OnPropertyChanged();
 				OnPropertyChanged(nameof(IsEntrySelected));
 
-				SelectedCatalogEntry = CatalogDb.Get(SelectedEntry.Uid);
+				SelectedCatalogEntry = value == null ? null : CatalogDb.Get(value.Uid);
 			}
 		}
 
