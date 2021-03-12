@@ -6,6 +6,7 @@ using System.Windows.Input;
 using AssetCatalog.Model;
 using AssetCatalog.Render;
 using Microsoft.Win32;
+using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
 using RainbowForge;
@@ -38,9 +39,15 @@ namespace AssetCatalog
 			_modelRenderer = new ModelRenderer(ModelViewport);
 		}
 
-		private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+		private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
-			ForgeCatalog.Instance.CatalogDb.Connect();
+			var result = await LoginDialog.ShowAsync();
+
+			if (result != ContentDialogResult.Primary)
+				// Cancelled login
+				Environment.Exit(0);
+
+			await ForgeCatalog.Instance.CatalogDb.Connect(LoginEmail.Text, LoginPassword.Password);
 		}
 
 		private void OpenForge_OnClick(object sender, RoutedEventArgs e)

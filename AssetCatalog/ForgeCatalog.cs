@@ -60,7 +60,7 @@ namespace AssetCatalog
 			}
 		}
 
-		public ICatalogDb CatalogDb { get; } = new FirestoreCatalogDb("parzi-rainbowforge");
+		public ICatalogDb CatalogDb { get; } = new FirestoreCatalogDb();
 
 		public Forge OpenedForge
 		{

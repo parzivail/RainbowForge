@@ -2,25 +2,66 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Firebase.Auth;
+using Firebase.Auth.Providers;
 using Google.Cloud.Firestore;
+using Google.Cloud.Firestore.V1;
+using Grpc.Core;
 
 namespace AssetCatalog.Model
 {
 	public class FirestoreCatalogDb : ICatalogDb
 	{
-		private readonly string _project;
 		private QuerySnapshot _catalog;
 		private FirestoreDb _db;
 
-		public FirestoreCatalogDb(string project)
+		private static async Task<FirestoreDb> CreateFirestoreDbWithEmailAuthentication(string emailAddress, string password)
 		{
-			_project = project;
+			// Create a custom authentication mechanism for Email/Password authentication
+			// If the authentication is successful, we will get back the current authentication token and the refresh token
+			// The authentication expires every hour, so we need to use the obtained refresh token to obtain a new authentication token as the previous one expires
+
+			// This requires the following ruleset or similar to be applied to the Firestore:
+			/*
+				rules_version = '2';
+				service cloud.firestore {
+				  match /databases/{database}/documents {
+				    match /{document=**} {
+				      allow read, write: if request.auth != null;
+				    }
+				  }
+				}
+			 */
+
+			var authProvider = new FirebaseAuthClient(new FirebaseAuthConfig
+			{
+				ApiKey = "AIzaSyCcV55HIDDdeIp8SP5aki-eX4FfJtpyWB4",
+				AuthDomain = "parzi-rainbowforge.firebaseapp.com",
+				Providers = new FirebaseAuthProvider[] {new EmailProvider()}
+			});
+			var auth = await authProvider.SignInWithEmailAndPasswordAsync(emailAddress, password);
+
+			var callCredentials = CallCredentials.FromInterceptor(async (context, metadata) =>
+			{
+				var token = await auth.User.GetIdTokenAsync();
+
+				metadata.Clear();
+				metadata.Add("Authorization", $"Bearer {token}");
+			});
+			var credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials);
+
+			var client = await new FirestoreClientBuilder
+			{
+				ChannelCredentials = credentials
+			}.BuildAsync();
+
+			return await FirestoreDb.CreateAsync("parzi-rainbowforge", client);
 		}
 
 		/// <inheritdoc />
-		public async Task Connect()
+		public async Task Connect(string email, string password)
 		{
-			_db = await FirestoreDb.CreateAsync(_project);
+			_db = await CreateFirestoreDbWithEmailAuthentication(email, password);
 
 			var collection = _db.Collection("catalog");
 			collection.Listen(snapshot =>

@@ -257,15 +257,29 @@
         </Grid>
 
         <ui:ContentDialog
+            Title="Log In"
+            PrimaryButtonText="Log In"
+            CloseButtonText="Cancel"
+            DefaultButton="Primary"
+            x:Name="LoginDialog">
+            <ui:SimpleStackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Spacing="6">
+                <!-- Content body -->
+                <TextBlock Text="Log into RainbowForge Asset Catalog" TextWrapping="Wrap" />
+                <TextBox HorizontalAlignment="Stretch" x:Name="LoginEmail" ui:ControlHelper.PlaceholderText="Email Address" />
+                <PasswordBox HorizontalAlignment="Stretch" x:Name="LoginPassword" ui:ControlHelper.PlaceholderText="Password" />
+            </ui:SimpleStackPanel>
+        </ui:ContentDialog>
+
+        <ui:ContentDialog
             Title="Error"
             CloseButtonText="Close"
             DefaultButton="Close"
             x:Name="ErrorDialog">
-            <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <ui:SimpleStackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Spacing="6">
                 <!-- Content body -->
                 <TextBlock Text="There was an error loading the asset:" TextWrapping="Wrap" />
                 <TextBlock x:Name="ErrorDialogContent" FontFamily="Courier New" TextWrapping="Wrap" />
-            </StackPanel>
+            </ui:SimpleStackPanel>
         </ui:ContentDialog>
     </Grid>
 </Window>

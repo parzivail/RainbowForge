@@ -6,7 +6,7 @@ namespace AssetCatalog.Model
 {
 	public interface ICatalogDb
 	{
-		public Task Connect();
+		public Task Connect(string email, string password);
 
 		public CatalogEntry Get(ulong uid);
 		public void Put(ulong uid, CatalogEntry entry);
