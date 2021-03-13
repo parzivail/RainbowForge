@@ -6,8 +6,7 @@ namespace RainbowForge
 	public enum Magic : ulong
 	{
 		Unknown = 0,
-		FileContainer = 0x1014FA99,
-		FileContainerKnownType = 0x1014FA9957FBAA34,
+		FileContainer = 0x1014_FA99,
 		Mesh = 0xABEB2DFB,
 		InnerModelStruct = 0xFC9E1595,
 		DdsPayload = 0x13237FE9,
@@ -17,7 +16,8 @@ namespace RainbowForge
 		TextureD = 0x9F492D22,
 		TextureE = 0x3876ccdf,
 		TextureGui1 = 0x9468B9E2,
-		TextureGui2 = 0x5A61FAD
+		TextureGui2 = 0x5A61FAD,
+		WemSound = 0x427411A3
 	}
 
 	public enum ContainerMagic : uint
@@ -63,6 +63,7 @@ namespace RainbowForge
 				Magic.TextureE => AssetType.Texture,
 				Magic.TextureGui1 => AssetType.Texture,
 				Magic.TextureGui2 => AssetType.Texture,
+				Magic.WemSound => AssetType.Sound,
 				_ => AssetType.Unknown
 			};
 		}

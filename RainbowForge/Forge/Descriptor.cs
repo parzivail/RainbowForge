@@ -30,16 +30,19 @@ namespace RainbowForge.Forge
 
 				switch (dataType)
 				{
-					case 0: // uint
+					case 0x0: // uint
 						uintData[dataId] = r.ReadUInt32();
 						break;
-					case 1: // string
+					case 0x1: // string
 						var strLen = r.ReadInt32();
 						stringData[dataId] = Encoding.UTF8.GetString(r.ReadBytes(strLen));
 						r.ReadByte(); // 0x00
 						break;
-					case 2: // ulong
+					case 0x2: // ulong
 						ulongData[dataId] = r.ReadUInt64();
+						break;
+					case 0x5: // ???
+						r.ReadBytes(8);
 						break;
 					default:
 						throw new InvalidDataException($"Unknown data type! Data ID: 0x{dataId:X}, type 0x{dataType:X}");

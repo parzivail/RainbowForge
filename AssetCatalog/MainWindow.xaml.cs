@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -10,6 +11,7 @@ using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
 using RainbowForge;
+using RainbowForge.Forge;
 using RainbowForge.Mesh;
 using RainbowForge.Texture;
 
@@ -100,7 +102,11 @@ namespace AssetCatalog
 					{
 						try
 						{
-							using var stream = ForgeCatalog.Instance.OpenedForge.GetAssetStream(entry);
+							var container = ForgeCatalog.Instance.OpenedForge.GetContainer(entry.Uid);
+							if (container is not ForgeAsset forgeAsset)
+								throw new InvalidDataException("Container is not asset");
+
+							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
 							var header = MeshHeader.Read(stream);
 							var mesh = Mesh.Read(stream, header);
 
@@ -120,7 +126,11 @@ namespace AssetCatalog
 					{
 						try
 						{
-							using var stream = ForgeCatalog.Instance.OpenedForge.GetAssetStream(entry);
+							var container = ForgeCatalog.Instance.OpenedForge.GetContainer(entry.Uid);
+							if (container is not ForgeAsset forgeAsset)
+								throw new InvalidDataException("Container is not asset");
+
+							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
 							var texture = Texture.Read(stream);
 
 							var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));

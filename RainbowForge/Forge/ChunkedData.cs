@@ -11,7 +11,7 @@ namespace RainbowForge.Forge
 	///     a serialized variable, it's added merely for reverse
 	///     engineering ease.
 	/// </summary>
-	public class DatablockChunk
+	public class ChunkedData
 	{
 		public uint DecompressedLength { get; }
 		public uint OnDiskLength { get; }
@@ -20,7 +20,7 @@ namespace RainbowForge.Forge
 
 		public bool IsPacked => DecompressedLength > OnDiskLength;
 
-		private DatablockChunk(uint decompressedLength, uint onDiskLength)
+		private ChunkedData(uint decompressedLength, uint onDiskLength)
 		{
 			DecompressedLength = decompressedLength;
 			OnDiskLength = onDiskLength;
@@ -32,12 +32,12 @@ namespace RainbowForge.Forge
 			Offset = r.BaseStream.Position;
 		}
 
-		public static DatablockChunk Read(BinaryReader r)
+		public static ChunkedData Read(BinaryReader r)
 		{
 			var unpacked = r.ReadUInt32();
 			var packed = r.ReadUInt32();
 
-			return new DatablockChunk(unpacked, packed);
+			return new ChunkedData(unpacked, packed);
 		}
 	}
 }

@@ -15,12 +15,19 @@ namespace Sandbox
 	{
 		private static void Main(string[] args)
 		{
-			var bank = "datapc64_merged_bnk_mesh";
+			// var bank = "datapc64_merged_bnk_mesh";
 			// var bank = "datapc64_merged_bnk_textures0";
 			// var bank = "datapc64_merged_playgo_bnk_guitextures0";
+			var bank = "datapc64_merged_bnk_soundmedia";
 			var forgeStream = new BinaryReader(File.Open(@$"E:\Reverse Engineering\Siege\Dumps\Y5S4\{bank}.forge", FileMode.Open));
 
 			var forge = Forge.Read(forgeStream);
+
+			// Forge file naming scheme:
+			// - mesh: model assets
+			// - textures: texture assets
+			// - soundmedia: sound assets
+			// - gidata: global illumination maps
 
 			for (var i = 0; i < forge.NumEntries; i++)
 			{
@@ -30,24 +37,20 @@ namespace Sandbox
 
 				Console.Write($"Entry {i}: UID {entry.Uid}, {magic} (0x{entry.Name.FileType:X}) ");
 
-				if (magic == AssetType.Unknown)
+				// if (magic == AssetType.Unknown)
+				// {
+				// 	Console.WriteLine("Skipped");
+				// 	continue;
+				// }
+
+				var container = forge.GetContainer(entry.Uid);
+				if (container is not ForgeAsset forgeAsset)
 				{
-					Console.WriteLine("Skipped");
+					Console.WriteLine("Container is not asset");
 					continue;
 				}
 
-				var container = forge.GetContainer(i);
-
-				if (container is not ForgeAsset file)
-					throw new InvalidDataException("Entry with asset header was not file");
-
-				if (file.FileBlock == null)
-				{
-					Console.WriteLine("FileBlock null, Skipped");
-					continue;
-				}
-
-				using var assetStream = new BinaryReader(file.FileBlock.GetDecompressedStream(forgeStream));
+				using var assetStream = forgeAsset.GetDataStream(forge);
 
 				switch (magic)
 				{
@@ -66,7 +69,6 @@ namespace Sandbox
 							Console.WriteLine($"Error dumping model at {i}: uid {entry.Uid}, {e.Message}");
 						}
 
-						// Console.WriteLine("Dumped");
 						break;
 					}
 					case AssetType.Texture:
@@ -79,8 +81,6 @@ namespace Sandbox
 							DumpTexture(bank, $"id{entry.Uid}_type{texture.TexType}", texture, surface);
 
 							// DumpBin(bank, $"id{entry.Uid}_type{texture.TexType}_format{RawTexHelper.TextureTypes[texture.TexFormat]}", texture.ReadSurfaceBytes(assetStream));
-
-							Console.WriteLine($"Dumped texture at {i}: uid {entry.Uid}");
 						}
 						catch (Exception e)
 						{
@@ -89,18 +89,33 @@ namespace Sandbox
 
 						break;
 					}
+					case AssetType.Sound:
+					{
+						DumpBin(bank, $"id{entry.Uid}_filetype{entry.Name.FileType}", assetStream.BaseStream, "wem");
+						break;
+					}
+					default:
+					{
+						DumpBin(bank, $"id{entry.Uid}_filetype{entry.Name.FileType}", assetStream.BaseStream);
+						break;
+					}
 				}
+
+				Console.WriteLine("Dumped");
 			}
 
 			Console.WriteLine($"Processed {forge.Entries.Length} entries");
 		}
 
-		private static void DumpBin(string bank, string name, byte[] data)
+		private static void DumpBin(string bank, string name, Stream stream, string ext = "bin")
 		{
-			var filename = $@"R:\Siege Dumps\Unpacked\{bank}\{name}.bin";
+			var filename = $@"R:\Siege Dumps\Unpacked\{bank}\{name}.{ext}";
 
 			Directory.CreateDirectory(Path.GetDirectoryName(filename));
-			File.WriteAllBytes(filename, data);
+
+			using var fs = File.Open(filename, FileMode.Create);
+			stream.Seek(0, SeekOrigin.Begin);
+			stream.CopyTo(fs);
 		}
 
 		private static void DumpTexture(string bank, string name, Texture texture, byte[] surface)

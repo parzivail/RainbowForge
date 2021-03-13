@@ -1,18 +1,19 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace RainbowForge.Forge
 {
 	public class ForgeAsset : Container
 	{
-		public Datablock MetaBlock { get; }
-		public Datablock FileBlock { get; }
+		public IAssetBlock MetaBlock { get; }
+		public IAssetBlock AssetBlock { get; }
 
 		public bool HasMeta => MetaBlock != null;
 
-		private ForgeAsset(Datablock metaBlock, Datablock fileBlock)
+		private ForgeAsset(IAssetBlock metaBlock, IAssetBlock assetBlock)
 		{
 			MetaBlock = metaBlock;
-			FileBlock = fileBlock;
+			AssetBlock = assetBlock;
 		}
 
 		public static ForgeAsset Read(BinaryReader r, Entry entry)
@@ -21,21 +22,37 @@ namespace RainbowForge.Forge
 			MagicHelper.AssertEquals(Magic.FileContainer, magic);
 
 			var end = entry.End;
-			var block = Datablock.Read(r);
+
+			var blockA = GetAssetBlock(r);
 
 			if (r.BaseStream.Position >= end)
-				return new ForgeAsset(null, block);
+				return new ForgeAsset(null, blockA);
 
-			var containerMagic = r.ReadUInt64();
+			var assetBlockMagic = r.ReadUInt64(); // this might actually be 8 shorts and 16 0x00 bytes
 
-			if (!MagicHelper.Equals(Magic.FileContainerKnownType, containerMagic))
+			var blockB = GetAssetBlock(r);
+
+			return new ForgeAsset(blockA, blockB);
+		}
+
+		private static IAssetBlock GetAssetBlock(BinaryReader r)
+		{
+			var x = r.ReadUInt16(); // 2 (changed to 3 in Y5) <-- container deserializer type
+			var assetDeserializerType = r.ReadUInt16(); // 3 for chunked, 7 for linear (flags?)
+			var y = r.ReadByte(); // 0
+			var z = r.ReadUInt16();
+
+			return assetDeserializerType switch
 			{
-				r.BaseStream.Seek(end, SeekOrigin.Begin);
-				return new ForgeAsset(block, null);
-			}
+				3 => ChunkedDataBlock.Read(r),
+				7 => LinearDataBlock.Read(r),
+				_ => throw new NotImplementedException()
+			};
+		}
 
-			var file = Datablock.Read(r);
-			return new ForgeAsset(block, file);
+		public BinaryReader GetDataStream(Forge forge)
+		{
+			return new(AssetBlock.GetDataStream(forge.Stream));
 		}
 	}
 }
