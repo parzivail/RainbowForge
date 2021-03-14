@@ -20,6 +20,9 @@ namespace RainbowForge.Forge
 			var ldbStart = r.BaseStream.Position;
 			var numSomeData = r.ReadByte();
 
+			// if (entry.Uid == 338550615387)
+			// 	;
+
 			// smallest numSomeData is 1, so the smallest
 			// header length is 15
 			var someDataBytes = 12 * numSomeData + 3;

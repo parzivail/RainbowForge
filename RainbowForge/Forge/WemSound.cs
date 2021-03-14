@@ -29,9 +29,11 @@ namespace RainbowForge.Forge
 				case 0x81:
 				case 0x82:
 				case 0x83:
+				case 0x88:
 				case 0x89:
 				case 0x94:
 				case 0x96:
+				case 0x98:
 				case 0x9C:
 					meta2Length = 28;
 					break;
@@ -44,6 +46,12 @@ namespace RainbowForge.Forge
 
 			var payloadLength = r.ReadInt32();
 			var payloadOffset = r.BaseStream.Position;
+
+			var b4 = r.ReadBytes(4);
+			r.BaseStream.Seek(-4, SeekOrigin.Current);
+
+			if (!(b4[0] == 'R' && b4[1] == 'I' && b4[2] == 'F' && b4[3] == 'F'))
+				;
 
 			return new WemSound(meta, meta2, payloadOffset, payloadLength);
 		}
