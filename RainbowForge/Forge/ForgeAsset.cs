@@ -1,17 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace RainbowForge.Forge
 {
 	public class ForgeAsset : Container
 	{
+		private static readonly Dictionary<ulong, int> _magics = new();
 		public IAssetBlock MetaBlock { get; }
+		public ulong AssetBlockMagic { get; }
 		public IAssetBlock AssetBlock { get; }
 
 		public bool HasMeta => MetaBlock != null;
 
-		private ForgeAsset(IAssetBlock metaBlock, IAssetBlock assetBlock)
+		private ForgeAsset(IAssetBlock metaBlock, ulong assetBlockMagic, IAssetBlock assetBlock)
 		{
+			AssetBlockMagic = assetBlockMagic;
 			MetaBlock = metaBlock;
 			AssetBlock = assetBlock;
 		}
@@ -23,19 +27,24 @@ namespace RainbowForge.Forge
 
 			var end = entry.End;
 
-			var blockA = GetAssetBlock(r);
+			var blockA = GetAssetBlock(r, entry);
 
 			if (r.BaseStream.Position >= end)
-				return new ForgeAsset(null, blockA);
+				return new ForgeAsset(null, 0, blockA);
 
 			var assetBlockMagic = r.ReadUInt64(); // this might actually be 8 shorts and 16 0x00 bytes
 
-			var blockB = GetAssetBlock(r);
+			if (!_magics.ContainsKey(assetBlockMagic))
+				_magics[assetBlockMagic] = 0;
+			else
+				_magics[assetBlockMagic]++;
 
-			return new ForgeAsset(blockA, blockB);
+			var blockB = GetAssetBlock(r, entry);
+
+			return new ForgeAsset(blockA, assetBlockMagic, blockB);
 		}
 
-		private static IAssetBlock GetAssetBlock(BinaryReader r)
+		private static IAssetBlock GetAssetBlock(BinaryReader r, Entry entry)
 		{
 			var x = r.ReadUInt16(); // 2 (changed to 3 in Y5) <-- container deserializer type
 			var assetDeserializerType = r.ReadUInt16(); // 3 for chunked, 7 for linear (flags?)
@@ -45,7 +54,7 @@ namespace RainbowForge.Forge
 			return assetDeserializerType switch
 			{
 				3 => ChunkedDataBlock.Read(r),
-				7 => LinearDataBlock.Read(r),
+				7 => LinearDataBlock.Read(r, entry),
 				_ => throw new NotImplementedException()
 			};
 		}

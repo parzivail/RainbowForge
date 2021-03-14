@@ -26,9 +26,9 @@ namespace RainbowForge.Forge
 			var numChunks = r.ReadUInt16();
 			var u2 = r.ReadUInt16();
 
-			var packedLength = 0u;
-			var unpackedLength = 0u;
-			var isPacked = false;
+			var serializedLength = 0u;
+			var dataLength = 0u;
+			var isCompressed = false;
 
 			var chunks = new ChunkedData[numChunks];
 
@@ -36,23 +36,22 @@ namespace RainbowForge.Forge
 			{
 				var chunk = ChunkedData.Read(r);
 
-				packedLength += chunk.OnDiskLength;
-				unpackedLength += chunk.DecompressedLength;
+				serializedLength += chunk.SerializedLength;
+				dataLength += chunk.DataLength;
 
-				isPacked |= chunk.IsPacked;
+				isCompressed |= chunk.IsCompressed;
 
 				chunks[i] = chunk;
 			}
 
-			for (var i = 0; i < numChunks; i++)
+			foreach (var chunk in chunks)
 			{
-				chunks[i].Finalize(r);
-				r.BaseStream.Seek(chunks[i].OnDiskLength, SeekOrigin.Current);
+				chunk.Finalize(r);
+				r.BaseStream.Seek(chunk.SerializedLength, SeekOrigin.Current);
 			}
 
-			return new ChunkedDataBlock(chunks, isPacked, packedLength, unpackedLength);
+			return new ChunkedDataBlock(chunks, isCompressed, serializedLength, dataLength);
 		}
-
 
 		public MemoryStream GetDataStream(BinaryReader r)
 		{
@@ -62,17 +61,17 @@ namespace RainbowForge.Forge
 			{
 				r.BaseStream.Seek(chunk.Offset, SeekOrigin.Begin);
 
-				if (chunk.IsPacked)
+				if (chunk.IsCompressed)
 				{
 					var dctx = new ZstandardStream(r.BaseStream, CompressionMode.Decompress, true);
 					// TODO: make sure this reads exactly {chunk.OnDiskLength} bytes -- it should,
 					// but reading {chunk.DecompressedLength} bytes from a decompression stream is
 					// a weird way to do it
-					dctx.CopyStream(ms, (int) chunk.DecompressedLength);
+					dctx.CopyStream(ms, (int) chunk.DataLength);
 				}
 				else
 				{
-					r.BaseStream.CopyStream(ms, (int) chunk.OnDiskLength);
+					r.BaseStream.CopyStream(ms, (int) chunk.SerializedLength);
 				}
 			}
 

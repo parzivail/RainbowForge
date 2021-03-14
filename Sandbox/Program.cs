@@ -50,7 +50,17 @@ namespace Sandbox
 					continue;
 				}
 
-				using var assetStream = forgeAsset.GetDataStream(forge);
+				BinaryReader assetStream;
+
+				try
+				{
+					assetStream = forgeAsset.GetDataStream(forge);
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine($"GetDataStream failed: {e.Message}");
+					continue;
+				}
 
 				switch (magic)
 				{
@@ -79,8 +89,6 @@ namespace Sandbox
 							var surface = texture.ReadSurfaceBytes(assetStream);
 
 							DumpTexture(bank, $"id{entry.Uid}_type{texture.TexType}", texture, surface);
-
-							// DumpBin(bank, $"id{entry.Uid}_type{texture.TexType}_format{RawTexHelper.TextureTypes[texture.TexFormat]}", texture.ReadSurfaceBytes(assetStream));
 						}
 						catch (Exception e)
 						{
@@ -91,7 +99,13 @@ namespace Sandbox
 					}
 					case AssetType.Sound:
 					{
-						DumpBin(bank, $"id{entry.Uid}_filetype{entry.Name.FileType}", assetStream.BaseStream, "wem");
+						// format notes: see https://github.com/vgmstream/vgmstream/blob/master/src/meta/wwise.c
+						// vgmstream should be able to convert all of the WEM files spit out by this to WAV without any issues
+
+						var wem = WemSound.Read(assetStream);
+
+						DumpBin(bank, $"id{entry.Uid}", assetStream.BaseStream, wem.PayloadOffset, wem.PayloadLength, "wem");
+
 						break;
 					}
 					default:
@@ -107,15 +121,18 @@ namespace Sandbox
 			Console.WriteLine($"Processed {forge.Entries.Length} entries");
 		}
 
-		private static void DumpBin(string bank, string name, Stream stream, string ext = "bin")
+		private static void DumpBin(string bank, string name, Stream stream, long writeOffset = 0, int writeLength = -1, string ext = "bin")
 		{
 			var filename = $@"R:\Siege Dumps\Unpacked\{bank}\{name}.{ext}";
 
 			Directory.CreateDirectory(Path.GetDirectoryName(filename));
 
 			using var fs = File.Open(filename, FileMode.Create);
-			stream.Seek(0, SeekOrigin.Begin);
-			stream.CopyTo(fs);
+			stream.Seek(writeOffset, SeekOrigin.Begin);
+			if (writeLength == 0)
+				stream.CopyTo(fs);
+			else
+				stream.CopyStream(fs, writeLength);
 		}
 
 		private static void DumpTexture(string bank, string name, Texture texture, byte[] surface)

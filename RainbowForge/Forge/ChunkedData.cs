@@ -13,17 +13,17 @@ namespace RainbowForge.Forge
 	/// </summary>
 	public class ChunkedData
 	{
-		public uint DecompressedLength { get; }
-		public uint OnDiskLength { get; }
+		public uint DataLength { get; }
+		public uint SerializedLength { get; }
 		public uint Hash { get; private set; }
 		public long Offset { get; private set; }
 
-		public bool IsPacked => DecompressedLength > OnDiskLength;
+		public bool IsCompressed => DataLength > SerializedLength;
 
-		private ChunkedData(uint decompressedLength, uint onDiskLength)
+		private ChunkedData(uint dataLength, uint serializedLength)
 		{
-			DecompressedLength = decompressedLength;
-			OnDiskLength = onDiskLength;
+			DataLength = dataLength;
+			SerializedLength = serializedLength;
 		}
 
 		public void Finalize(BinaryReader r)
