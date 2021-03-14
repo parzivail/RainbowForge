@@ -18,7 +18,7 @@ namespace Sandbox
 			// var bank = "datapc64_merged_bnk_mesh";
 			// var bank = "datapc64_merged_bnk_textures0";
 			// var bank = "datapc64_merged_playgo_bnk_guitextures0";
-			var bank = "datapc64_merged_playgo_bnk_soundmedia_en-us";
+			var bank = "datapc64_ondemand";
 			var forgeStream = new BinaryReader(File.Open(@$"E:\Reverse Engineering\Siege\Dumps\Y5S4\{bank}.forge", FileMode.Open));
 
 			var forge = Forge.Read(forgeStream);
@@ -129,7 +129,7 @@ namespace Sandbox
 
 			using var fs = File.Open(filename, FileMode.Create);
 			stream.Seek(writeOffset, SeekOrigin.Begin);
-			if (writeLength == 0)
+			if (writeLength == -1)
 				stream.CopyTo(fs);
 			else
 				stream.CopyStream(fs, writeLength);
