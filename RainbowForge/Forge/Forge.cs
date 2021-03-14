@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using RainbowForge.Forge.Container;
 
 namespace RainbowForge.Forge
 {
@@ -82,12 +83,12 @@ namespace RainbowForge.Forge
 			return new Forge(version, headerOffset, numEntries, entries, r);
 		}
 
-		public Container GetContainer(ulong entryUid)
+		public ForgeContainer GetContainer(ulong entryUid)
 		{
 			return GetContainer(_uidToEntryIndexMap[entryUid]);
 		}
 
-		public Container GetContainer(int i)
+		public ForgeContainer GetContainer(int i)
 		{
 			var entry = Entries[i];
 			var start = entry.Offset;

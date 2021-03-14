@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.Container
 {
-	public class Hash : Container
+	public class Hash : ForgeContainer
 	{
 		public ulong Hash1 { get; }
 		public ulong Hash2 { get; }

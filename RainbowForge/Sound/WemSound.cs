@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Sound
 {
 	public class WemSound
 	{

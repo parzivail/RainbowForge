@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.DataBlock
 {
 	/// <summary>
 	///     Describes where to find particular data chunk, whether

@@ -11,7 +11,7 @@ using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
 using RainbowForge;
-using RainbowForge.Forge;
+using RainbowForge.Forge.Container;
 using RainbowForge.Mesh;
 using RainbowForge.Texture;
 

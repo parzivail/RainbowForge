@@ -1,37 +1,36 @@
 ﻿using System.IO;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.DataBlock
 {
-	public class LinearDataBlock : IAssetBlock
+	public class FlatDataBlock : IAssetBlock
 	{
-		public byte[] SomeData { get; }
+		public byte[] Meta { get; }
 		public long Offset { get; }
 		public int Length { get; }
 
-		private LinearDataBlock(byte[] someData, long offset, int length)
+		private FlatDataBlock(byte[] meta, long offset, int length)
 		{
-			SomeData = someData;
+			Meta = meta;
 			Offset = offset;
 			Length = length;
 		}
 
-		public static LinearDataBlock Read(BinaryReader r, Entry entry)
+		public static FlatDataBlock Read(BinaryReader r, Entry entry)
 		{
-			var ldbStart = r.BaseStream.Position;
-			var numSomeData = r.ReadByte();
+			var numMetaEntries = r.ReadByte();
 
 			// if (entry.Uid == 338550615387)
 			// 	;
 
 			// smallest numSomeData is 1, so the smallest
 			// header length is 15
-			var someDataBytes = 12 * numSomeData + 3;
-			var someData = r.ReadBytes(someDataBytes);
+			var metaLength = 12 * numMetaEntries + 3;
+			var meta = r.ReadBytes(metaLength);
 
 			var dataStart = r.BaseStream.Position;
 			r.BaseStream.Seek(entry.End, SeekOrigin.Begin);
 
-			return new LinearDataBlock(someData, dataStart, (int) (entry.End - dataStart));
+			return new FlatDataBlock(meta, dataStart, (int) (entry.End - dataStart));
 		}
 
 		public MemoryStream GetDataStream(BinaryReader r)

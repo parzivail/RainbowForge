@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.DataBlock
 {
 	/// <summary>
 	///     No-op class to serve as a common parent for all ForgeAsset subcomponents

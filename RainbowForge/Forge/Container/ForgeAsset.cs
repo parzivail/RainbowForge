@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using RainbowForge.Forge.DataBlock;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.Container
 {
-	public class ForgeAsset : Container
+	public class ForgeAsset : ForgeContainer
 	{
 		private static readonly Dictionary<ulong, int> _magics = new();
 		public IAssetBlock MetaBlock { get; }
@@ -54,7 +55,7 @@ namespace RainbowForge.Forge
 			return assetDeserializerType switch
 			{
 				3 => ChunkedDataBlock.Read(r),
-				7 => LinearDataBlock.Read(r, entry),
+				7 => FlatDataBlock.Read(r, entry),
 				_ => throw new NotImplementedException()
 			};
 		}

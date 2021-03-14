@@ -2,9 +2,9 @@
 using System.IO;
 using System.Text;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.Container
 {
-	public class Descriptor : Container
+	public class Descriptor : ForgeContainer
 	{
 		public Dictionary<uint, uint> UIntData { get; }
 		public Dictionary<uint, string> StringData { get; }

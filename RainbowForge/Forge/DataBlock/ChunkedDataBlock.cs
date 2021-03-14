@@ -2,7 +2,7 @@
 using System.IO.Compression;
 using Zstandard.Net;
 
-namespace RainbowForge.Forge
+namespace RainbowForge.Forge.DataBlock
 {
 	public class ChunkedDataBlock : IAssetBlock
 	{
