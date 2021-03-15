@@ -21,7 +21,7 @@ namespace Sandbox
 			// var bank = "datapc64_merged_bnk_textures0";
 			// var bank = "datapc64_merged_playgo_bnk_guitextures0";
 			var bank = "datapc64_ondemand";
-			var forgeStream = new BinaryReader(File.Open(@$"E:\Reverse Engineering\Siege\Dumps\Y5S4\{bank}.forge", FileMode.Open));
+			var forgeStream = new BinaryReader(File.Open(@$"R:\Siege Dumps\Y5S4\{bank}.forge", FileMode.Open));
 
 			var forge = Forge.Read(forgeStream);
 
@@ -74,7 +74,7 @@ namespace Sandbox
 
 							var mesh = Mesh.Read(assetStream, header);
 
-							DumpMesh(bank, $"id{entry.Uid}_type{header.MeshType}_v{header.Revision}", mesh);
+							DumpMeshObj(bank, $"id{entry.Uid}_type{header.MeshType}_v{header.Revision}", mesh);
 						}
 						catch (Exception e)
 						{
@@ -151,7 +151,7 @@ namespace Sandbox
 			bitmap.Save(filename, ImageFormat.Png);
 		}
 
-		private static void DumpMesh(string bank, string name, Mesh mesh)
+		private static void DumpMeshObj(string bank, string name, Mesh mesh)
 		{
 			var filename = $@"R:\Siege Dumps\Unpacked\{bank}\{name}.obj";
 
