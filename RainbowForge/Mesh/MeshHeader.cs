@@ -50,6 +50,10 @@ namespace RainbowForge.Mesh
 			// file header (0x5C - zeroes till verts)
 			var metaHeader = FileMeta.Read(r);
 
+			var secondMagic = r.ReadUInt32();
+			var var2 = r.ReadUInt32();
+			var var3 = r.ReadUInt32();
+
 			// model header
 			var innerModelStructMagic = r.ReadUInt32(); // [-0x8], inner model struct type
 			MagicHelper.AssertEquals(Magic.InnerModelStruct, innerModelStructMagic);

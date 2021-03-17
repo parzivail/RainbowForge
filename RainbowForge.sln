@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainbowForge", "RainbowForge\RainbowForge.csproj", "{7B9CEA86-8793-44FE-BE70-8C79590861F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modeljson2Obj", "Modeljson2Obj\Modeljson2Obj.csproj", "{2A6FA8B1-95DB-4AE7-8192-777FD9BC22F0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{8AE96F2D-E7BA-4DA4-ABC6-0F3F9A2A2CE2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetCatalog", "AssetCatalog\AssetCatalog.csproj", "{AC0846ED-9D6D-43E7-B39C-2A63C5E15AEA}"
@@ -20,10 +18,6 @@ Global
 		{7B9CEA86-8793-44FE-BE70-8C79590861F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B9CEA86-8793-44FE-BE70-8C79590861F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B9CEA86-8793-44FE-BE70-8C79590861F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2A6FA8B1-95DB-4AE7-8192-777FD9BC22F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2A6FA8B1-95DB-4AE7-8192-777FD9BC22F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2A6FA8B1-95DB-4AE7-8192-777FD9BC22F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2A6FA8B1-95DB-4AE7-8192-777FD9BC22F0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8AE96F2D-E7BA-4DA4-ABC6-0F3F9A2A2CE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8AE96F2D-E7BA-4DA4-ABC6-0F3F9A2A2CE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AE96F2D-E7BA-4DA4-ABC6-0F3F9A2A2CE2}.Release|Any CPU.ActiveCfg = Release|Any CPU

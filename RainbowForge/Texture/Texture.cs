@@ -38,6 +38,10 @@ namespace RainbowForge.Texture
 		{
 			var header = FileMeta.Read(r);
 
+			var secondMagic = r.ReadUInt32();
+			var var2 = r.ReadUInt32();
+			var var3 = r.ReadUInt32();
+
 			var magic = r.ReadUInt32();
 			MagicHelper.AssertEquals(Magic.DdsPayload, magic);
 

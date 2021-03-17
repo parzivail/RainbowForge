@@ -9,8 +9,4 @@
       <ProjectReference Include="..\RainbowForge\RainbowForge.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
-    </ItemGroup>
-
 </Project>

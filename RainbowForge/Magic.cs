@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace RainbowForge
+﻿namespace RainbowForge
 {
 	public enum Magic : ulong
 	{
@@ -16,8 +13,11 @@ namespace RainbowForge
 		TextureD = 0x9F492D22,
 		TextureE = 0x3876ccdf,
 		TextureGui1 = 0x9468B9E2,
-		TextureGui2 = 0x5A61FAD,
-		WemSound = 0x427411A3
+		TextureGui2 = 0x05A61FAD,
+		WemSound = 0x427411A3,
+		FlatArchive = 0x22ECBE63,
+		FlatArchiveUidLinkContainer = 0x22ECBE63,
+		FlatArchiveShader = 0x1C9A0555
 	}
 
 	public enum ContainerMagic : uint
@@ -32,40 +32,7 @@ namespace RainbowForge
 		Unknown,
 		Mesh,
 		Texture,
-		Sound
-	}
-
-	public class MagicHelper
-	{
-		public static void AssertEquals(Magic magic, ulong value)
-		{
-			if (!Equals(magic, value))
-				throw new InvalidDataException();
-		}
-
-		public static bool Equals(Magic magic, ulong value)
-		{
-			return (Magic) value == magic;
-		}
-
-		public static AssetType GetFiletype(ulong magic)
-		{
-			if (!Enum.IsDefined(typeof(Magic), magic))
-				return AssetType.Unknown;
-
-			return (Magic) magic switch
-			{
-				Magic.Mesh => AssetType.Mesh,
-				Magic.TextureA => AssetType.Texture,
-				Magic.TextureB => AssetType.Texture,
-				Magic.TextureC => AssetType.Texture,
-				Magic.TextureD => AssetType.Texture,
-				Magic.TextureE => AssetType.Texture,
-				Magic.TextureGui1 => AssetType.Texture,
-				Magic.TextureGui2 => AssetType.Texture,
-				Magic.WemSound => AssetType.Sound,
-				_ => AssetType.Unknown
-			};
-		}
+		Sound,
+		FlatArchive
 	}
 }
