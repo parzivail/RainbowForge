@@ -124,6 +124,8 @@ namespace ForgeDiff
 				264609543662, // tablet mesh
 				84504901391, // head mesh
 				91271895122, // eyes/teeth mesh
+				264139769470, // = dokk elite suspenders/crop/skin texture
+				264139769302, // = dokk elite pants/shoes texture
 				241888864993,
 				241888865002,
 				241888865013,
@@ -166,16 +168,10 @@ namespace ForgeDiff
 				67256658873
 			};
 
-			var refs = new List<UidReference>();
+			var refs = new Dictionary<ArchiveReference, List<UidReference>>();
 			foreach (var filterUid in filterUids) BuildReferenceList(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", filterUid, refs, 261653128116);
 
-			var tree = BuildReferenceTree(refs);
-
-			foreach (var rootNode in tree)
-			{
-				Console.WriteLine($"> {rootNode.Value.ArchiveEntryUid} = FA/idx{rootNode.Value.ArchiveEntryIdx}");
-				PrintReferenceTree(rootNode, 1);
-			}
+			PrintReferenceTree(refs, 261653128116);
 
 			// DumpNewFiles(@"R:\Siege Dumps\Y6S1 v15447382", databaseFileDiff, @"R:\Siege Dumps\Asset Indexes\New in Y6S1");
 			// CompareIndexes(databaseFileA, databaseFileB, databaseFileDiff);
@@ -184,76 +180,45 @@ namespace ForgeDiff
 			Console.WriteLine("Done");
 		}
 
-		private static void PrintReferenceTree(TreeNode<UidReference> refTree, int indentLevel = 0)
+		private static void PrintReferenceTree(Dictionary<ArchiveReference, List<UidReference>> refs, ulong root, long localPos = 0, int indentLevel = 0)
 		{
-			if (refTree.Value.ReferencedUid == refTree.Value.ArchiveEntryUid)
+			var archiveRef = refs.First(pair => pair.Key.ArchiveEntryUid == root); // there should only be one
+			Console.WriteLine($"{IndentString(indentLevel)}> {archiveRef.Key.ArchiveEntryUid} = FA/idx{archiveRef.Key.ArchiveEntryIdx} (pos {localPos})");
+
+			foreach (var (refUid, pos) in archiveRef.Value)
 			{
-				Console.WriteLine($"{"".PadLeft((indentLevel + 1) * 4)}<> (at +{refTree.Value.Pos})");
-				return;
-			}
-
-			if (refTree.Children.Count > 0)
-			{
-				// all of the children should be of the same archive, but with different referenced UIDs
-				// so we print a single header and print the UIDs individually right after
-				var archiveEntryGroup = refTree.Children.GroupBy(node => node.Value.ArchiveEntryIdx).Select(nodes => nodes.First()).First();
-				var formattedLine = $"{"".PadLeft(indentLevel * 4)}> {archiveEntryGroup.Value.ArchiveEntryUid} = FA/idx{archiveEntryGroup.Value.ArchiveEntryIdx} (at +{refTree.Value.Pos})";
-				Console.WriteLine(formattedLine);
-
-				foreach (var uidRefs in refTree.Children)
-					PrintReferenceTree(uidRefs, indentLevel + 1);
-			}
-			else
-			{
-				Console.WriteLine($"{"".PadLeft((indentLevel + 1) * 4)}> {refTree.Value.ReferencedUid} = asset (at +{refTree.Value.Pos})");
-			}
-		}
-
-		private static List<TreeNode<UidReference>> BuildReferenceTree(List<UidReference> refs)
-		{
-			refs = refs.Distinct().ToList();
-
-			var roots = refs
-				.Where(uidRef => uidRef.ArchiveEntryIdx == 0) // keep only flat archive roots
-				.GroupBy(uidRef => uidRef.ArchiveEntryUid) // group them by UID
-				.Select(g => g.First()) // pull one from each UID grouping
-				.ToList();
-
-			return roots.Select(root => BuildReferenceTreeForRef(root, refs)).ToList();
-		}
-
-		private static TreeNode<UidReference> BuildReferenceTreeForRef(UidReference root, List<UidReference> deps)
-		{
-			var node = new TreeNode<UidReference>(root);
-
-			foreach (var child in deps.Where(uidRef => uidRef.ArchiveEntryUid == root.ReferencedUid))
-			{
-				if (child.ArchiveEntryUid == root.ArchiveEntryUid)
+				if (refUid == root)
 					continue;
 
-				node.Children.Add(BuildReferenceTreeForRef(child, deps));
+				if (refs.Any(pair => pair.Key.ArchiveEntryUid == refUid))
+					PrintReferenceTree(refs, refUid, pos, indentLevel + 1);
+				else
+					Console.WriteLine($"{IndentString(indentLevel + 1)}> {refUid} = asset (pos {pos})");
 			}
-
-			return node;
 		}
 
-		private static void BuildReferenceList(string forgeFile, ulong needle, List<UidReference> refs, ulong archiveUid = 0)
+		private static string IndentString(int level)
+		{
+			return new('\t', level);
+		}
+
+		private static void BuildReferenceList(string forgeFile, ulong needle, Dictionary<ArchiveReference, List<UidReference>> refs, ulong archiveUid = 0)
 		{
 			Console.Write($"{needle}: ");
 			var foundRefs = SearchFlatArchives(forgeFile, needle, archiveUid);
 			Console.WriteLine($"{foundRefs.Count} references");
 
-			refs.AddRange(foundRefs);
-
-			foreach (var uidRef in foundRefs.Where(uidRef => uidRef.ArchiveEntryIdx != 0))
+			foreach (var refArchiveUid in foundRefs.Keys)
 			{
-				if (uidRef.ArchiveEntryIdx == 0)
+				if (refs.ContainsKey(refArchiveUid))
+					refs[refArchiveUid].AddRange(foundRefs[refArchiveUid].Where(r => !refs[refArchiveUid].Contains(r)));
+				else
+					refs[refArchiveUid] = foundRefs[refArchiveUid];
+
+				if (refArchiveUid.ArchiveEntryUid == needle)
 					continue;
 
-				if (uidRef.ArchiveEntryUid == needle)
-					continue;
-
-				BuildReferenceList(forgeFile, uidRef.ArchiveEntryUid, refs, archiveUid);
+				BuildReferenceList(forgeFile, refArchiveUid.ArchiveEntryUid, refs, archiveUid);
 			}
 		}
 
@@ -274,19 +239,27 @@ namespace ForgeDiff
 			}
 		}
 
-		private static List<UidReference> SearchAllFlatArchives(string dir, ulong needle)
+		private static Dictionary<ArchiveReference, List<UidReference>> SearchAllFlatArchives(string dir, ulong needle)
 		{
-			var deps = new List<UidReference>();
+			var deps = new Dictionary<ArchiveReference, List<UidReference>>();
 
 			foreach (var forgeFile in Directory.GetFiles(dir, "*.forge"))
-				deps.AddRange(SearchFlatArchives(forgeFile, needle));
+			{
+				var refs = SearchFlatArchives(forgeFile, needle);
+
+				foreach (var archiveUid in refs.Keys)
+					if (deps.ContainsKey(archiveUid))
+						deps[archiveUid].AddRange(refs[archiveUid].Where(r => !deps[archiveUid].Contains(r)));
+					else
+						deps[archiveUid] = refs[archiveUid];
+			}
 
 			return deps;
 		}
 
-		private static List<UidReference> SearchFlatArchives(string forgeFile, ulong needle, ulong archiveUid = 0)
+		private static Dictionary<ArchiveReference, List<UidReference>> SearchFlatArchives(string forgeFile, ulong needle, ulong archiveUid = 0)
 		{
-			var deps = new List<UidReference>();
+			var deps = new Dictionary<ArchiveReference, List<UidReference>>();
 
 			using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
 
@@ -328,7 +301,12 @@ namespace ForgeDiff
 						if (ul != needle)
 							continue;
 
-						deps.Add(new UidReference(needle, entry.Uid, arcEntry.Meta.Uid, arcEntryIdx, pos - arcEntry.PayloadOffset));
+						var archiveRef = new ArchiveReference(entry.Uid, arcEntry.Meta.Uid, arcEntryIdx);
+
+						if (!deps.ContainsKey(archiveRef))
+							deps[archiveRef] = new List<UidReference>();
+
+						deps[archiveRef].Add(new UidReference(needle, pos - arcEntry.PayloadOffset));
 					}
 				}
 			}
@@ -573,6 +551,8 @@ namespace ForgeDiff
 			}
 		}
 
-		public record UidReference(ulong ReferencedUid, ulong FlatArchiveUid, ulong ArchiveEntryUid, int ArchiveEntryIdx, long Pos);
+		public record ArchiveReference(ulong FlatArchiveUid, ulong ArchiveEntryUid, int ArchiveEntryIdx);
+
+		public record UidReference(ulong ReferencedUid, long Pos);
 	}
 }
