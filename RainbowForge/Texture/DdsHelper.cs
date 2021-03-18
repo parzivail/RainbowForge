@@ -1,9 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
-using Pfim;
 
 namespace RainbowForge.Texture
 {
@@ -28,34 +24,20 @@ namespace RainbowForge.Texture
 			{0x11, DirectXTexUtil.DXGIFormat.B8G8R8A8UNORM}
 		};
 
-		public static Dds GetDds(Texture texture, byte[] surface)
+		public static MemoryStream GetDdsStream(Texture texture, byte[] surface)
 		{
 			var dxgiFormat = TextureTypes[texture.TexFormat];
 
 			var meta = DirectXTexUtil.GenerateMataData(texture.Width, texture.Height, (int) texture.Mips, dxgiFormat, false);
 			DirectXTexUtil.GenerateDDSHeader(meta, DirectXTexUtil.DDSFlags.NONE, out var header, out var dx10);
 
-			using var ms = new MemoryStream();
+			var ms = new MemoryStream();
 			DirectXTexUtil.EncodeDDSHeader(ms, header, dx10);
 			ms.Write(surface, 0, surface.Length);
 
 			ms.Seek(0, SeekOrigin.Begin);
 
-			return Dds.Create(ms, new PfimConfig());
-		}
-
-		public static Bitmap GetBitmap(IImage image)
-		{
-			var handle = GCHandle.Alloc(image.Data, GCHandleType.Pinned);
-			try
-			{
-				var data = Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
-				return new Bitmap(image.Width, image.Height, image.Stride, PixelFormat.Format32bppArgb, data);
-			}
-			finally
-			{
-				handle.Free();
-			}
+			return ms;
 		}
 	}
 }

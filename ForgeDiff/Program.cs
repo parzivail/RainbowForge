@@ -80,7 +80,8 @@ namespace ForgeDiff
 							<> (pos 434)
 							> 261653128116 = datapc64_ondemand/261653128116 (idx0) (pos 244)
 							
-				264139769302 = dokk elite body texture
+				264139769470 = dokk elite suspenders/crop/skin texture
+				264139769302 = dokk elite pants/shoes texture
 					> 264139769298 = FA/idx104 (pos 104, 144)
 						> 264139769297 = FA/idx50 (pos 12)
 							> 261653127913 = FA/idx11 (pos 24)
@@ -110,17 +111,150 @@ namespace ForgeDiff
 					> 261653128200 (pos 268) -> headgear tex
 			 */
 
-			var searchNeedle = 4160749588u;
+			var searchNeedle = 241888864993u;
 			// SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle);
 			// SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle);
 			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\flatarchive_id261653128199", searchNeedle);
-			SearchIndex(databaseFileNewest, searchNeedle);
+			// SearchIndex(databaseFileNewest, searchNeedle);
+
+			var filterUids = new ulong[]
+			{
+				264139768986, // headgear mesh
+				264139769111, // body mesh
+				264609543662, // tablet mesh
+				84504901391, // head mesh
+				91271895122, // eyes/teeth mesh
+				241888864993,
+				241888865002,
+				241888865013,
+				264139769014,
+				264139769027,
+				264139769037,
+				264139769156,
+				264139769167,
+				264139769176,
+				264139769187,
+				264139769198,
+				264139769209,
+				264139769218,
+				264139769229,
+				264139769240,
+				264139769251,
+				264139769260,
+				264139769271,
+				264139769282,
+				264139769293,
+				264139769302,
+				264139769313,
+				264139769335,
+				264139769344,
+				264139769355,
+				264139769366,
+				264139769377,
+				264139769386,
+				264139769397,
+				264139769408,
+				264139769419,
+				264139769428,
+				264139769439,
+				264139769450,
+				264139769461,
+				264139769470,
+				264139769481,
+				67256658863,
+				67256658867,
+				67256658873
+			};
+
+			var refs = new List<UidReference>();
+			foreach (var filterUid in filterUids) BuildReferenceList(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", filterUid, refs, 261653128116);
+
+			var tree = BuildReferenceTree(refs);
+
+			foreach (var rootNode in tree)
+			{
+				Console.WriteLine($"> {rootNode.Value.ArchiveEntryUid} = FA/idx{rootNode.Value.ArchiveEntryIdx}");
+				PrintReferenceTree(rootNode, 1);
+			}
 
 			// DumpNewFiles(@"R:\Siege Dumps\Y6S1 v15447382", databaseFileDiff, @"R:\Siege Dumps\Asset Indexes\New in Y6S1");
 			// CompareIndexes(databaseFileA, databaseFileB, databaseFileDiff);
 			// CreateAssetIndex(databaseFileB, @"R:\Siege Dumps\Y6S1 v15447382");
 
 			Console.WriteLine("Done");
+		}
+
+		private static void PrintReferenceTree(TreeNode<UidReference> refTree, int indentLevel = 0)
+		{
+			if (refTree.Value.ReferencedUid == refTree.Value.ArchiveEntryUid)
+			{
+				Console.WriteLine($"{"".PadLeft((indentLevel + 1) * 4)}<> (at +{refTree.Value.Pos})");
+				return;
+			}
+
+			if (refTree.Children.Count > 0)
+			{
+				// all of the children should be of the same archive, but with different referenced UIDs
+				// so we print a single header and print the UIDs individually right after
+				var archiveEntryGroup = refTree.Children.GroupBy(node => node.Value.ArchiveEntryIdx).Select(nodes => nodes.First()).First();
+				var formattedLine = $"{"".PadLeft(indentLevel * 4)}> {archiveEntryGroup.Value.ArchiveEntryUid} = FA/idx{archiveEntryGroup.Value.ArchiveEntryIdx} (at +{refTree.Value.Pos})";
+				Console.WriteLine(formattedLine);
+
+				foreach (var uidRefs in refTree.Children)
+					PrintReferenceTree(uidRefs, indentLevel + 1);
+			}
+			else
+			{
+				Console.WriteLine($"{"".PadLeft((indentLevel + 1) * 4)}> {refTree.Value.ReferencedUid} = asset (at +{refTree.Value.Pos})");
+			}
+		}
+
+		private static List<TreeNode<UidReference>> BuildReferenceTree(List<UidReference> refs)
+		{
+			refs = refs.Distinct().ToList();
+
+			var roots = refs
+				.Where(uidRef => uidRef.ArchiveEntryIdx == 0) // keep only flat archive roots
+				.GroupBy(uidRef => uidRef.ArchiveEntryUid) // group them by UID
+				.Select(g => g.First()) // pull one from each UID grouping
+				.ToList();
+
+			return roots.Select(root => BuildReferenceTreeForRef(root, refs)).ToList();
+		}
+
+		private static TreeNode<UidReference> BuildReferenceTreeForRef(UidReference root, List<UidReference> deps)
+		{
+			var node = new TreeNode<UidReference>(root);
+
+			foreach (var child in deps.Where(uidRef => uidRef.ArchiveEntryUid == root.ReferencedUid))
+			{
+				if (child.ArchiveEntryUid == root.ArchiveEntryUid)
+					continue;
+
+				node.Children.Add(BuildReferenceTreeForRef(child, deps));
+			}
+
+			return node;
+		}
+
+		private static void BuildReferenceList(string forgeFile, ulong needle, List<UidReference> refs, ulong archiveUid = 0)
+		{
+			Console.Write($"{needle}: ");
+			var foundRefs = SearchFlatArchives(forgeFile, needle, archiveUid);
+			Console.WriteLine($"{foundRefs.Count} references");
+
+			refs.AddRange(foundRefs);
+
+			foreach (var uidRef in foundRefs.Where(uidRef => uidRef.ArchiveEntryIdx != 0))
+			{
+				if (uidRef.ArchiveEntryIdx == 0)
+					continue;
+
+				if (uidRef.ArchiveEntryUid == needle)
+					continue;
+
+				BuildReferenceList(forgeFile, uidRef.ArchiveEntryUid, refs, archiveUid);
+			}
 		}
 
 		private static void SearchIndex(string databaseFile, ulong needle)
@@ -140,15 +274,21 @@ namespace ForgeDiff
 			}
 		}
 
-		private static void SearchAllFlatArchives(string dir, ulong needle)
+		private static List<UidReference> SearchAllFlatArchives(string dir, ulong needle)
 		{
+			var deps = new List<UidReference>();
+
 			foreach (var forgeFile in Directory.GetFiles(dir, "*.forge"))
-				SearchFlatArchives(forgeFile, needle);
+				deps.AddRange(SearchFlatArchives(forgeFile, needle));
+
+			return deps;
 		}
 
-		private static void SearchFlatArchives(string forgeFile, ulong needle)
+		private static List<UidReference> SearchFlatArchives(string forgeFile, ulong needle, ulong archiveUid = 0)
 		{
-			var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
+			var deps = new List<UidReference>();
+
+			using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
 
 			var forge = Forge.Read(forgeStream);
 
@@ -164,6 +304,9 @@ namespace ForgeDiff
 
 				var magic = MagicHelper.GetFiletype(entry.Name.FileType);
 				if (magic != AssetType.FlatArchive)
+					continue;
+
+				if (archiveUid != 0 && entry.Uid != archiveUid)
 					continue;
 
 				var container = forge.GetContainer(entry.Uid);
@@ -185,10 +328,12 @@ namespace ForgeDiff
 						if (ul != needle)
 							continue;
 
-						Console.WriteLine($"flatarchive_id{entry.Uid}/idx{arcEntryIdx}_filetype{arcEntry.Meta.Magic}: {needle:X} at pos {pos - arcEntry.PayloadOffset}");
+						deps.Add(new UidReference(needle, entry.Uid, arcEntry.Meta.Uid, arcEntryIdx, pos - arcEntry.PayloadOffset));
 					}
 				}
 			}
+
+			return deps;
 		}
 
 		private static void SearchBinFiles(string rootSearchDir, ulong needle)
@@ -386,7 +531,7 @@ namespace ForgeDiff
 			{
 				var forgeFile = files[fileIdx];
 
-				var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
+				using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
 				var forge = Forge.Read(forgeStream);
 
 				var forgeFileName = Path.GetFileNameWithoutExtension(forgeFile);
@@ -409,5 +554,25 @@ namespace ForgeDiff
 				}
 			}
 		}
+
+		private class TreeNode<T>
+		{
+			public T Value { get; }
+			public List<TreeNode<T>> Children { get; }
+
+			public TreeNode(T value)
+			{
+				Value = value;
+				Children = new List<TreeNode<T>>();
+			}
+
+			/// <inheritdoc />
+			public override string ToString()
+			{
+				return Value.ToString();
+			}
+		}
+
+		public record UidReference(ulong ReferencedUid, ulong FlatArchiveUid, ulong ArchiveEntryUid, int ArchiveEntryIdx, long Pos);
 	}
 }

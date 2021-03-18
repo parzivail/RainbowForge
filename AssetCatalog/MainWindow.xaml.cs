@@ -133,10 +133,11 @@ namespace AssetCatalog
 							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
 							var texture = Texture.Read(stream);
 
-							var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));
+							// TODO
+							// var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));
 
 							_modelRenderer.BuildTextureMesh(texture);
-							_modelRenderer.SetTexture(bmp);
+							// _modelRenderer.SetTexture(bmp);
 							_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
 						}
 						catch (Exception e)

@@ -1,9 +1,6 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
+﻿using System.IO;
 using JeremyAnsel.Media.WavefrontObj;
 using OpenTK.Mathematics;
-using Pfim.dds;
 using RainbowForge.Archive;
 using RainbowForge.Forge;
 using RainbowForge.Forge.Container;
@@ -100,19 +97,8 @@ namespace RainbowForge.Dump
 
 		private static void DumpTexture(string bank, string name, Texture.Texture texture, byte[] surface)
 		{
-			var filename = Path.Combine(bank, $"{name}.png");
-
-			var dds = DdsHelper.GetDds(texture, surface);
-
-			if (dds is Bc4Dds || dds is Bc5Dds)
-				return; // BcX DDS textures break when exporting for some reason
-
-			var bitmap = DdsHelper.GetBitmap(dds);
-
-			// textures are v-flipped
-			bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
-			bitmap.Save(filename, ImageFormat.Png);
+			using var stream = DdsHelper.GetDdsStream(texture, surface);
+			DumpBin(bank, name, stream, ext: "dds");
 		}
 
 		private static void DumpMeshObj(string bank, string name, Mesh.Mesh mesh)
