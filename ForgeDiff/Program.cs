@@ -111,9 +111,9 @@ namespace ForgeDiff
 					> 261653128200 (pos 268) -> headgear tex
 			 */
 
-			var searchNeedle = 241888864993u;
+			var searchNeedle = 261653128075u;
 			// SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle);
-			// SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle);
+			PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
 			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\flatarchive_id261653128199", searchNeedle);
 			// SearchIndex(databaseFileNewest, searchNeedle);
 
@@ -168,16 +168,27 @@ namespace ForgeDiff
 				67256658873
 			};
 
-			var refs = new Dictionary<ArchiveReference, List<UidReference>>();
-			foreach (var filterUid in filterUids) BuildReferenceList(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", filterUid, refs, 261653128116);
-
-			PrintReferenceTree(refs, 261653128116);
+			// var refs = new Dictionary<ArchiveReference, List<UidReference>>();
+			// foreach (var filterUid in filterUids) BuildReferenceList(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", filterUid, refs, 261653128116);
+			//
+			// PrintReferenceTree(refs, 261653128116);
 
 			// DumpNewFiles(@"R:\Siege Dumps\Y6S1 v15447382", databaseFileDiff, @"R:\Siege Dumps\Asset Indexes\New in Y6S1");
 			// CompareIndexes(databaseFileA, databaseFileB, databaseFileDiff);
 			// CreateAssetIndex(databaseFileB, @"R:\Siege Dumps\Y6S1 v15447382");
 
 			Console.WriteLine("Done");
+		}
+
+		private static void PrintRawReferences(Dictionary<ArchiveReference, List<UidReference>> refs)
+		{
+			foreach (var (arcRef, uidRefs) in refs)
+			{
+				Console.WriteLine($"{arcRef.ArchiveEntryUid} = flatarchive_{arcRef.FlatArchiveUid}/idx{arcRef.ArchiveEntryIdx}");
+
+				foreach (var (referencedUid, pos) in uidRefs)
+					Console.WriteLine($"\t{referencedUid} (pos {pos})");
+			}
 		}
 
 		private static void PrintReferenceTree(Dictionary<ArchiveReference, List<UidReference>> refs, ulong root, long localPos = 0, int indentLevel = 0)
@@ -293,7 +304,7 @@ namespace ForgeDiff
 				{
 					var arcEntry = arc.Entries[arcEntryIdx];
 
-					for (var pos = arcEntry.PayloadOffset; pos < arcEntry.PayloadOffset + arcEntry.PayloadLength - sizeof(ulong); pos++)
+					for (var pos = arcEntry.PayloadOffset; pos <= arcEntry.PayloadOffset + arcEntry.PayloadLength - sizeof(ulong); pos++)
 					{
 						assetStream.BaseStream.Seek(pos, SeekOrigin.Begin);
 
