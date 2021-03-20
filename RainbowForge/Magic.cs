@@ -17,7 +17,9 @@
 		WemSound = 0x427411A3,
 		FlatArchive = 0x22ECBE63,
 		FlatArchiveUidLinkContainer = 0x22ECBE63,
-		FlatArchiveShader = 0x1C9A0555
+		FlatArchiveShader = 0x1C9A0555,
+		FlatArchiveMaterialContainer = 0x85C817C3,
+		FlatArchiveMipContainer = 0x989DC6B2
 	}
 
 	public enum ContainerMagic : uint

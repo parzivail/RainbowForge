@@ -11,9 +11,9 @@ namespace Sandbox
 	{
 		private static void Main(string[] args)
 		{
-			// const string inputFile = @"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge";
+			const string inputFile = @"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge";
 			// const string inputFile = @"R:\Siege Dumps\Y6S1 v15447382\datapc64_merged_bnk_mesh.forge";
-			const string inputFile = @"R:\Siege Dumps\Y6S1 v15447382\datapc64_merged_bnk_textures4.forge";
+			// const string inputFile = @"R:\Siege Dumps\Y6S1 v15447382\datapc64_merged_bnk_textures4.forge";
 
 			var outputDir = $@"R:\Siege Dumps\Unpacked\{Path.GetFileNameWithoutExtension(inputFile)}";
 			Directory.CreateDirectory(outputDir);
@@ -26,10 +26,7 @@ namespace Sandbox
 			var failedExports = 0;
 			var filterUids = new ulong[]
 			{
-				241888865009,
-				241888865010,
-				241888865011,
-				241888865013
+				261653128116
 			};
 
 			// Forge file naming scheme:

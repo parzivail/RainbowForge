@@ -63,10 +63,26 @@ namespace RainbowForge.Dump
 					for (var i = 0; i < arc.Entries.Length; i++)
 					{
 						var arcEntry = arc.Entries[i];
-						if ((Magic) arcEntry.Meta.Magic == Magic.FlatArchiveShader)
+						switch ((Magic) arcEntry.Meta.Magic)
 						{
-							assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-							var shader = Shader.Read(assetStream);
+							case Magic.FlatArchiveShader:
+							{
+								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
+								var shader = Shader.Read(assetStream);
+								break;
+							}
+							case Magic.FlatArchiveMaterialContainer:
+							{
+								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
+								var mat = MaterialContainer.Read(assetStream);
+								break;
+							}
+							case Magic.FlatArchiveMipContainer:
+							{
+								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
+								var mipContainer = MipContainer.Read(assetStream);
+								break;
+							}
 						}
 
 						// Directory.CreateDirectory(arcDir);
