@@ -2,7 +2,7 @@
 
 namespace RainbowForge.RenderPipeline
 {
-	public class MipContainerEntry
+	public class MipContainerReference
 	{
 		public ulong EntryUid { get; }
 		public uint Magic { get; }
@@ -10,7 +10,7 @@ namespace RainbowForge.RenderPipeline
 		public uint Var1 { get; }
 		public uint MipTarget { get; }
 
-		private MipContainerEntry(ulong entryUid, uint magic, ulong mipContainerUid, uint var1, uint mipTarget)
+		private MipContainerReference(ulong entryUid, uint magic, ulong mipContainerUid, uint var1, uint mipTarget)
 		{
 			EntryUid = entryUid;
 			Magic = magic;
@@ -19,7 +19,7 @@ namespace RainbowForge.RenderPipeline
 			MipTarget = mipTarget;
 		}
 
-		public static MipContainerEntry Read(BinaryReader r)
+		public static MipContainerReference Read(BinaryReader r)
 		{
 			var entryUid = r.ReadUInt64();
 
@@ -29,7 +29,7 @@ namespace RainbowForge.RenderPipeline
 			var var1 = r.ReadUInt32();
 			var mipTarget = r.ReadUInt32();
 
-			return new MipContainerEntry(entryUid, magic, mipContainerUid, var1, mipTarget);
+			return new MipContainerReference(entryUid, magic, mipContainerUid, var1, mipTarget);
 		}
 	}
 }

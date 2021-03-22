@@ -4,6 +4,7 @@ using OpenTK.Mathematics;
 using RainbowForge.Archive;
 using RainbowForge.Forge;
 using RainbowForge.Forge.Container;
+using RainbowForge.Link;
 using RainbowForge.Mesh;
 using RainbowForge.RenderPipeline;
 using RainbowForge.Sound;
@@ -81,6 +82,18 @@ namespace RainbowForge.Dump
 							{
 								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
 								var mipContainer = MipContainer.Read(assetStream);
+								break;
+							}
+							case Magic.FlatArchiveMipSet:
+							{
+								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
+								var mipSet = MipSet.Read(assetStream);
+								break;
+							}
+							case Magic.FlatArchiveUidLinkContainer:
+							{
+								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
+								var linkContainer = UidLinkContainer.Read(assetStream);
 								break;
 							}
 						}

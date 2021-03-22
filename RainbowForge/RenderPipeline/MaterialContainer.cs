@@ -4,11 +4,11 @@ namespace RainbowForge.RenderPipeline
 {
 	public class MaterialContainer
 	{
-		public MipContainerEntry[] BaseMipContainers { get; }
-		public MipContainerEntry[] SecondaryMipContainers { get; }
-		public MipContainerEntry[] TertiaryMipContainers { get; }
+		public MipContainerReference[] BaseMipContainers { get; }
+		public MipContainerReference[] SecondaryMipContainers { get; }
+		public MipContainerReference[] TertiaryMipContainers { get; }
 
-		private MaterialContainer(MipContainerEntry[] baseMipContainers, MipContainerEntry[] secondaryMipContainers, MipContainerEntry[] tertiaryMipContainers)
+		private MaterialContainer(MipContainerReference[] baseMipContainers, MipContainerReference[] secondaryMipContainers, MipContainerReference[] tertiaryMipContainers)
 		{
 			BaseMipContainers = baseMipContainers;
 			SecondaryMipContainers = secondaryMipContainers;
@@ -19,18 +19,18 @@ namespace RainbowForge.RenderPipeline
 		{
 			var magic1 = r.ReadUInt32();
 
-			var baseMipContainers = new MipContainerEntry[5];
+			var baseMipContainers = new MipContainerReference[5];
 			for (var i = 0; i < baseMipContainers.Length; i++)
-				baseMipContainers[i] = MipContainerEntry.Read(r);
+				baseMipContainers[i] = MipContainerReference.Read(r);
 
 			var padding = r.ReadUInt64();
 
 			var magic2 = r.ReadUInt32();
 			var data2 = r.ReadBytes(43);
 
-			var secondaryMipContainers = new MipContainerEntry[3];
+			var secondaryMipContainers = new MipContainerReference[3];
 			for (var i = 0; i < secondaryMipContainers.Length; i++)
-				secondaryMipContainers[i] = MipContainerEntry.Read(r);
+				secondaryMipContainers[i] = MipContainerReference.Read(r);
 
 			var padding2 = r.ReadUInt64();
 
@@ -47,9 +47,9 @@ namespace RainbowForge.RenderPipeline
 
 			var data5 = r.ReadBytes(16);
 
-			var tertiaryMipContainers = new MipContainerEntry[2];
+			var tertiaryMipContainers = new MipContainerReference[2];
 			for (var i = 0; i < tertiaryMipContainers.Length; i++)
-				tertiaryMipContainers[i] = MipContainerEntry.Read(r);
+				tertiaryMipContainers[i] = MipContainerReference.Read(r);
 
 			return new MaterialContainer(baseMipContainers, secondaryMipContainers, tertiaryMipContainers);
 		}

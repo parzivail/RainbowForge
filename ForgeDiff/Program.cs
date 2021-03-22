@@ -111,7 +111,7 @@ namespace ForgeDiff
 					> 261653128200 (pos 268) -> headgear tex
 			 */
 
-			var searchNeedle = 197036057233u;
+			var searchNeedle = 42194825469u;
 			// SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle);
 			PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
 			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\flatarchive_id261653128199", searchNeedle);
@@ -304,6 +304,16 @@ namespace ForgeDiff
 				{
 					var arcEntry = arc.Entries[arcEntryIdx];
 
+					var archiveRef = new ArchiveReference(entry.Uid, arcEntry.Meta.Uid, arcEntryIdx);
+
+					if (arcEntry.Meta.Uid == needle)
+					{
+						if (!deps.ContainsKey(archiveRef))
+							deps[archiveRef] = new List<UidReference>();
+
+						deps[archiveRef].Add(new UidReference(needle, -1));
+					}
+
 					for (var pos = arcEntry.PayloadOffset; pos <= arcEntry.PayloadOffset + arcEntry.PayloadLength - sizeof(ulong); pos++)
 					{
 						assetStream.BaseStream.Seek(pos, SeekOrigin.Begin);
@@ -311,8 +321,6 @@ namespace ForgeDiff
 						var ul = assetStream.ReadUInt64();
 						if (ul != needle)
 							continue;
-
-						var archiveRef = new ArchiveReference(entry.Uid, arcEntry.Meta.Uid, arcEntryIdx);
 
 						if (!deps.ContainsKey(archiveRef))
 							deps[archiveRef] = new List<UidReference>();
