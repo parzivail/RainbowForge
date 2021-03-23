@@ -1,0 +1,13 @@
+FFFFFFFF after 08 block
+	665, 669, 671, 673, 675, 677, 679, 681, 685: voice line container?
+	530, 573: same format as VO container, but no strings
+
+Extra byte after 08 block
+	288
+
+3 byte short 08 block
+	634
+
+TODO
+Entry 305: UID 9890110300, FlatArchive (0x22ECBE63) var1: 667
+Entry 313: UID 9890110956, FlatArchive (0x22ECBE63) var1: 663

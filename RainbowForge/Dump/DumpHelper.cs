@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using JeremyAnsel.Media.WavefrontObj;
 using OpenTK.Mathematics;
 using RainbowForge.Archive;
@@ -64,6 +65,10 @@ namespace RainbowForge.Dump
 					for (var i = 0; i < arc.Entries.Length; i++)
 					{
 						var arcEntry = arc.Entries[i];
+
+						// Directory.CreateDirectory(arcDir);
+						// DumpBin(arcDir, $"idx{i}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
+
 						switch ((Magic) arcEntry.Meta.Magic)
 						{
 							case Magic.FlatArchiveShader:
@@ -93,13 +98,11 @@ namespace RainbowForge.Dump
 							case Magic.FlatArchiveUidLinkContainer:
 							{
 								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-								var linkContainer = UidLinkContainer.Read(assetStream);
+								Console.Write($"({i}/var1: {arcEntry.Meta.Var1}) ");
+								var linkContainer = UidLinkContainer.Read(assetStream, arcEntry.Meta.Var1 == 2682);
 								break;
 							}
 						}
-
-						// Directory.CreateDirectory(arcDir);
-						// DumpBin(arcDir, $"idx{i}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
 					}
 
 					break;
