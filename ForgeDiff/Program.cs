@@ -5,36 +5,13 @@ using System.Linq;
 using LiteDB;
 using RainbowForge;
 using RainbowForge.Archive;
+using RainbowForge.Database;
 using RainbowForge.Dump;
 using RainbowForge.Forge;
 using RainbowForge.Forge.Container;
 
 namespace ForgeDiff
 {
-	internal class EntryDocument
-	{
-		public ulong Uid { get; init; }
-		public uint Timestamp { get; init; }
-		public uint FileType { get; init; }
-
-		public static EntryDocument For(Entry entry)
-		{
-			return new()
-			{
-				Uid = entry.Uid,
-				Timestamp = entry.Name.Timestamp,
-				FileType = entry.Name.FileType
-			};
-		}
-	}
-
-	internal class EntryDocumentWithSource : EntryDocument
-	{
-		public string Source { get; init; }
-	}
-
-	internal record FilenameDocument(string Filename, string CollectionName);
-
 	internal class Program
 	{
 		private static readonly char[] Characters = Enumerable.Range(0, 26).Select(i => (char) ('a' + i)).ToArray();
@@ -111,61 +88,15 @@ namespace ForgeDiff
 					> 261653128200 (pos 268) -> headgear tex
 			 */
 
-			var searchNeedle = 42194825469u;
+			var searchNeedle = 9890106523u;
 			// SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle);
-			PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
+			// PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
 			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\flatarchive_id261653128199", searchNeedle);
 			// SearchIndex(databaseFileNewest, searchNeedle);
 
 			var filterUids = new ulong[]
 			{
-				264139768986, // headgear mesh
-				264139769111, // body mesh
-				264609543662, // tablet mesh
-				84504901391, // head mesh
-				91271895122, // eyes/teeth mesh
-				264139769470, // = dokk elite suspenders/crop/skin texture
-				264139769302, // = dokk elite pants/shoes texture
-				241888864993,
-				241888865002,
-				241888865013,
-				264139769014,
-				264139769027,
-				264139769037,
-				264139769156,
-				264139769167,
-				264139769176,
-				264139769187,
-				264139769198,
-				264139769209,
-				264139769218,
-				264139769229,
-				264139769240,
-				264139769251,
-				264139769260,
-				264139769271,
-				264139769282,
-				264139769293,
-				264139769302,
-				264139769313,
-				264139769335,
-				264139769344,
-				264139769355,
-				264139769366,
-				264139769377,
-				264139769386,
-				264139769397,
-				264139769408,
-				264139769419,
-				264139769428,
-				264139769439,
-				264139769450,
-				264139769461,
-				264139769470,
-				264139769481,
-				67256658863,
-				67256658867,
-				67256658873
+				261653128116
 			};
 
 			// var refs = new Dictionary<ArchiveReference, List<UidReference>>();
@@ -402,8 +333,6 @@ namespace ForgeDiff
 				}
 				catch (Exception e)
 				{
-					if (e.Message.Contains("GDI"))
-						;
 					Console.WriteLine($"Failed: {e.Message}");
 				}
 			}

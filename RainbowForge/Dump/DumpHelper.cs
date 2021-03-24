@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using OpenTK.Mathematics;
 using RainbowForge.Archive;
@@ -66,43 +68,8 @@ namespace RainbowForge.Dump
 					{
 						var arcEntry = arc.Entries[i];
 
-						// Directory.CreateDirectory(arcDir);
-						// DumpBin(arcDir, $"idx{i}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
-
-						switch ((Magic) arcEntry.Meta.Magic)
-						{
-							case Magic.FlatArchiveShader:
-							{
-								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-								var shader = Shader.Read(assetStream);
-								break;
-							}
-							case Magic.FlatArchiveMaterialContainer:
-							{
-								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-								var mat = MaterialContainer.Read(assetStream);
-								break;
-							}
-							case Magic.FlatArchiveMipContainer:
-							{
-								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-								var mipContainer = MipContainer.Read(assetStream);
-								break;
-							}
-							case Magic.FlatArchiveMipSet:
-							{
-								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-								var mipSet = MipSet.Read(assetStream);
-								break;
-							}
-							case Magic.FlatArchiveUidLinkContainer:
-							{
-								assetStream.BaseStream.Seek(arcEntry.PayloadOffset, SeekOrigin.Begin);
-								Console.Write($"({i}/var1: {arcEntry.Meta.Var1}) ");
-								var linkContainer = UidLinkContainer.Read(assetStream, arcEntry.Meta.Var1 == 2682);
-								break;
-							}
-						}
+						Directory.CreateDirectory(arcDir);
+						DumpBin(arcDir, $"idx{i}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
 					}
 
 					break;
@@ -115,7 +82,7 @@ namespace RainbowForge.Dump
 			}
 		}
 
-		private static void DumpBin(string bank, string name, Stream stream, long writeOffset = 0, int writeLength = -1, string ext = "bin")
+		public static void DumpBin(string bank, string name, Stream stream, long writeOffset = 0, int writeLength = -1, string ext = "bin")
 		{
 			var filename = Path.Combine(bank, $"{name}.{ext}");
 
@@ -173,6 +140,95 @@ namespace RainbowForge.Dump
 				obj.TextureVertices.Add(new ObjVector3(x, y));
 
 			obj.WriteTo(filename);
+		}
+
+		public static void DumpNonContainerChildren(string rootDir, BinaryReader assetStream, FlatArchive arc, FlatArchiveEntry entry, List<ulong> unresolvedExterns)
+		{
+			void TryRecurseChildren(string dir, ulong uid)
+			{
+				if (uid == 0)
+					return;
+
+				var arcEntry = arc.Entries.FirstOrDefault(archiveEntry => archiveEntry.Meta.Uid == uid);
+				if (arcEntry != null)
+					DumpNonContainerChildren(dir, assetStream, arc, arcEntry, unresolvedExterns);
+				else if (uid >> 24 == 0xF8)
+					Console.WriteLine($"Link container node references unresolved internal UID {uid} (0x{uid:X16})");
+				else if (uid != 0)
+					unresolvedExterns.Add(uid);
+			}
+
+			assetStream.BaseStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
+			switch ((Magic) entry.Meta.Magic)
+			{
+				case Magic.FlatArchiveShader:
+				{
+					var shader = Shader.Read(assetStream);
+					var pathVert = Path.Combine(rootDir, $"{entry.Meta.Uid}_vert.hlsl");
+					var pathExtra = Path.Combine(rootDir, $"{entry.Meta.Uid}_extra.hlsl");
+
+					Directory.CreateDirectory(rootDir);
+					File.WriteAllText(pathVert, shader.Vert);
+					File.WriteAllText(pathExtra, shader.ExtraFunctions);
+					break;
+				}
+				case Magic.FlatArchiveMaterialContainer:
+				{
+					var mat = MaterialContainer.Read(assetStream);
+					foreach (var mipContainerReference in mat.BaseMipContainers)
+						TryRecurseChildren(rootDir, mipContainerReference.MipContainerUid);
+					foreach (var mipContainerReference in mat.SecondaryMipContainers)
+						TryRecurseChildren(rootDir, mipContainerReference.MipContainerUid);
+					foreach (var mipContainerReference in mat.TertiaryMipContainers)
+						TryRecurseChildren(rootDir, mipContainerReference.MipContainerUid);
+
+					break;
+				}
+				case Magic.FlatArchiveMipContainer:
+				{
+					var mipContainer = MipContainer.Read(assetStream);
+					TryRecurseChildren(rootDir, mipContainer.MipUid);
+					break;
+				}
+				case Magic.FlatArchiveMeshProperties:
+				{
+					var meshProps = MeshProperties.Read(assetStream);
+					TryRecurseChildren(rootDir, meshProps.MeshUid);
+
+					foreach (var materialContainer in meshProps.MaterialContainers)
+						TryRecurseChildren(rootDir, materialContainer);
+					break;
+				}
+				case Magic.FlatArchiveMipSet:
+				{
+					var mipSet = MipSet.Read(assetStream);
+					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && !unresolvedExterns.Contains(arg)))
+						unresolvedExterns.Add(uid);
+					foreach (var uid in mipSet.TexUidMipSet2.Where(arg => arg != 0 && !unresolvedExterns.Contains(arg)))
+						unresolvedExterns.Add(uid);
+					break;
+				}
+				case Magic.FlatArchiveUidLinkContainer:
+				{
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1 == 2682);
+					foreach (var linkEntry in linkContainer.UidLinkEntries)
+					{
+						if (linkEntry.UidLinkNode1 != null)
+						{
+							var uid = linkEntry.UidLinkNode1.LinkedUid;
+							TryRecurseChildren(rootDir, uid);
+						}
+
+						if (linkEntry.UidLinkNode2 != null)
+						{
+							var uid = linkEntry.UidLinkNode2.LinkedUid;
+							TryRecurseChildren(rootDir, uid);
+						}
+					}
+
+					break;
+				}
+			}
 		}
 	}
 }

@@ -20,7 +20,8 @@
 		FlatArchiveShader = 0x1C9A0555,
 		FlatArchiveMaterialContainer = 0x85C817C3,
 		FlatArchiveMipContainer = 0x989DC6B2,
-		FlatArchiveMipSet = 0xA2B7E917
+		FlatArchiveMipSet = 0xA2B7E917,
+		FlatArchiveMeshProperties = 0x415D9568
 	}
 
 	public enum ContainerMagic : uint

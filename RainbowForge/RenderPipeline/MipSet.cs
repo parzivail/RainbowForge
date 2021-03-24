@@ -4,7 +4,6 @@ namespace RainbowForge.RenderPipeline
 {
 	public class MipSet
 	{
-		public uint Magic { get; }
 		public uint Var1 { get; }
 		public uint Var2 { get; }
 		public uint Var3 { get; }
@@ -14,9 +13,8 @@ namespace RainbowForge.RenderPipeline
 		public ulong[] TexUidMipSet2 { get; }
 		public byte[] Data2 { get; }
 
-		private MipSet(uint magic, uint var1, uint var2, uint var3, uint var4, byte[] data, ulong[] texUidMipSet1, ulong[] texUidMipSet2, byte[] data2)
+		private MipSet(uint var1, uint var2, uint var3, uint var4, byte[] data, ulong[] texUidMipSet1, ulong[] texUidMipSet2, byte[] data2)
 		{
-			Magic = magic;
 			Var1 = var1;
 			Var2 = var2;
 			Var3 = var3;
@@ -30,6 +28,7 @@ namespace RainbowForge.RenderPipeline
 		public static MipSet Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt32();
+			MagicHelper.AssertEquals(Magic.FlatArchiveMipSet, magic);
 
 			var var1 = r.ReadUInt32();
 			var var2 = r.ReadUInt32();
@@ -48,7 +47,7 @@ namespace RainbowForge.RenderPipeline
 
 			var data2 = r.ReadBytes(32);
 
-			return new MipSet(magic, var1, var2, var3, var4, data, texUidMipSet1, texUidMipSet2, data2);
+			return new MipSet(var1, var2, var3, var4, data, texUidMipSet1, texUidMipSet2, data2);
 		}
 	}
 }

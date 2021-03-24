@@ -9,4 +9,8 @@
       <ProjectReference Include="..\RainbowForge\RainbowForge.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="LiteDB" Version="5.0.10" />
+    </ItemGroup>
+
 </Project>

@@ -18,6 +18,7 @@ namespace RainbowForge.RenderPipeline
 		public static MaterialContainer Read(BinaryReader r)
 		{
 			var magic1 = r.ReadUInt32();
+			MagicHelper.AssertEquals(Magic.FlatArchiveMaterialContainer, magic1);
 
 			var baseMipContainers = new MipContainerReference[5];
 			for (var i = 0; i < baseMipContainers.Length; i++)
