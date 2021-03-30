@@ -64,8 +64,8 @@ namespace RainbowForge.Forge.DataBlock
 				if (chunk.IsCompressed)
 				{
 					var dctx = new ZstandardStream(r.BaseStream, CompressionMode.Decompress, true);
-					// TODO: make sure this reads exactly {chunk.OnDiskLength} bytes -- it should,
-					// but reading {chunk.DecompressedLength} bytes from a decompression stream is
+					// TODO: make sure this reads exactly {chunk.SerializedLength} bytes -- it should,
+					// but reading {chunk.DataLength} bytes from a decompression stream is
 					// a weird way to do it
 					dctx.CopyStream(ms, (int) chunk.DataLength);
 				}

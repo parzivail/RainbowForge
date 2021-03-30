@@ -5,17 +5,19 @@ namespace RainbowForge.Archive
 	public class FlatArchiveEntry
 	{
 		public FileMeta Meta { get; }
+		public int Index { get; }
 		public long PayloadOffset { get; }
 		public int PayloadLength { get; }
 
-		private FlatArchiveEntry(FileMeta meta, long payloadOffset, int payloadLength)
+		private FlatArchiveEntry(FileMeta meta, int index, long payloadOffset, int payloadLength)
 		{
 			Meta = meta;
+			Index = index;
 			PayloadOffset = payloadOffset;
 			PayloadLength = payloadLength;
 		}
 
-		public static FlatArchiveEntry Read(BinaryReader r)
+		public static FlatArchiveEntry Read(BinaryReader r, int index)
 		{
 			var meta = FileMeta.Read(r);
 
@@ -24,7 +26,7 @@ namespace RainbowForge.Archive
 			var payloadOffset = r.BaseStream.Position;
 			r.BaseStream.Seek(length, SeekOrigin.Current);
 
-			return new FlatArchiveEntry(meta, payloadOffset, (int) length);
+			return new FlatArchiveEntry(meta, index, payloadOffset, (int) length);
 		}
 	}
 }

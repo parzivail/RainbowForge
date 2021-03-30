@@ -16,8 +16,9 @@ namespace RainbowForge.Archive
 		{
 			var entries = new List<FlatArchiveEntry>();
 
+			var index = 0;
 			while (r.BaseStream.Position != r.BaseStream.Length)
-				entries.Add(FlatArchiveEntry.Read(r));
+				entries.Add(FlatArchiveEntry.Read(r, index++));
 
 			return new FlatArchive(entries.ToArray());
 		}

@@ -64,12 +64,10 @@ namespace RainbowForge.Dump
 
 					var arcDir = Path.Combine(outputDirectory, $"flatarchive_id{entry.Uid}");
 
-					for (var i = 0; i < arc.Entries.Length; i++)
+					foreach (var arcEntry in arc.Entries)
 					{
-						var arcEntry = arc.Entries[i];
-
 						Directory.CreateDirectory(arcDir);
-						DumpBin(arcDir, $"idx{i}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
+						DumpBin(arcDir, $"idx{arcEntry.Index}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
 					}
 
 					break;
@@ -210,7 +208,16 @@ namespace RainbowForge.Dump
 				}
 				case Magic.FlatArchiveUidLinkContainer:
 				{
-					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1 == 2682);
+					// TODO: flags?
+					var hasDoubles = entry.Meta.Var1 == 862 ||
+					                 entry.Meta.Var1 == 1122 ||
+					                 // entry.Meta.Var1 == 1382 || // TODO: Some 1382 containers have double entries, some don't
+					                 entry.Meta.Var1 == 1902 ||
+					                 entry.Meta.Var1 == 2682;
+
+					var hasLargeEntries = entry.Meta.Var1 == 1236;
+
+					var linkContainer = UidLinkContainer.Read(assetStream, hasDoubles, hasLargeEntries);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
 					{
 						if (linkEntry.UidLinkNode1 != null)

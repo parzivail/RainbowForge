@@ -33,10 +33,6 @@ namespace Sandbox
 			var failedExports = 0;
 			var filterUids = new ulong[]
 			{
-				// 79280146794,
-				// 79280146796,
-				// 79280146828,
-				// 79280146835
 			};
 
 			// Forge file naming scheme:
@@ -59,7 +55,7 @@ namespace Sandbox
 					continue;
 				}
 
-				if (magic == AssetType.Unknown || entry.Uid <= 78754982433)
+				if (magic == AssetType.Unknown || entry.Uid < 91997028954)
 				{
 					Console.WriteLine("Skipped (unknown asset type)");
 					continue;
@@ -106,6 +102,9 @@ namespace Sandbox
 				Console.WriteLine($"Archive was not model archive (expected var1=278, got {arc.Entries[0].Meta.Var1})");
 				return;
 			}
+
+			if (arc.Entries.Any(archiveEntry => archiveEntry.Meta.Var1 == 1382))
+				throw new NotSupportedException();
 
 			var rootEntry = arc.Entries[0];
 			var unresolvedExterns = new List<ulong>();
