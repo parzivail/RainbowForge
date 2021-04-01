@@ -208,16 +208,7 @@ namespace RainbowForge.Dump
 				}
 				case Magic.FlatArchiveUidLinkContainer:
 				{
-					// TODO: flags?
-					var hasDoubles = entry.Meta.Var1 == 862 ||
-					                 entry.Meta.Var1 == 1122 ||
-					                 // entry.Meta.Var1 == 1382 || // TODO: Some 1382 containers have double entries, some don't
-					                 entry.Meta.Var1 == 1902 ||
-					                 entry.Meta.Var1 == 2682;
-
-					var hasLargeEntries = entry.Meta.Var1 == 1236;
-
-					var linkContainer = UidLinkContainer.Read(assetStream, hasDoubles, hasLargeEntries);
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
 					{
 						if (linkEntry.UidLinkNode1 != null)

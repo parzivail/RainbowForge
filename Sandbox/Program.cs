@@ -55,7 +55,7 @@ namespace Sandbox
 					continue;
 				}
 
-				if (magic == AssetType.Unknown || entry.Uid < 91997028954)
+				if (magic == AssetType.Unknown)
 				{
 					Console.WriteLine("Skipped (unknown asset type)");
 					continue;
@@ -97,11 +97,80 @@ namespace Sandbox
 			var assetStream = forgeAsset.GetDataStream(forge);
 			var arc = FlatArchive.Read(assetStream);
 
-			if (arc.Entries[0].Meta.Var1 != 278)
+			var knownOtherArchives = new uint[]
+			{
+				180, // very few entries
+				227, // one entry
+				288, // one entry
+				294, // one entry
+				298, // very few entries
+				342, // possibly model
+				363, // possibly model
+				376, // possibly model
+				416, // one entry
+				440, // one entry
+				450, // very few entries
+				530, // one entry
+				548, // possibly model
+				562, // very few entries
+				572, // possibly model
+				573, // one entry
+				591, // sound
+				597, // sound
+				600, // sound
+				634, // very few entries
+				659, // sound
+				661, // sound
+				663, // sound
+				665, // sound
+				667, // sound
+				669, // sound
+				670, // possibly model
+				671, // sound
+				673, // sound
+				675, // sound
+				677, // sound
+				679, // sound
+				681, // sound
+				685, // sound
+				695, // sound
+				930, // one entry
+				1086, // possibly model
+				1166, // possibly model, unique repeating structure
+				1182, // possibly model, unique repeating structure
+				1198, // possibly model, unique repeating structure
+				1214, // possibly model, unique repeating structure
+				1222, // possibly model, unique repeating structure
+				1238, // possibly model, unique repeating structure
+				1254, // possibly model, unique repeating structure
+				1270, // possibly model, unique repeating structure
+				1278, // possibly model, unique repeating structure
+				1282, // possibly model
+				1302, // possibly model, unique repeating structure
+				1750, // one entry, contain strings like "RushAllBoostMoveModeModifier"
+				1832, // possibly model
+				1852, // possibly model, has slightly different entry lengths
+				1950, // possibly model
+				2064, // possibly model, few entries
+				2300 // possibly model, few entries
+			};
+
+			var modelArchiveTypes = new uint[]
+			{
+				278
+			};
+
+			if (!modelArchiveTypes.Contains(arc.Entries[0].Meta.Var1))
 			{
 				Console.WriteLine($"Archive was not model archive (expected var1=278, got {arc.Entries[0].Meta.Var1})");
+
+				if (arc.Entries[0].Meta.Var1 == 180)
+					DumpHelper.Dump(forge, entry, rootOutputDir);
+
 				return;
 			}
+
+			return;
 
 			if (arc.Entries.Any(archiveEntry => archiveEntry.Meta.Var1 == 1382))
 				throw new NotSupportedException();

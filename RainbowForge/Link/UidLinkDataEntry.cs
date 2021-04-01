@@ -56,9 +56,6 @@ namespace RainbowForge.Link
 						return new EntryTypeAB(internalUid, magic, data, footerData, footerMagic, footerEntry, extraEntry);
 					}
 
-					// TODO: some TypeA entries are immediately followed by TypeB entries which
-					// don't count towards the numEntries target. Possibly some magic numbers somewhere
-					// which define that?
 					return new EntryTypeA(internalUid, magic, data, footerData, footerMagic, footerEntry);
 				}
 				case 0x348B28D6:
