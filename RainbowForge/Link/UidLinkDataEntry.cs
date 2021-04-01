@@ -39,11 +39,13 @@ namespace RainbowForge.Link
 
 					var footerEntryLength = footerMagic switch
 					{
+						0xD9606976 => 8,
 						0x49FCD7BF => 8,
 						0xEC6AC357 => 16,
 						0x24AECB7C => 16,
 						0x22ECBE63 => 16,
 						0xE640B4DA => 16,
+						0x85C817C3 => 16,
 						0 => 24,
 						_ => throw new NotSupportedException()
 					};
@@ -57,6 +59,11 @@ namespace RainbowForge.Link
 					}
 
 					return new EntryTypeA(internalUid, magic, data, footerData, footerMagic, footerEntry);
+				}
+				case 0xD9606976:
+				{
+					var data = r.ReadBytes(28);
+					return new EntryTypeB(internalUid, magic, data);
 				}
 				case 0x348B28D6:
 				case 0x49FCD7BF:

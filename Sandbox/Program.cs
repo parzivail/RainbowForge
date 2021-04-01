@@ -41,6 +41,10 @@ namespace Sandbox
 			// - soundmedia: sound assets
 			// - gidata: global illumination maps
 
+			// General notes:
+			//	- Textures
+			//		- "Extra Texture": Red = metallic map, green = 1 - roughness 
+
 			for (var i = 0; i < forge.NumEntries; i++)
 			{
 				var entry = forge.Entries[i];
@@ -99,26 +103,18 @@ namespace Sandbox
 
 			var knownOtherArchives = new uint[]
 			{
-				180, // very few entries
 				227, // one entry
 				288, // one entry
 				294, // one entry
-				298, // very few entries
-				342, // possibly model
-				363, // possibly model
-				376, // possibly model
 				416, // one entry
 				440, // one entry
-				450, // very few entries
 				530, // one entry
-				548, // possibly model
-				562, // very few entries
-				572, // possibly model
+				562, // ** known but broken model archive
 				573, // one entry
 				591, // sound
 				597, // sound
 				600, // sound
-				634, // very few entries
+				634, // always 3 entries, link container also contains a Matrix4F
 				659, // sound
 				661, // sound
 				663, // sound
@@ -155,22 +151,36 @@ namespace Sandbox
 				2300 // possibly model, few entries
 			};
 
-			var modelArchiveTypes = new uint[]
+			// TODO: Known but failing model link archive types
+			// 562: one extra entry in first entry set
+
+			// TODO: Known but failing model link entry container types
+			// 1382: some containers have double entries, some don't
+			// 1852: has 4 extra entries, longer footer entries
+
+			var modelLinkArchiveTypes = new uint[]
 			{
-				278
+				670, // composite operator bodies + heads
+				572, // operator bodies
+				548, // composite operator bodies
+				450, // one unidentified map prop?
+				376, // composite operator bodies with holster models, operator bodies, some gadgets, some chibis
+				363, // gun skins, some entries produce no output
+				342, // only one model, mesh UID unresolved
+				298, // chibi map props
+				180, // charms, some operator bodies
+				278 // operator heads, operator bodies, some map props
 			};
 
-			if (!modelArchiveTypes.Contains(arc.Entries[0].Meta.Var1))
+			if (arc.Entries[0].Meta.Var1 != 670)
+				return;
+
+			if (!modelLinkArchiveTypes.Contains(arc.Entries[0].Meta.Var1))
 			{
 				Console.WriteLine($"Archive was not model archive (expected var1=278, got {arc.Entries[0].Meta.Var1})");
-
-				if (arc.Entries[0].Meta.Var1 == 180)
-					DumpHelper.Dump(forge, entry, rootOutputDir);
-
+				DumpHelper.Dump(forge, entry, rootOutputDir);
 				return;
 			}
-
-			return;
 
 			if (arc.Entries.Any(archiveEntry => archiveEntry.Meta.Var1 == 1382))
 				throw new NotSupportedException();

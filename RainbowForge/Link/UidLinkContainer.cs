@@ -22,16 +22,13 @@ namespace RainbowForge.Link
 		public static UidLinkContainer Read(BinaryReader r, uint containerType)
 		{
 			// TODO: flags?
-			var hasDoubles = containerType == 862 ||
+			var hasDoubles = containerType == 342 ||
+			                 containerType == 862 ||
 			                 containerType == 1122 ||
 			                 containerType == 1902 ||
 			                 containerType == 2682;
 
 			var hasLargeEntries = containerType == 1236;
-
-			// TODO:
-			// Some 1382 containers have double entries, some don't
-			// 1852 has 4 extra entries, longer footer entries
 
 			var magic = r.ReadUInt32();
 			MagicHelper.AssertEquals(Magic.FlatArchiveUidLinkContainer, magic);
