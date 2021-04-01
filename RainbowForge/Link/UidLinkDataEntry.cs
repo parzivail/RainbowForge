@@ -65,14 +65,40 @@ namespace RainbowForge.Link
 					var data = r.ReadBytes(28);
 					return new EntryTypeB(internalUid, magic, data);
 				}
-				case 0x348B28D6:
 				case 0x49FCD7BF:
 				{
 					var data = r.ReadBytes(16);
 					return new EntryTypeB(internalUid, magic, data);
 				}
+				case 0x348B28D6:
+				{
+					var numEntries = r.ReadUInt32();
+					var data = r.ReadBytes(8);
+
+					var entries = new ulong[numEntries];
+					for (var i = 0; i < entries.Length; i++)
+						entries[i] = r.ReadUInt64();
+
+					var data2 = r.ReadBytes(4);
+
+					return new EntryTypeC(internalUid, magic, data, entries, data2);
+				}
 				default:
 					throw new NotSupportedException();
+			}
+		}
+
+		public class EntryTypeC : UidLinkDataEntry
+		{
+			public byte[] Data { get; }
+			public ulong[] Uids { get; }
+			public byte[] Data2 { get; }
+
+			public EntryTypeC(ulong internalUid, uint magic, byte[] data, ulong[] uids, byte[] data2) : base(internalUid, magic)
+			{
+				Data = data;
+				Uids = uids;
+				Data2 = data2;
 			}
 		}
 

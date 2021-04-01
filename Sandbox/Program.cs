@@ -121,7 +121,6 @@ namespace Sandbox
 				665, // sound
 				667, // sound
 				669, // sound
-				670, // possibly model
 				671, // sound
 				673, // sound
 				675, // sound
@@ -131,23 +130,11 @@ namespace Sandbox
 				685, // sound
 				695, // sound
 				930, // one entry
-				1086, // possibly model
-				1166, // possibly model, unique repeating structure
-				1182, // possibly model, unique repeating structure
-				1198, // possibly model, unique repeating structure
-				1214, // possibly model, unique repeating structure
-				1222, // possibly model, unique repeating structure
-				1238, // possibly model, unique repeating structure
-				1254, // possibly model, unique repeating structure
-				1270, // possibly model, unique repeating structure
-				1278, // possibly model, unique repeating structure
-				1282, // possibly model
-				1302, // possibly model, unique repeating structure
 				1750, // one entry, contain strings like "RushAllBoostMoveModeModifier"
-				1832, // possibly model
-				1852, // possibly model, has slightly different entry lengths
-				1950, // possibly model
-				2064, // possibly model, few entries
+				1832, // ** known but broken model archive
+				1852, // ** known but broken model archive
+				1950, // ** known but broken model archive
+				2064, // ** known but broken model archive
 				2300 // possibly model, few entries
 			};
 
@@ -156,10 +143,25 @@ namespace Sandbox
 
 			// TODO: Known but failing model link entry container types
 			// 1382: some containers have double entries, some don't
-			// 1852: has 4 extra entries, longer footer entries
+			// 1832: has extra entries, longer footer entries
+			// 1852: has extra entries, longer footer entries
+			// 1950: has extra entries, longer footer entries
+			// 2064: has extra entries, longer footer entries
 
 			var modelLinkArchiveTypes = new uint[]
 			{
+				1302, // operator bodies, link container has tons of TypeC UID entries
+				1282, // operator heads + headgear
+				1278, // operator bodies, link container has tons of TypeC UID entries
+				1270, // operator bodies, link container has tons of TypeC UID entries
+				1254, // operator bodies, link container has tons of TypeC UID entries
+				1238, // operator bodies, link container has tons of TypeC UID entries
+				1222, // operator bodies, link container has tons of TypeC UID entries
+				1214, // operator bodies, link container has tons of TypeC UID entries
+				1198, // operator bodies, link container has tons of TypeC UID entries
+				1182, // operator bodies, link container has tons of TypeC UID entries
+				1166, // operator bodies, link container has tons of TypeC UID entries
+				1086, // operator heads + headgear
 				670, // composite operator bodies + heads
 				572, // operator bodies
 				548, // composite operator bodies
@@ -171,9 +173,6 @@ namespace Sandbox
 				180, // charms, some operator bodies
 				278 // operator heads, operator bodies, some map props
 			};
-
-			if (arc.Entries[0].Meta.Var1 != 670)
-				return;
 
 			if (!modelLinkArchiveTypes.Contains(arc.Entries[0].Meta.Var1))
 			{

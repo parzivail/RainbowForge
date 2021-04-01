@@ -25,6 +25,7 @@ namespace RainbowForge.Link
 			var hasDoubles = containerType == 342 ||
 			                 containerType == 862 ||
 			                 containerType == 1122 ||
+			                 containerType == 1832 ||
 			                 containerType == 1902 ||
 			                 containerType == 2682;
 
