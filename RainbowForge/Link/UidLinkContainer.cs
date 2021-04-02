@@ -1,17 +1,20 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace RainbowForge.Link
 {
 	public class UidLinkContainer
 	{
+		public uint Magic { get; }
 		public ulong InternalUid { get; }
 		public byte[] Data1 { get; }
 		public UidLinkDataEntry[] DataEntries { get; }
 		public UidLinkDataEntry[] DataEntries2 { get; }
 		public UidLinkEntry[] UidLinkEntries { get; }
 
-		private UidLinkContainer(ulong internalUid, byte[] data1, UidLinkDataEntry[] dataEntries, UidLinkDataEntry[] dataEntries2, UidLinkEntry[] uidLinkEntries)
+		private UidLinkContainer(uint magic, ulong internalUid, byte[] data1, UidLinkDataEntry[] dataEntries, UidLinkDataEntry[] dataEntries2, UidLinkEntry[] uidLinkEntries)
 		{
+			Magic = magic;
 			InternalUid = internalUid;
 			Data1 = data1;
 			DataEntries = dataEntries;
@@ -32,10 +35,17 @@ namespace RainbowForge.Link
 			var hasLargeEntries = containerType == 1236;
 
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.FlatArchiveUidLinkContainer, magic);
 
 			var internalUid = r.ReadUInt64();
-			var data1 = r.ReadBytes(20);
+			var magic2 = r.ReadUInt32();
+
+			var headerBytes = magic2 switch
+			{
+				0xF5BD7B8A => 8,
+				_ => throw new NotSupportedException()
+			};
+
+			var data1 = r.ReadBytes(headerBytes);
 
 			var numDataEntries = r.ReadUInt32();
 
@@ -56,7 +66,7 @@ namespace RainbowForge.Link
 
 			var padding = r.ReadBytes(2); // padding?
 
-			return new UidLinkContainer(internalUid, data1, dataEntries, dataEntries2, uidLinkEntries);
+			return new UidLinkContainer(magic, internalUid, data1, dataEntries, dataEntries2, uidLinkEntries);
 		}
 	}
 }

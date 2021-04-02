@@ -60,6 +60,11 @@ namespace RainbowForge.Link
 
 					return new EntryTypeA(internalUid, magic, data, footerData, footerMagic, footerEntry);
 				}
+				case 0x8E716439:
+				{
+					var data = r.ReadBytes(30);
+					return new EntryTypeB(internalUid, magic, data);
+				}
 				case 0xD9606976:
 				{
 					var data = r.ReadBytes(28);

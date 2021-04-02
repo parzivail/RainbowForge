@@ -170,7 +170,7 @@ namespace RainbowForge.Dump
 			assetStream.BaseStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
 			switch ((Magic) entry.Meta.Magic)
 			{
-				case Magic.FlatArchiveShader:
+				case Magic.Shader:
 				{
 					var shader = Shader.Read(assetStream);
 					var pathVert = Path.Combine(rootDir, $"{entry.Meta.Uid}_vert.hlsl");
@@ -181,7 +181,7 @@ namespace RainbowForge.Dump
 					File.WriteAllText(pathExtra, shader.ExtraFunctions);
 					break;
 				}
-				case Magic.FlatArchiveMaterialContainer:
+				case Magic.MaterialContainer:
 				{
 					var mat = MaterialContainer.Read(assetStream);
 					foreach (var mipContainerReference in mat.BaseMipContainers)
@@ -193,13 +193,13 @@ namespace RainbowForge.Dump
 
 					break;
 				}
-				case Magic.FlatArchiveMipContainer:
+				case Magic.MipContainer:
 				{
 					var mipContainer = MipContainer.Read(assetStream);
 					TryRecurseChildren(rootDir, mipContainer.MipUid);
 					break;
 				}
-				case Magic.FlatArchiveMeshProperties:
+				case Magic.MeshProperties:
 				{
 					var meshProps = MeshProperties.Read(assetStream);
 					TryRecurseChildren(rootDir, meshProps.MeshUid);
@@ -208,7 +208,7 @@ namespace RainbowForge.Dump
 						TryRecurseChildren(rootDir, materialContainer);
 					break;
 				}
-				case Magic.FlatArchiveMipSet:
+				case Magic.MipSet:
 				{
 					var mipSet = MipSet.Read(assetStream);
 					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && !unresolvedExterns.Contains(arg)))
@@ -217,7 +217,10 @@ namespace RainbowForge.Dump
 						unresolvedExterns.Add(uid);
 					break;
 				}
-				case Magic.FlatArchiveUidLinkContainer:
+				// The root entry is a UidLinkContainer
+				case Magic.FlatArchive1:
+				case Magic.FlatArchive2:
+				case Magic.FlatArchive3:
 				{
 					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
