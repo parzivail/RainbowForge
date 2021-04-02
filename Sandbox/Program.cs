@@ -61,7 +61,18 @@ namespace Sandbox
 
 				if (magic == AssetType.Unknown)
 				{
-					Console.WriteLine("Skipped (unknown asset type)");
+					Console.Write($"Skipped (unknown asset type 0x{entry.Name.FileType:X8}) ");
+
+					try
+					{
+						DumpHelper.Dump(forge, entry, outputDir);
+						Console.WriteLine("(Asset, dumped)");
+					}
+					catch
+					{
+						Console.WriteLine("(Not asset)");
+					}
+
 					continue;
 				}
 
@@ -103,40 +114,75 @@ namespace Sandbox
 
 			var knownOtherArchives = new uint[]
 			{
-				227, // one entry
-				288, // one entry
-				294, // one entry
-				416, // one entry
-				440, // one entry
-				530, // one entry
-				562, // ** known but broken model archive
-				573, // one entry
-				591, // sound
-				597, // sound
-				600, // sound
-				634, // always 3 entries, link container also contains a Matrix4F
-				659, // sound
-				661, // sound
-				663, // sound
-				665, // sound
-				667, // sound
-				669, // sound
-				671, // sound
-				673, // sound
-				675, // sound
-				677, // sound
-				679, // sound
-				681, // sound
-				685, // sound
-				695, // sound
-				930, // one entry
-				1750, // one entry, contain strings like "RushAllBoostMoveModeModifier"
-				1832, // ** known but broken model archive
-				1852, // ** known but broken model archive
-				1950, // ** known but broken model archive
-				2064, // ** known but broken model archive
-				2300 // possibly model, few entries
+				227, // [1] one entry
+				288, // [1] one entry
+				294, // [1] one entry
+				416, // [1] one entry
+				440, // [1] one entry
+				530, // [1] one entry
+				562, // [1] ** known but broken model archive
+				573, // [1] one entry
+				591, // [1] sound
+				597, // [1] sound
+				600, // [1] sound
+				634, // [1] {MipContainer, MipSet} link container also contains a Matrix4F
+				659, // [1] sound
+				661, // [1] sound
+				663, // [1] sound
+				665, // [1] sound
+				667, // [1] sound
+				669, // [1] sound
+				671, // [1] sound
+				673, // [1] sound
+				675, // [1] sound
+				677, // [1] sound
+				679, // [1] sound
+				681, // [1] sound
+				685, // [1] sound
+				695, // [1] sound
+				930, // [1] one entry
+				1750, // [1]  one entry, contain strings like "RushAllBoostMoveModeModifier"
+				1832, // [1]  ** known but broken model archive
+				1852, // [1]  ** known but broken model archive
+				1950, // [1]  ** known but broken model archive
+				2064, // [1]  ** known but broken model archive
+				2300, // [1]  ** known but broken model archive
+				// ---
+				62, // [2] {MipContainer, MipSet} sound
+				70, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				78, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet} contain references to physics stuff 
+				86, // [2] very few entries
+				94, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				102, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet} sound
+				110, // [2] possibly model, some contain >13k type-2629293323 entries
+				126, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				134, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				136, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet} 
+				142, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet} sound
+				150, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet} sound
+				168, // [2] {MaterialContainer, MipContainer, MipSet} no mesh props
+				192, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				200, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet} sound
+				210, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				218, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				224, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				226, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				234, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				248, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				284, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				280, // [2] {MaterialContainer, MipContainer, MipSet} sound? no mesh props
+				290, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				322, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				346, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				372, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				392, // [2] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				//---
+				757, // [3] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				755, // [3] {MeshProperties, MaterialContainer, MipContainer, MipSet}
+				729 // [3] {MaterialContainer, MipContainer, MipSet}
 			};
+
+			// TODO: some entries have Matrix4F
 
 			// TODO: Known but failing model link archive types
 			// 562: one extra entry in first entry set
@@ -147,6 +193,7 @@ namespace Sandbox
 			// 1852: has extra entries, longer footer entries
 			// 1950: has extra entries, longer footer entries
 			// 2064: has extra entries, longer footer entries
+			// 2300
 
 			var modelLinkArchiveTypes = new uint[]
 			{
@@ -174,12 +221,23 @@ namespace Sandbox
 				278 // operator heads, operator bodies, some map props
 			};
 
+			if (!MagicHelper.Equals(Magic.FlatArchive3, entry.Name.FileType))
+				return;
+
 			if (!modelLinkArchiveTypes.Contains(arc.Entries[0].Meta.Var1))
 			{
-				Console.WriteLine($"Archive was not model archive (expected var1=278, got {arc.Entries[0].Meta.Var1})");
-				DumpHelper.Dump(forge, entry, rootOutputDir);
+				Console.WriteLine($"Archive was not model archive (got {arc.Entries[0].Meta.Var1})");
+
+				if (!knownOtherArchives.Contains(arc.Entries[0].Meta.Var1))
+				{
+					DumpHelper.Dump(forge, entry, rootOutputDir);
+					return;
+				}
+
 				return;
 			}
+
+			return;
 
 			if (arc.Entries.Any(archiveEntry => archiveEntry.Meta.Var1 == 1382))
 				throw new NotSupportedException();

@@ -32,7 +32,9 @@ namespace RainbowForge
 				Magic.TextureGui1 => AssetType.Texture,
 				Magic.TextureGui2 => AssetType.Texture,
 				Magic.WemSound => AssetType.Sound,
-				Magic.FlatArchive => AssetType.FlatArchive,
+				Magic.FlatArchive1 => AssetType.FlatArchive,
+				Magic.FlatArchive2 => AssetType.FlatArchive,
+				Magic.FlatArchive3 => AssetType.FlatArchive,
 				_ => AssetType.Unknown
 			};
 		}

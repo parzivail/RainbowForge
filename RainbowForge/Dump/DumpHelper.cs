@@ -67,14 +67,25 @@ namespace RainbowForge.Dump
 					foreach (var arcEntry in arc.Entries)
 					{
 						Directory.CreateDirectory(arcDir);
-						DumpBin(arcDir, $"idx{arcEntry.Index}_filetype{arcEntry.Meta.Magic}", assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
+
+						var name = $"idx{arcEntry.Index}_filetype{arcEntry.Meta.Magic}";
+
+						if (Enum.IsDefined(typeof(Magic), (ulong) arcEntry.Meta.Magic))
+							name += $"_{(Magic) arcEntry.Meta.Magic}";
+
+						DumpBin(arcDir, name, assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
 					}
 
 					break;
 				}
 				default:
 				{
-					DumpBin(outputDirectory, $"id{entry.Uid}_filetype{entry.Name.FileType}", assetStream.BaseStream);
+					var name = $"id{entry.Uid}_filetype{entry.Name.FileType}";
+
+					if (Enum.IsDefined(typeof(Magic), (ulong) entry.Name.FileType))
+						name += $"_{(Magic) entry.Name.FileType}";
+
+					DumpBin(outputDirectory, name, assetStream.BaseStream);
 					break;
 				}
 			}

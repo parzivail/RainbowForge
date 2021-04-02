@@ -88,11 +88,11 @@ namespace ForgeDiff
 					> 261653128200 (pos 268) -> headgear tex
 			 */
 
-			var searchNeedle = 28825320068u;
-			// SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle);
-			// PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
-			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\flatarchive_id261653128199", searchNeedle);
-			SearchIndex(databaseFileNewest, searchNeedle);
+			var searchNeedle = 22439849214u;
+			// PrintRawReferences(SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle));
+			PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
+			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\", searchNeedle);
+			// SearchIndex(databaseFileNewest, searchNeedle);
 
 			var filterUids = new ulong[]
 			{
