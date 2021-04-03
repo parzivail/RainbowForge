@@ -41,77 +41,6 @@ namespace Sandbox
 			// - soundmedia: sound assets
 			// - gidata: global illumination maps
 
-			// General notes:
-			//	- Textures
-			//		- "Extra Texture": Red = metallic map, green = 1 - roughness 
-
-			for (var i = 0; i < forge.NumEntries; i++)
-			{
-				var entry = forge.Entries[i];
-
-				var magic = MagicHelper.GetFiletype(entry.Name.FileType);
-
-				Console.Write($"Entry {i}: UID {entry.Uid}, {magic} (0x{entry.Name.FileType:X}) ");
-
-				if (filterUids.Length > 0 && !filterUids.Contains(entry.Uid))
-				{
-					Console.WriteLine("Skipped (filter miss)");
-					continue;
-				}
-
-				if (magic == AssetType.Unknown)
-				{
-					Console.WriteLine($"Skipped (unknown asset type 0x{entry.Name.FileType:X8}) ");
-
-					// try
-					// {
-					// 	DumpHelper.Dump(forge, entry, outputDir);
-					// 	Console.WriteLine("(Asset, dumped)");
-					// }
-					// catch
-					// {
-					// 	Console.WriteLine("(Not asset)");
-					// }
-
-					continue;
-				}
-
-				try
-				{
-					if (magic == AssetType.FlatArchive)
-					{
-						if (filterUids.Contains(entry.Uid))
-							DumpHelper.Dump(forge, entry, outputDir);
-						else
-							ProcessFlatArchive(referenceDb, forge, entry, outputDir, Path.GetDirectoryName(inputFile));
-
-						sucessfulExports++;
-						continue;
-					}
-
-					DumpHelper.Dump(forge, entry, outputDir);
-					Console.WriteLine("Dumped");
-					sucessfulExports++;
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine($"Failed: {e.Message}");
-					failedExports++;
-				}
-			}
-
-			Console.WriteLine(
-				$"Processed {forge.Entries.Length} entries, {sucessfulExports + failedExports} of {filterUids.Length} filter hits, {sucessfulExports} successful, {failedExports} failed");
-		}
-
-		private static void ProcessFlatArchive(ILiteDatabase db, Forge forge, Entry entry, string rootOutputDir, string rootForgeDir)
-		{
-			var container = forge.GetContainer(entry.Uid);
-			if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
-
-			var assetStream = forgeAsset.GetDataStream(forge);
-			var arc = FlatArchive.Read(assetStream);
-
 			// TODO: some entries have Matrix4F
 
 			// TODO: Known but failing model link archive types
@@ -288,29 +217,75 @@ namespace Sandbox
 				1065 // [3] {MaterialContainer, MipContainer, MipSet}
 			};
 
-			// if (!modelLinkArchiveTypes.Contains(arc.Entries[0].Meta.Var1))
-			// {
-			// 	Console.WriteLine($"Archive was not model archive (got {arc.Entries[0].Meta.Var1})");
-			//
-			// 	if (!knownOtherArchives.Contains(arc.Entries[0].Meta.Var1))
-			// 	{
-			// 		DumpHelper.Dump(forge, entry, rootOutputDir);
-			// 		return;
-			// 	}
-			//
-			// 	return;
-			// }
+			for (var i = 0; i < forge.NumEntries; i++)
+			{
+				var entry = forge.Entries[i];
 
-			// if (arc.Entries[0].Meta.Var1 != 1063)
-			// 	return;
+				var magic = MagicHelper.GetFiletype(entry.Name.FileType);
+
+				Console.Write($"Entry {i}: UID {entry.Uid}, {magic} (0x{entry.Name.FileType:X}) ");
+
+				if (filterUids.Length > 0 && !filterUids.Contains(entry.Uid))
+				{
+					Console.WriteLine("Skipped (filter miss)");
+					continue;
+				}
+
+				if (magic == AssetType.Unknown)
+				{
+					Console.WriteLine($"Skipped (unknown asset type 0x{entry.Name.FileType:X8}) ");
+
+					// try
+					// {
+					// 	DumpHelper.Dump(forge, entry, outputDir);
+					// 	Console.WriteLine("(Asset, dumped)");
+					// }
+					// catch
+					// {
+					// 	Console.WriteLine("(Not asset)");
+					// }
+
+					continue;
+				}
+
+				try
+				{
+					if (magic == AssetType.FlatArchive)
+					{
+						if (filterUids.Contains(entry.Uid))
+							DumpHelper.Dump(forge, entry, outputDir);
+						else
+							ProcessFlatArchive(referenceDb, forge, entry, outputDir, Path.GetDirectoryName(inputFile));
+
+						sucessfulExports++;
+						continue;
+					}
+
+					DumpHelper.Dump(forge, entry, outputDir);
+					Console.WriteLine("Dumped");
+					sucessfulExports++;
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine($"Failed: {e.Message}");
+					failedExports++;
+				}
+			}
+
+			Console.WriteLine(
+				$"Processed {forge.Entries.Length} entries, {sucessfulExports + failedExports} of {filterUids.Length} filter hits, {sucessfulExports} successful, {failedExports} failed");
+		}
+
+		private static void ProcessFlatArchive(ILiteDatabase db, Forge forge, Entry entry, string rootOutputDir, string rootForgeDir)
+		{
+			var container = forge.GetContainer(entry.Uid);
+			if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
+
+			var assetStream = forgeAsset.GetDataStream(forge);
+			var arc = FlatArchive.Read(assetStream);
 
 			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
 				return;
-
-			if (arc.Entries.Any(archiveEntry => archiveEntry.Meta.Var1 == 1382))
-				throw new NotSupportedException();
-
-			var rootEntry = arc.Entries[0];
 
 			foreach (var meshProp in arc.Entries.Where(archiveEntry => MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
 			{

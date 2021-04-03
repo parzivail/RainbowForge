@@ -45,49 +45,6 @@ namespace ForgeDiff
 			var nameB = Path.GetFileNameWithoutExtension(databaseFileNewest);
 			var databaseFileDiff = Path.Combine(diffDir, $"{nameA}_versus_{nameB}.fddb");
 
-			/*
-				>	= referenced by
-				<>	= self referenced by
-				
-				FA = flatarchive_id261653128116
-				
-				264139769111 = dokk elite body mesh
-					> 264139769102 = FA/idx3 (pos 7508)
-						> 261653128113 = FA/idx1 (pos 466)
-							<> (pos 434)
-							> 261653128116 = datapc64_ondemand/261653128116 (idx0) (pos 244)
-							
-				264139769470 = dokk elite suspenders/crop/skin texture
-				264139769302 = dokk elite pants/shoes texture
-					> 264139769298 = FA/idx104 (pos 104, 144)
-						> 264139769297 = FA/idx50 (pos 12)
-							> 261653127913 = FA/idx11 (pos 24)
-								> 261653128115 = FA/idx2 (pos 2408)
-									<> (pos 2224)
-									> 261653128116 = datapc64_ondemand/261653128116 (idx0) (pos 268)
-				
-				FA2 = flatarchive_id261653128199
-				
-				264139768986 = dokk elite headgear mesh
-					> 264139768982 = FA2/idx6 (pos 628)
-						> 261653128201 = FA2/idx1 (pos 956)
-							<> (pos 852)
-							> 261653128199 = datapc64_ondemand/261653128199 (idx0) (pos 244)
-							
-				264139769014 = dokk elite headgear texture
-					> 264139769010 = FA2/idx60 (pos 104, 144)
-						> 264139769009 = FA2/idx36 (pos 12)
-							> 261653127907 = FA2/idx11 (pos 24)
-								> 261653128200 = FA2/idx2 (pos 1804)
-									<> (pos 1576)
-									> 261653128199 = datapc64_ondemand/261653128199 (idx0) (pos 268)
-				
-				idx0
-					> 261653128199 (pos 212) -> ???
-					> 261653128201 (pos 244) -> headgear mesh
-					> 261653128200 (pos 268) -> headgear tex
-			 */
-
 			var searchNeedle = 22439849214u;
 			// PrintRawReferences(SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle));
 			PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
