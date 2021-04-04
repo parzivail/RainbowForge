@@ -36,33 +36,48 @@ namespace ForgeDiff
 			// *.FIDB: Forge asset index DB
 			// *.FDDB: Forge asset diff DB, filename should specify what's diffed
 
-			const string databaseFileDiffBase = @"R:\Siege Dumps\Asset Indexes\v15439724_y6s1_tts.fidb";
-			const string databaseFileNewest = @"R:\Siege Dumps\Asset Indexes\v15447382_y6s1.fidb";
-			const string assetDirectory = @"R:\Siege Dumps\Y5S4 v15302504";
+			const string databaseFileDiffBase = @"R:\Siege Dumps\Asset Indexes\v15447382_y6s1.fidb";
+			const string databaseFileNewest = @"R:\Siege Dumps\Asset Indexes\v15500403_y6s1.fidb";
+			const string assetDirectoryNewest = @"R:\Siege Dumps\Y6S1 v15500403";
+
+			const string assetDirectoryDumpOutput = @"R:\Siege Dumps\Unpacked";
 
 			var diffDir = Path.GetDirectoryName(databaseFileDiffBase);
 			var nameA = Path.GetFileNameWithoutExtension(databaseFileDiffBase);
 			var nameB = Path.GetFileNameWithoutExtension(databaseFileNewest);
 			var databaseFileDiff = Path.Combine(diffDir, $"{nameA}_versus_{nameB}.fddb");
 
-			var searchNeedle = 22439849214u;
-			// PrintRawReferences(SearchAllFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\", searchNeedle));
-			PrintRawReferences(SearchFlatArchives(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", searchNeedle));
-			// SearchBinFiles(@"R:\Siege Dumps\Unpacked\datapc64_ondemand\", searchNeedle);
+			var searchHaystackForge = Path.Combine(assetDirectoryNewest, "datapc64_ondemand.forge");
+			var assetDirectoryForgeDumpOutput = Path.Combine(assetDirectoryDumpOutput, Path.GetFileNameWithoutExtension(searchHaystackForge));
+
+			const ulong searchNeedle = 22439849214u;
+
+			/* Search for {searchNeedle} in the newest index database */
 			// SearchIndex(databaseFileNewest, searchNeedle);
 
-			var filterUids = new ulong[]
-			{
-			};
+			/* Search all forges for flat archives in {assetDirectoryNewest} byte-wise for {searchNeedle} */
+			// PrintRawReferences(SearchAllFlatArchives(assetDirectoryNewest, searchNeedle));
 
+			/* Search all bin files in {assetDirectoryForgeDumpOutput} (i.e. already dumped files) for {searchNeedle} */
+			// SearchBinFiles(assetDirectoryForgeDumpOutput, searchNeedle);
+
+			/* Search the flat archives in {searchHaystackForge} for {searchNeedle} */
+			// PrintRawReferences(SearchFlatArchives(searchHaystackForge, searchNeedle));
+
+			/* Build and print a reference tree for all references to {searchNeedle}, all references to those references, etc. */
+			// var searchHaystackArchive = 261653128116u;
 			// var refs = new Dictionary<ArchiveReference, List<UidReference>>();
-			// foreach (var filterUid in filterUids) BuildReferenceList(@"R:\Siege Dumps\Y6S1 v15447382\datapc64_ondemand.forge", filterUid, refs, 261653128116);
-			//
-			// PrintReferenceTree(refs, 261653128116);
+			// BuildReferenceList(searchHaystackForge, searchNeedle, refs, searchHaystackArchive);
+			// PrintReferenceTree(refs, searchNeedle);
 
-			// DumpNewFiles(@"R:\Siege Dumps\Y6S1 v15447382", databaseFileDiff, @"R:\Siege Dumps\Asset Indexes\New in Y6S1");
-			// CompareIndexes(databaseFileA, databaseFileB, databaseFileDiff);
-			// CreateAssetIndex(databaseFileB, @"R:\Siege Dumps\Y6S1 v15447382");
+			/* Create an asset index database for the forges in {assetDirectoryNewest} */
+			// CreateAssetIndex(databaseFileNewest, assetDirectoryNewest);
+
+			/* Compare two index databases and create a diff database */
+			// CompareIndexes(databaseFileDiffBase, databaseFileNewest, databaseFileDiff);
+
+			/* Use a diff database to dump all new files in an asset index database */
+			// DumpNewFiles(assetDirectoryNewest, databaseFileDiff, assetDirectoryDumpOutput);
 
 			Console.WriteLine("Done");
 		}
@@ -261,14 +276,11 @@ namespace ForgeDiff
 				var firstInstance = instances[0];
 				var src = firstInstance.Source;
 
-				if (MagicHelper.GetFiletype(firstInstance.FileType) != AssetType.Texture || !src.StartsWith("datapc64_merged_events_bnk_texture"))
-					continue;
-
-				// if (!forgeCache.ContainsKey(src))
-				// {
-				// 	var forgeStream = new BinaryReader(File.Open(Path.Combine(forgeSourceDir, $"{src}.forge"), FileMode.Open));
-				// 	forgeCache[src] = Forge.Read(forgeStream);
-				// }
+				if (!forgeCache.ContainsKey(src))
+				{
+					var forgeStream = new BinaryReader(File.Open(Path.Combine(forgeSourceDir, $"{src}.forge"), FileMode.Open));
+					forgeCache[src] = Forge.Read(forgeStream);
+				}
 
 				if (forgeCache[src].Entries.All(entry1 => entry1.Uid != uid))
 				{

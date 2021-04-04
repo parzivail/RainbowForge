@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        x:Name="Window"
+        Title="MainWindow" Height="450" Width="800" DataContext="{Binding ElementName=Window}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -13,7 +14,7 @@
 
         <Menu>
             <MenuItem Header="_File">
-                <MenuItem Header="_Open" InputGestureText="Ctrl+O" />
+                <MenuItem Header="_Open" InputGestureText="Ctrl+O" Command="{Binding OpenCommand}" />
             </MenuItem>
         </Menu>
     </Grid>
