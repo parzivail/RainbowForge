@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForgeDiff", "ForgeDiff\Forg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForgeBrowser", "ForgeBrowser\ForgeBrowser.csproj", "{C020E770-B23A-4095-BDE1-C0C896065824}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpTool", "DumpTool\DumpTool.csproj", "{0337F28A-2FD6-472C-81F2-4BAC305D1B5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{C020E770-B23A-4095-BDE1-C0C896065824}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C020E770-B23A-4095-BDE1-C0C896065824}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C020E770-B23A-4095-BDE1-C0C896065824}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0337F28A-2FD6-472C-81F2-4BAC305D1B5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0337F28A-2FD6-472C-81F2-4BAC305D1B5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0337F28A-2FD6-472C-81F2-4BAC305D1B5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0337F28A-2FD6-472C-81F2-4BAC305D1B5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
