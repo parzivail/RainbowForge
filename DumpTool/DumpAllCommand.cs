@@ -4,7 +4,7 @@ using RainbowForge.Dump;
 
 namespace DumpTool
 {
-	[Verb("dump", HelpText = "Dumps all assets in the given forge file")]
+	[Verb("dumpall", HelpText = "Dumps all assets in the given forge file")]
 	public class DumpAllCommand
 	{
 		[Value(0, HelpText = "The forge file to reference")]

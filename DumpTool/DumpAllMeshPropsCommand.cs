@@ -5,7 +5,7 @@ using LiteDB;
 
 namespace DumpTool
 {
-	[Verb("dump", HelpText = "Dumps all MeshProperties containers in all flat archives in the given forge file")]
+	[Verb("dumpallmeshprops", HelpText = "Dumps all MeshProperties containers in all flat archives in the given forge file")]
 	public class DumpAllMeshPropsCommand
 	{
 		[Value(0, HelpText = "The search index to use (see command: index)")]
