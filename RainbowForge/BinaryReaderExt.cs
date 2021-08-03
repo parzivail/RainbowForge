@@ -16,7 +16,7 @@ namespace RainbowForge
 
 		public static Vector3 ReadUInt64AsPos(this BinaryReader r)
 		{
-			const float bias = 0x777F;
+			const float bias = 0x7FFF;
 
 			var x = r.ReadUInt16();
 			var y = r.ReadUInt16();

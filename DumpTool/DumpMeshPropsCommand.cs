@@ -57,11 +57,11 @@ namespace DumpTool
 				return;
 			}
 
-			foreach (var meshProp in arc.Entries.Where(archiveEntry => MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
+			foreach (var meshProp in arc.Entries)
 			{
 				var unresolvedExterns = new List<ulong>();
 
-				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"meshprop_{meshProp.Meta.Uid}");
+				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"{(Magic) meshProp.Meta.Magic}_{meshProp.Meta.Uid}");
 				Directory.CreateDirectory(outputDir);
 
 				DumpHelper.DumpNonContainerChildren(outputDir, assetStream, arc, meshProp, unresolvedExterns);

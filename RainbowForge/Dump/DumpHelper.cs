@@ -242,5 +242,88 @@ namespace RainbowForge.Dump
 				}
 			}
 		}
+
+		public static void SearchNonContainerChildren(BinaryReader assetStream, FlatArchive arc, FlatArchiveEntry entry, List<ulong> referencedExterns)
+		{
+			if (!referencedExterns.Contains(entry.Meta.Uid))
+				referencedExterns.Add(entry.Meta.Uid);
+
+			void TryRecurseChildren(ulong uid)
+			{
+				if (uid == 0)
+					return;
+
+				if (!referencedExterns.Contains(uid))
+					referencedExterns.Add(uid);
+
+				var arcEntry = arc.Entries.FirstOrDefault(archiveEntry => archiveEntry.Meta.Uid == uid);
+				if (arcEntry != null)
+					SearchNonContainerChildren(assetStream, arc, arcEntry, referencedExterns);
+			}
+
+			assetStream.BaseStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
+			switch ((Magic) entry.Meta.Magic)
+			{
+				case Magic.MaterialContainer:
+				{
+					var mat = MaterialContainer.Read(assetStream);
+					foreach (var mipContainerReference in mat.BaseMipContainers)
+						TryRecurseChildren(mipContainerReference.MipContainerUid);
+					foreach (var mipContainerReference in mat.SecondaryMipContainers)
+						TryRecurseChildren(mipContainerReference.MipContainerUid);
+					foreach (var mipContainerReference in mat.TertiaryMipContainers)
+						TryRecurseChildren(mipContainerReference.MipContainerUid);
+
+					break;
+				}
+				case Magic.MipContainer:
+				{
+					var mipContainer = MipContainer.Read(assetStream);
+					TryRecurseChildren(mipContainer.MipUid);
+					break;
+				}
+				case Magic.MeshProperties:
+				{
+					var meshProps = MeshProperties.Read(assetStream);
+					TryRecurseChildren(meshProps.MeshUid);
+
+					foreach (var materialContainer in meshProps.MaterialContainers)
+						TryRecurseChildren(materialContainer);
+					break;
+				}
+				case Magic.MipSet:
+				{
+					var mipSet = MipSet.Read(assetStream);
+					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && !referencedExterns.Contains(arg)))
+						referencedExterns.Add(uid);
+					foreach (var uid in mipSet.TexUidMipSet2.Where(arg => arg != 0 && !referencedExterns.Contains(arg)))
+						referencedExterns.Add(uid);
+					break;
+				}
+				// The root entry is a UidLinkContainer
+				case Magic.FlatArchive1:
+				case Magic.FlatArchive2:
+				case Magic.FlatArchive3:
+				{
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1);
+					foreach (var linkEntry in linkContainer.UidLinkEntries)
+					{
+						if (linkEntry.UidLinkNode1 != null)
+						{
+							var uid = linkEntry.UidLinkNode1.LinkedUid;
+							TryRecurseChildren(uid);
+						}
+
+						if (linkEntry.UidLinkNode2 != null)
+						{
+							var uid = linkEntry.UidLinkNode2.LinkedUid;
+							TryRecurseChildren(uid);
+						}
+					}
+
+					break;
+				}
+			}
+		}
 	}
 }
