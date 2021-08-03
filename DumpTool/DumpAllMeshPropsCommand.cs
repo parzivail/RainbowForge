@@ -23,8 +23,7 @@ namespace DumpTool
 			{
 				var db = new LiteDatabase(args.IndexFilename);
 
-				foreach (var entry in forge.Entries)
-					DumpMeshPropsCommand.ProcessFlatArchive(db, forge, entry, Environment.CurrentDirectory, Path.GetDirectoryName(args.ForgeFilename));
+				foreach (var entry in forge.Entries) DumpMeshPropsCommand.ProcessFlatArchive(db, forge, entry, Environment.CurrentDirectory, Path.GetDirectoryName(args.ForgeFilename));
 			}
 			catch (Exception e)
 			{

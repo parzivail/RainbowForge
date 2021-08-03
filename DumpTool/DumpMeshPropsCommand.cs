@@ -46,7 +46,7 @@ namespace DumpTool
 		public static void ProcessFlatArchive(ILiteDatabase db, Forge forge, Entry entry, string rootOutputDir, string rootForgeDir)
 		{
 			var container = forge.GetContainer(entry.Uid);
-			if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
+			if (container is not ForgeAsset forgeAsset) return;
 
 			var assetStream = forgeAsset.GetDataStream(forge);
 			var arc = FlatArchive.Read(assetStream);
@@ -64,7 +64,14 @@ namespace DumpTool
 				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"{(Magic) meshProp.Meta.Magic}_{meshProp.Meta.Uid}");
 				Directory.CreateDirectory(outputDir);
 
-				DumpHelper.DumpNonContainerChildren(outputDir, assetStream, arc, meshProp, unresolvedExterns);
+				try
+				{
+					DumpHelper.DumpNonContainerChildren(outputDir, assetStream, arc, meshProp, unresolvedExterns);
+				}
+				catch
+				{
+					continue;
+				}
 
 				var resolvedExterns = new Dictionary<string, List<ulong>>();
 

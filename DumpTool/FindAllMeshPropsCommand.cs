@@ -20,17 +20,17 @@ namespace DumpTool
 
 		public static void Run(FindAllMeshPropsCommand args)
 		{
-			try
-			{
-				var forge = Program.GetForge(args.ForgeFilename);
-				foreach (var entry in forge.Entries)
+			var forge = Program.GetForge(args.ForgeFilename);
+			foreach (var entry in forge.Entries)
+				try
+				{
 					if (SearchFlatArchive(forge, entry, args.Uid))
 						Console.WriteLine(entry.Uid);
-			}
-			catch (Exception e)
-			{
-				Console.Error.WriteLine($"Error while dumping: {e}");
-			}
+				}
+				catch (Exception e)
+				{
+					Console.Error.WriteLine($"Error while dumping: {e}");
+				}
 		}
 
 		public static bool SearchFlatArchive(Forge forge, Entry entry, ulong uid)
@@ -46,14 +46,7 @@ namespace DumpTool
 			{
 				var unresolvedExterns = new List<ulong>();
 
-				try
-				{
-					DumpHelper.SearchNonContainerChildren(assetStream, arc, meshProp, unresolvedExterns);
-				}
-				catch (NotSupportedException)
-				{
-					continue;
-				}
+				DumpHelper.SearchNonContainerChildren(assetStream, arc, meshProp, unresolvedExterns);
 
 				if (unresolvedExterns.Contains(uid))
 					return true;

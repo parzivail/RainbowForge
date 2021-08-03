@@ -172,13 +172,21 @@ namespace RainbowForge.Dump
 			{
 				case Magic.Shader:
 				{
-					var shader = Shader.Read(assetStream);
-					var pathVert = Path.Combine(rootDir, $"{entry.Meta.Uid}_vert.hlsl");
-					var pathExtra = Path.Combine(rootDir, $"{entry.Meta.Uid}_extra.hlsl");
+					try
+					{
+						var shader = Shader.Read(assetStream);
+						var pathVert = Path.Combine(rootDir, $"{entry.Meta.Uid}_vert.hlsl");
+						var pathExtra = Path.Combine(rootDir, $"{entry.Meta.Uid}_extra.hlsl");
 
-					Directory.CreateDirectory(rootDir);
-					File.WriteAllText(pathVert, shader.Vert);
-					File.WriteAllText(pathExtra, shader.ExtraFunctions);
+						Directory.CreateDirectory(rootDir);
+						File.WriteAllText(pathVert, shader.Vert);
+						File.WriteAllText(pathExtra, shader.ExtraFunctions);
+					}
+					catch (Exception e)
+					{
+						// ignored
+					}
+
 					break;
 				}
 				case Magic.MaterialContainer:
