@@ -249,6 +249,9 @@
                             <Button ToolTip="Copy UID" Click="OnCopyUid_Click">
                                 <ui:FontIcon Glyph="&#xE8C8;" />
                             </Button>
+                            <Button ToolTip="Dump UID" Click="OnDumpUid_Click">
+                                <ui:FontIcon Glyph="&#xE74E;" />
+                            </Button>
                         </ui:SimpleStackPanel>
                         <Button Click="OnSaveEntry_Click" Content="Save Entry" HorizontalAlignment="Right" Style="{DynamicResource AccentButtonStyle}" />
                     </ui:SimpleStackPanel>
