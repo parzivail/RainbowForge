@@ -46,7 +46,14 @@ namespace DumpTool
 			{
 				var unresolvedExterns = new List<ulong>();
 
-				DumpHelper.SearchNonContainerChildren(assetStream, arc, meshProp, unresolvedExterns);
+				try
+				{
+					DumpHelper.SearchNonContainerChildren(assetStream, arc, meshProp, unresolvedExterns);
+				}
+				catch
+				{
+					// ignored
+				}
 
 				if (unresolvedExterns.Contains(uid))
 					return true;
