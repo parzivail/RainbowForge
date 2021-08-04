@@ -112,7 +112,7 @@ All of these scenarios use filenames from Y6S1 (v15500403), but the process shou
 
 #### UID primer
 
-Every mesh asset, texture asset, texture mipmap set container, metadata container, etc. has their on unique identifier, or UID, which is a very large number. These UIDs generally don't change between versions of the game so it's safe to use them to refer to specific assets.
+Every mesh asset, texture asset, texture mipmap set container, metadata container, etc. have their own unique identifier, or UID, which is a very large number that gives that asset a unique name to differentiate it from all other assets. These UIDs generally don't change between versions of the game so it's safe to use them to refer to specific assets.
 
 ### Get information on an asset
 
