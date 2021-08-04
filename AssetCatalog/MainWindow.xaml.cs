@@ -11,6 +11,7 @@ using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
 using RainbowForge;
+using RainbowForge.Dump;
 using RainbowForge.Forge.Container;
 using RainbowForge.Mesh;
 using RainbowForge.Texture;
@@ -84,6 +85,26 @@ namespace AssetCatalog
 				return;
 
 			Clipboard.SetText(ForgeCatalog.Instance.SelectedEntry.Uid.ToString());
+		}
+
+		private void OnDumpUid_Click(object sender, RoutedEventArgs e)
+		{
+			if (ForgeCatalog.Instance.SelectedEntry == null)
+				return;
+
+			var forge = ForgeCatalog.Instance.OpenedForge;
+
+			try
+			{
+				var metaEntry = forge.Entries.First(entry1 => entry1.Uid == ForgeCatalog.Instance.SelectedEntry.Uid);
+				DumpHelper.Dump(forge, metaEntry, Environment.CurrentDirectory);
+
+				// Console.Error.WriteLine($"Dumped UID {Uid}");  // there's no console here :>
+			}
+			catch (Exception err)
+			{
+				// Console.Error.WriteLine($"Error while dumping: {err}");  // there's no console here :>
+			}
 		}
 
 		private void OnSaveEntry_Click(object sender, RoutedEventArgs e)
