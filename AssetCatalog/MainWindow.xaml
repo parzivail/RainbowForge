@@ -16,7 +16,7 @@
         mc:Ignorable="d"
         DataContext="{x:Static local:ForgeCatalog.Instance}"
         Loaded="MainWindow_OnLoaded"
-        Title="{Binding Status, Converter={StaticResource CatalogStatusToTitle}}" Height="1024" Width="1440">
+        Title="{Binding Status, Converter={StaticResource CatalogStatusToTitle}}" Height="960" Width="1440">
 
     <Window.Resources>
         <Style x:Key="AppTitleBarStyle" TargetType="ui:TitleBarControl">

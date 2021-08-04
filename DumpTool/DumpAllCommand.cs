@@ -14,17 +14,17 @@ namespace DumpTool
 		{
 			var forge = Program.GetForge(args.ForgeFilename);
 
-			try
+			foreach (var entry in forge.Entries)
 			{
-				foreach (var entry in forge.Entries)
+				try
 				{
 					DumpHelper.Dump(forge, entry, Environment.CurrentDirectory);
 					Console.Error.WriteLine($"Dumped UID {entry.Uid}");
 				}
-			}
-			catch (Exception e)
-			{
-				Console.Error.WriteLine($"Error while dumping: {e}");
+				catch (Exception e)
+				{
+					Console.Error.WriteLine($"Error while dumping: UID {entry.Uid}\n{e}");
+				}
 			}
 		}
 	}

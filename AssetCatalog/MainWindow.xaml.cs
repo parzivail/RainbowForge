@@ -97,7 +97,9 @@ namespace AssetCatalog
 			try
 			{
 				var metaEntry = forge.Entries.First(entry1 => entry1.Uid == ForgeCatalog.Instance.SelectedEntry.Uid);
-				DumpHelper.Dump(forge, metaEntry, Environment.CurrentDirectory);
+				var outputDir = Path.Combine(Environment.CurrentDirectory, $"_export");
+				Directory.CreateDirectory(outputDir);
+				DumpHelper.Dump(forge, metaEntry, outputDir);
 
 				// Console.Error.WriteLine($"Dumped UID {Uid}");  // there's no console here :>
 			}

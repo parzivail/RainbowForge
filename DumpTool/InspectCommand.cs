@@ -33,7 +33,8 @@ namespace DumpTool
 				Console.WriteLine("Name Table:");
 
 				Console.WriteLine($"\tFile Magic: {magic}");
-				Console.WriteLine($"\tTimestamp: {metaEntry.Name.Timestamp}");
+				DateTime date = DateTimeOffset.FromUnixTimeSeconds(metaEntry.Name.Timestamp).DateTime;
+				Console.WriteLine($"\tTimestamp: {date} (epoch: {metaEntry.Name.Timestamp})");
 
 				switch (entry)
 				{

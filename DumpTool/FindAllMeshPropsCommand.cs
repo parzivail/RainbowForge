@@ -29,7 +29,7 @@ namespace DumpTool
 				}
 				catch (Exception e)
 				{
-					Console.Error.WriteLine($"Error while dumping: {e}");
+					// Console.Error.WriteLine($"Error while dumping: {e}");
 				}
 		}
 

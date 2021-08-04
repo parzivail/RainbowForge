@@ -18,21 +18,19 @@ namespace DumpTool
 			Program.AssertDirectoryExists(args.ForgeDirectory);
 
 			foreach (var file in Directory.GetFiles(args.ForgeDirectory, "*.forge"))
-				try
+			{ 
+				var forge = Program.GetForge(file);
+				for (var i = 0; i < forge.Entries.Length; i++)
 				{
-					var forge = Program.GetForge(file);
-					for (var i = 0; i < forge.Entries.Length; i++)
+					try
 					{
 						var entry = forge.Entries[i];
-
 						if (FindAllMeshPropsCommand.SearchFlatArchive(forge, entry, args.Uid))
 							Console.WriteLine($"{Path.GetFileName(file)}: {entry.Uid}");
 					}
+					catch { }
 				}
-				catch (Exception e)
-				{
-					Console.Error.WriteLine($"Error while dumping: {e}");
-				}
+			}
 		}
 	}
 }
