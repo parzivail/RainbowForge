@@ -43,11 +43,14 @@ namespace AssetCatalog
 
 		private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
 		{
-			var result = await LoginDialog.ShowAsync();
+			if (ForgeCatalog.Instance.CatalogDb.NeedsAuth())
+			{
+				var result = await LoginDialog.ShowAsync();
 
-			if (result != ContentDialogResult.Primary)
-				// Cancelled login
-				Environment.Exit(0);
+				if (result != ContentDialogResult.Primary)
+					// Cancelled login
+					Environment.Exit(0);
+			}
 
 			await ForgeCatalog.Instance.CatalogDb.Connect(LoginEmail.Text, LoginPassword.Password);
 		}

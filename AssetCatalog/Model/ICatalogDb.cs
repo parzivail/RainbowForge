@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Threading.Tasks;
 using AssetCatalog.Converters;
+using LiteDB;
 
 namespace AssetCatalog.Model
 {
 	public interface ICatalogDb
 	{
+		public bool NeedsAuth();
 		public Task Connect(string email, string password);
 
 		public CatalogEntry Get(ulong uid);
@@ -14,6 +16,8 @@ namespace AssetCatalog.Model
 
 	public class CatalogEntry
 	{
+		[BsonId(false)] public ulong Uid { get; set; }
+
 		public CatalogEntryStatus Status { get; set; } = CatalogEntryStatus.PartiallyComplete;
 		public CatalogAssetCategory Category { get; set; } = CatalogAssetCategory.Uncategorized;
 

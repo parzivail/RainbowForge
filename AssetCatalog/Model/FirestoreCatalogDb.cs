@@ -15,6 +15,80 @@ namespace AssetCatalog.Model
 		private QuerySnapshot _catalog;
 		private FirestoreDb _db;
 
+		/// <inheritdoc />
+		public bool NeedsAuth()
+		{
+			return true;
+		}
+
+		/// <inheritdoc />
+		public async Task Connect(string email, string password)
+		{
+			_db = await CreateFirestoreDbWithEmailAuthentication(email, password);
+
+			var collection = _db.Collection("catalog");
+			collection.Listen(snapshot =>
+			{
+				_catalog = snapshot;
+				ForgeCatalog.Instance.OnCatalogChanged();
+			});
+		}
+
+		/// <inheritdoc />
+		public CatalogEntry Get(ulong uid)
+		{
+			if (_catalog == null)
+				return new CatalogEntry
+				{
+					Uid = uid,
+					Status = CatalogEntryStatus.Incomplete,
+					Category = CatalogAssetCategory.Uncategorized
+				};
+
+			var uidStr = uid.ToString();
+			var document = _catalog.Documents.FirstOrDefault(snapshot => snapshot.Id == uidStr);
+			if (document == null)
+				return new CatalogEntry
+				{
+					Uid = uid,
+					Status = CatalogEntryStatus.Incomplete,
+					Category = CatalogAssetCategory.Uncategorized
+				};
+
+			var fields = document.ToDictionary();
+
+			var name = (string) fields["name"];
+			var category = (CatalogAssetCategory) Enum.Parse(typeof(CatalogAssetCategory), (string) fields["category"]);
+			var status = (CatalogEntryStatus) Enum.Parse(typeof(CatalogEntryStatus), (string) fields["status"]);
+
+			var notes = fields.ContainsKey("notes") ? (string) fields["notes"] : "";
+
+			return new CatalogEntry
+			{
+				Uid = uid,
+				Name = name,
+				Category = category,
+				Status = status,
+				Notes = notes
+			};
+		}
+
+		/// <inheritdoc />
+		public void Put(ulong uid, CatalogEntry entry)
+		{
+			var doc = new Dictionary<string, object>
+			{
+				{"name", entry.Name},
+				{"category", entry.Category.ToString()},
+				{"status", entry.Status.ToString()}
+			};
+
+			if (!string.IsNullOrWhiteSpace(entry.Notes))
+				doc["notes"] = entry.Notes;
+
+			_db.Collection("catalog").Document(uid.ToString()).SetAsync(doc);
+		}
+
 		private static async Task<FirestoreDb> CreateFirestoreDbWithEmailAuthentication(string emailAddress, string password)
 		{
 			// Create a custom authentication mechanism for Email/Password authentication
@@ -56,71 +130,6 @@ namespace AssetCatalog.Model
 			}.BuildAsync();
 
 			return await FirestoreDb.CreateAsync("parzi-rainbowforge", client);
-		}
-
-		/// <inheritdoc />
-		public async Task Connect(string email, string password)
-		{
-			_db = await CreateFirestoreDbWithEmailAuthentication(email, password);
-
-			var collection = _db.Collection("catalog");
-			collection.Listen(snapshot =>
-			{
-				_catalog = snapshot;
-				ForgeCatalog.Instance.OnCatalogChanged();
-			});
-		}
-
-		/// <inheritdoc />
-		public CatalogEntry Get(ulong uid)
-		{
-			if (_catalog == null)
-				return new CatalogEntry
-				{
-					Status = CatalogEntryStatus.Incomplete,
-					Category = CatalogAssetCategory.Uncategorized
-				};
-
-			var uidStr = uid.ToString();
-			var document = _catalog.Documents.FirstOrDefault(snapshot => snapshot.Id == uidStr);
-			if (document == null)
-				return new CatalogEntry
-				{
-					Status = CatalogEntryStatus.Incomplete,
-					Category = CatalogAssetCategory.Uncategorized
-				};
-
-			var fields = document.ToDictionary();
-
-			var name = (string) fields["name"];
-			var category = (CatalogAssetCategory) Enum.Parse(typeof(CatalogAssetCategory), (string) fields["category"]);
-			var status = (CatalogEntryStatus) Enum.Parse(typeof(CatalogEntryStatus), (string) fields["status"]);
-
-			var notes = fields.ContainsKey("notes") ? (string) fields["notes"] : "";
-
-			return new CatalogEntry
-			{
-				Name = name,
-				Category = category,
-				Status = status,
-				Notes = notes
-			};
-		}
-
-		/// <inheritdoc />
-		public void Put(ulong uid, CatalogEntry entry)
-		{
-			var doc = new Dictionary<string, object>
-			{
-				{"name", entry.Name},
-				{"category", entry.Category.ToString()},
-				{"status", entry.Status.ToString()}
-			};
-
-			if (!string.IsNullOrWhiteSpace(entry.Notes))
-				doc["notes"] = entry.Notes;
-
-			_db.Collection("catalog").Document(uid.ToString()).SetAsync(doc);
 		}
 	}
 }

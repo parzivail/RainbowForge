@@ -22,33 +22,7 @@ namespace AssetCatalog
 		private string _status;
 		private ulong _uidFilter;
 
-		private ForgeCatalog()
-		{
-		}
-
-		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
-		private bool EntryMatchesFilter(Entry arg)
-		{
-			if (_uidFilter != 0 && arg.Uid != _uidFilter)
-				return false;
-
-			var catalogEntry = CatalogDb.Get(arg.Uid);
-
-			if (!string.IsNullOrWhiteSpace(_nameFilter) && !catalogEntry.Name.Contains(_nameFilter))
-				return false;
-
-			if (_filteredStatuses.Length != 0 && !_filteredStatuses.Contains(catalogEntry.Status))
-				return false;
-
-			if (_filteredCategories.Length != 0 && !_filteredCategories.Contains(catalogEntry.Category))
-				return false;
-
-			return true;
-		}
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public string Status
 		{
@@ -60,7 +34,7 @@ namespace AssetCatalog
 			}
 		}
 
-		public ICatalogDb CatalogDb { get; } = new FirestoreCatalogDb();
+		public ICatalogDb CatalogDb { get; } = new LocalCatalogDb();
 
 		public Forge OpenedForge
 		{
@@ -101,6 +75,10 @@ namespace AssetCatalog
 		/// <inheritdoc />
 		public IEnumerable<Entry> FilteredEntries => OpenedForge == null ? Array.Empty<Entry>() : OpenedForge.Entries.Where(EntryMatchesFilter);
 
+		private ForgeCatalog()
+		{
+		}
+
 		public void OpenForge(Stream stream)
 		{
 			var forgeStream = new BinaryReader(stream);
@@ -122,6 +100,28 @@ namespace AssetCatalog
 			OnPropertyChanged(nameof(FilteredEntries));
 		}
 
-		public event PropertyChangedEventHandler PropertyChanged;
+		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		private bool EntryMatchesFilter(Entry arg)
+		{
+			if (_uidFilter != 0 && arg.Uid != _uidFilter)
+				return false;
+
+			var catalogEntry = CatalogDb.Get(arg.Uid);
+
+			if (!string.IsNullOrWhiteSpace(_nameFilter) && !catalogEntry.Name.Contains(_nameFilter))
+				return false;
+
+			if (_filteredStatuses.Length != 0 && !_filteredStatuses.Contains(catalogEntry.Status))
+				return false;
+
+			if (_filteredCategories.Length != 0 && !_filteredCategories.Contains(catalogEntry.Category))
+				return false;
+
+			return true;
+		}
 	}
 }
