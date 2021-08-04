@@ -18,10 +18,10 @@ namespace RainbowForge
 		{
 			const float bias = 0x7FFF;
 
-			var x = r.ReadUInt16();
-			var y = r.ReadUInt16();
-			var z = r.ReadUInt16();
-			var s = r.ReadUInt16();
+			var x = (float) r.ReadInt16();
+			var y = (float) r.ReadInt16();
+			var z = (float) r.ReadInt16();
+			var s = (float) r.ReadInt16();
 
 			return new Vector3(x * s / bias, y * s / bias, z * s / bias);
 		}
