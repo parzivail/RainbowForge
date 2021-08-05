@@ -1,8 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace RainbowForge.Texture
 {
+	using ImageFormat = Pfim.ImageFormat;
+
 	public class DdsHelper
 	{
 		private static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureTypes = new()
@@ -38,6 +43,56 @@ namespace RainbowForge.Texture
 			ms.Seek(0, SeekOrigin.Begin);
 
 			return ms;
+		}
+
+		public static Bitmap GetBitmap(MemoryStream ms)
+		{
+			using (Pfim.IImage image = Pfim.Pfim.FromStream(ms))
+			{
+				PixelFormat format;
+
+				switch (image.Format)
+				{
+                    case ImageFormat.Rgb24:
+                        format = PixelFormat.Format24bppRgb;
+                        break;
+
+                    case ImageFormat.Rgba32:
+						format = PixelFormat.Format32bppArgb;
+						break;
+
+                    case ImageFormat.R5g5b5:
+                        format = PixelFormat.Format16bppRgb555;
+                        break;
+
+                    case ImageFormat.R5g6b5:
+                        format = PixelFormat.Format16bppRgb565;
+                        break;
+
+                    case ImageFormat.R5g5b5a1:
+                        format = PixelFormat.Format16bppArgb1555;
+                        break;
+
+                    case ImageFormat.Rgb8:
+                        format = PixelFormat.Format8bppIndexed;
+                        break;
+
+                    default:
+						var msg = $"{image.Format} is not recognized";
+						throw new System.NotImplementedException(msg);
+				}
+
+				var handle = GCHandle.Alloc(image.Data, GCHandleType.Pinned);
+				try
+				{
+					var data = Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
+					return new Bitmap(image.Width, image.Height, image.Stride, format, data);
+				}
+				finally
+				{
+					handle.Free();
+				}
+			}
 		}
 	}
 }

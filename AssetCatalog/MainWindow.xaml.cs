@@ -143,7 +143,6 @@ namespace AssetCatalog
 							ShowError(e);
 						}
 
-
 						break;
 					}
 					case AssetType.Texture:
@@ -157,7 +156,7 @@ namespace AssetCatalog
 							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
 							var texture = Texture.Read(stream);
 
-							var bmp = Texture.GetBitmap(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
+							var bmp = DdsHelper.GetBitmap(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
 							_modelRenderer.BuildTextureMesh(texture);
 							_modelRenderer.SetTexture(bmp);
