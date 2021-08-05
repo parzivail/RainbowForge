@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -26,6 +28,8 @@ namespace AssetCatalog
 		private readonly ModelRenderer _modelRenderer;
 
 		private ulong _loadedMeshUid;
+
+		private Bitmap convertedDds;
 
 		public MainWindow()
 		{
@@ -99,13 +103,19 @@ namespace AssetCatalog
 				var metaEntry = forge.Entries.First(entry1 => entry1.Uid == ForgeCatalog.Instance.SelectedEntry.Uid);
 				var outputDir = Path.Combine(Environment.CurrentDirectory, $"_export");
 				Directory.CreateDirectory(outputDir);
-				DumpHelper.Dump(forge, metaEntry, outputDir);
 
-				// Console.Error.WriteLine($"Dumped UID {Uid}");  // there's no console here :>
+				if (MagicHelper.GetFiletype(metaEntry.Name.FileType) == AssetType.Texture && convertedDds != null)
+				{
+					convertedDds.RotateFlip(RotateFlipType.RotateNoneFlipY);
+					convertedDds.Save(Path.Combine(outputDir, $"{metaEntry.Uid}.png"), ImageFormat.Png);
+					return;
+				}
+
+				DumpHelper.Dump(forge, metaEntry, outputDir);
 			}
 			catch (Exception err)
 			{
-				// Console.Error.WriteLine($"Error while dumping: {err}");  // there's no console here :>
+				ShowError(err);
 			}
 		}
 
@@ -159,11 +169,10 @@ namespace AssetCatalog
 							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
 							var texture = Texture.Read(stream);
 
-							// TODO
-							// var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));
+							convertedDds = Texture.GetBitmap(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
 							_modelRenderer.BuildTextureMesh(texture);
-							// _modelRenderer.SetTexture(bmp);
+							_modelRenderer.SetTexture(convertedDds);
 							_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
 						}
 						catch (Exception e)
