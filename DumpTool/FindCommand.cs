@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using CommandLine;
+using RainbowForge;
+using RainbowForge.Forge;
 
 namespace DumpTool
 {
@@ -16,11 +18,11 @@ namespace DumpTool
 
 		public static void Run(FindCommand args)
 		{
-			Program.AssertDirectoryExists(args.SearchDirectory);
+			FileSystemUtil.AssertDirectoryExists(args.SearchDirectory);
 
 			foreach (var file in Directory.GetFiles(args.SearchDirectory, "*.forge"))
 			{
-				var forge = Program.GetForge(file);
+				var forge = Forge.GetForge(file);
 
 				if (forge.Entries.Any(entry => entry.Uid == args.Uid))
 					Console.WriteLine(file);

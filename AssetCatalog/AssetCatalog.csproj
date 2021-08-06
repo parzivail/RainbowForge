@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\DumpTool\DumpTool.csproj" />
       <ProjectReference Include="..\RainbowForge\RainbowForge.csproj" />
     </ItemGroup>
 

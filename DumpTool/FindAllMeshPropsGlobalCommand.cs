@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using CommandLine;
+using RainbowForge;
+using RainbowForge.Forge;
 
 namespace DumpTool
 {
@@ -15,11 +17,11 @@ namespace DumpTool
 
 		public static void Run(FindAllMeshPropsGlobalCommand args)
 		{
-			Program.AssertDirectoryExists(args.ForgeDirectory);
+			FileSystemUtil.AssertDirectoryExists(args.ForgeDirectory);
 
 			foreach (var file in Directory.GetFiles(args.ForgeDirectory, "*.forge"))
 			{ 
-				var forge = Program.GetForge(file);
+				var forge = Forge.GetForge(file);
 				for (var i = 0; i < forge.Entries.Length; i++)
 				{
 					try

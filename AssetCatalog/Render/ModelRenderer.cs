@@ -36,6 +36,8 @@ namespace AssetCatalog.Render
 
 		private int _zoom = 1;
 
+		private Vector2 _normalizedWH = new(1, 1);
+
 		public ModelRenderer(GLWpfControl control)
 		{
 			_control = control;
@@ -138,7 +140,11 @@ namespace AssetCatalog.Render
 			           * Matrix4.CreateScale((float) Math.Pow(10, _zoom / 10f) * Vector3.One)
 			           * Matrix4.CreateTranslation(_translation.X, _translation.Y, -10);
 
-			var model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-90));
+			var modelspace = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-90));
+			if (_isTexture)
+                modelspace *= Matrix4.CreateTranslation((float) -0.5 * _normalizedWH.X, (float) -0.5 * _normalizedWH.Y, 0);
+
+			var model = modelspace;
 
 			_shaderModel.Uniforms.SetValue("m", model);
 			_shaderModel.Uniforms.SetValue("v", view);
@@ -159,13 +165,16 @@ namespace AssetCatalog.Render
 				GL.MatrixMode(MatrixMode.Modelview);
 				GL.LoadMatrix(ref view);
 
-				RenderOriginAxes();
+				if (!_isTexture)
+				{
+					RenderOriginAxes();
+				}
+
+				GL.PopMatrix();
 
 				// GL.MultMatrix(ref model);
 				//
 				// RenderBoundingBox();
-
-				GL.PopMatrix();
 
 				GL.Color4(Color4.White);
 
@@ -366,12 +375,19 @@ namespace AssetCatalog.Render
 			var w = texture.Width;
 			var h = texture.Height;
 
+			var max = Math.Max(w, h);
+			
+			_normalizedWH.X = (float) w / max;
+			_normalizedWH.Y = (float) h / max;
+
+			_zoom = 12;
+
 			var verts = new[]
 			{
 				new Vector3(0, 0, 0),
-				new Vector3(w, 0, 0),
-				new Vector3(w, 0, h),
-				new Vector3(0, 0, h)
+				new Vector3(_normalizedWH.X, 0, 0),
+				new Vector3(_normalizedWH.X, 0, _normalizedWH.Y),
+				new Vector3(0, 0, _normalizedWH.Y)
 			};
 
 			var norm = new[]

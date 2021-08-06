@@ -1,35 +1,9 @@
-﻿using System;
-using System.IO;
-using CommandLine;
-using RainbowForge.Forge;
+﻿using CommandLine;
 
 namespace DumpTool
 {
 	internal class Program
 	{
-		public static void AssertFileExists(string filename)
-		{
-			if (File.Exists(filename)) return;
-
-			Console.Error.WriteLine($"File not found: {filename}");
-			Environment.Exit(-1);
-		}
-
-		public static void AssertDirectoryExists(string dir)
-		{
-			if (Directory.Exists(dir)) return;
-
-			Console.Error.WriteLine($"Directory not found: {dir}");
-			Environment.Exit(-1);
-		}
-
-		public static Forge GetForge(string filename)
-		{
-			AssertFileExists(filename);
-			var forgeStream = new BinaryReader(File.Open(filename, FileMode.Open));
-			return Forge.Read(forgeStream);
-		}
-
 		private static void Main(string[] args)
 		{
 			Parser.Default.ParseArguments<ListCommand, FindCommand, InspectCommand, DumpCommand, DumpMeshPropsCommand, IndexCommand,

@@ -23,7 +23,7 @@ namespace Sandbox
 			var outputDir = $@"R:\Siege Dumps\Unpacked\{Path.GetFileNameWithoutExtension(inputFile)}";
 			Directory.CreateDirectory(outputDir);
 
-			var forgeStream = new BinaryReader(File.Open(inputFile, FileMode.Open));
+			var forgeStream = new BinaryReader(File.Open(inputFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
 			var forge = Forge.Read(forgeStream);
 
@@ -147,7 +147,7 @@ namespace Sandbox
 				foreach (var resolvedForgeFile in resolvedExterns.Keys)
 				{
 					var filename = Path.Combine(rootForgeDir, resolvedForgeFile + ".forge");
-					using var resolvedForgeStream = new BinaryReader(File.Open(filename, FileMode.Open));
+					using var resolvedForgeStream = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 					var resolvedForge = Forge.Read(resolvedForgeStream);
 
 					foreach (var resolvedUid in resolvedExterns[resolvedForgeFile])

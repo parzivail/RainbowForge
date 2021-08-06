@@ -252,10 +252,14 @@
                             <Button ToolTip="Dump UID" Click="OnDumpUid_Click">
                                 <ui:FontIcon Glyph="&#xE74E;" />
                             </Button>
+                            <Button x:Name="DumpMeshPropsButton" ToolTip="Dump Meshprops&#10;(place an up-to-date 'index.db' next to AssetCatalog.exe)" Click="OnDumpMeshprops_Click">
+                                <ui:FontIcon Glyph="&#xE74E;" Foreground="#FF64FF64" />
+                            </Button>
                         </ui:SimpleStackPanel>
                         <Button Click="OnSaveEntry_Click" Content="Save Entry" HorizontalAlignment="Right" Style="{DynamicResource AccentButtonStyle}" />
                     </ui:SimpleStackPanel>
                 </Grid>
+                <TextBox x:Name="stats" BorderThickness="0" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" Height="160" Background="{x:Null}" IsEnabled="False" IsReadOnly="True" Foreground="White" Margin="0,2,0,0"/>
             </Grid>
         </Grid>
 

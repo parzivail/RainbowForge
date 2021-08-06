@@ -174,7 +174,7 @@ namespace ForgeDiff
 		{
 			var deps = new Dictionary<ArchiveReference, List<UidReference>>();
 
-			using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
+			using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
 			var forge = Forge.Read(forgeStream);
 
@@ -246,7 +246,7 @@ namespace ForgeDiff
 
 		private static void SearchBinFile(string file, ulong needle)
 		{
-			using var br = new BinaryReader(File.Open(file, FileMode.Open));
+			using var br = new BinaryReader(File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
 			for (var i = 0; i < br.BaseStream.Length - sizeof(ulong); i++)
 			{
@@ -278,7 +278,7 @@ namespace ForgeDiff
 
 				if (!forgeCache.ContainsKey(src))
 				{
-					var forgeStream = new BinaryReader(File.Open(Path.Combine(forgeSourceDir, $"{src}.forge"), FileMode.Open));
+					var forgeStream = new BinaryReader(File.Open(Path.Combine(forgeSourceDir, $"{src}.forge"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 					forgeCache[src] = Forge.Read(forgeStream);
 				}
 
@@ -425,7 +425,7 @@ namespace ForgeDiff
 			{
 				var forgeFile = files[fileIdx];
 
-				using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
+				using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 				var forge = Forge.Read(forgeStream);
 
 				var forgeFileName = Path.GetFileNameWithoutExtension(forgeFile);

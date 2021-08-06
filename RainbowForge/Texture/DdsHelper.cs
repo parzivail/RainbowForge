@@ -10,7 +10,7 @@ namespace RainbowForge.Texture
 
 	public class DdsHelper
 	{
-		private static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureTypes = new()
+		public static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureTypes = new()
 		{
 			{0x0, DirectXTexUtil.DXGIFormat.B8G8R8A8UNORM},
 			{0x2, DirectXTexUtil.DXGIFormat.BC1UNORM},

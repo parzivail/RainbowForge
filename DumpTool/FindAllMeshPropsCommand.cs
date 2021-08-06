@@ -20,7 +20,7 @@ namespace DumpTool
 
 		public static void Run(FindAllMeshPropsCommand args)
 		{
-			var forge = Program.GetForge(args.ForgeFilename);
+			var forge = Forge.GetForge(args.ForgeFilename);
 			foreach (var entry in forge.Entries)
 				try
 				{

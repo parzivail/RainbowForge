@@ -1,6 +1,7 @@
 ﻿using System;
 using CommandLine;
 using RainbowForge.Dump;
+using RainbowForge.Forge;
 
 namespace DumpTool
 {
@@ -12,7 +13,7 @@ namespace DumpTool
 
 		public static void Run(DumpAllCommand args)
 		{
-			var forge = Program.GetForge(args.ForgeFilename);
+			var forge = Forge.GetForge(args.ForgeFilename);
 
 			foreach (var entry in forge.Entries)
 			{

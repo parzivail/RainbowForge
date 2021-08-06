@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using CommandLine;
 using LiteDB;
+using RainbowForge;
 using RainbowForge.Database;
 using RainbowForge.Forge;
 
@@ -35,7 +36,7 @@ namespace DumpTool
 
 		public static void Run(IndexCommand args)
 		{
-			Program.AssertDirectoryExists(args.SearchDirectory);
+			FileSystemUtil.AssertDirectoryExists(args.SearchDirectory);
 
 			using var db = new LiteDatabase(args.IndexFilename);
 
@@ -48,7 +49,7 @@ namespace DumpTool
 			{
 				var forgeFile = files[fileIdx];
 
-				using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open));
+				using var forgeStream = new BinaryReader(File.Open(forgeFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 				var forge = Forge.Read(forgeStream);
 
 				var forgeFileName = Path.GetFileNameWithoutExtension(forgeFile);
