@@ -6,7 +6,6 @@ using System.Windows;
 using System.Windows.Input;
 using AssetCatalog.Model;
 using AssetCatalog.Render;
-using CommandLine;
 using Microsoft.Win32;
 using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
@@ -199,7 +198,7 @@ namespace AssetCatalog
 								_modelRenderer.BuildTextureMesh(texture);
 								_modelRenderer.SetTexture(bmp);
 								_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
-								statsTextBox.Text = $"Width\t: {texture.Width}\nHeight\t: {texture.Height}\nFormat\t: {DdsHelper.TextureTypes[texture.TexFormat]}\nType\t: {texture.TexType}";
+								statsTextBox.Text = $"Width\t: {texture.Width}\nHeight\t: {texture.Height}\nFormat\t: {DdsHelper.TextureFormats[texture.TexFormat]}\nType\t: {(Texture.TextureMapTypes.TryGetValue(texture.TexType, out var rType) ? rType : texture.TexType)}";
 							}
 						catch (Exception e)
 						{

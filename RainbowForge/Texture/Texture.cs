@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace RainbowForge.Texture
 {
@@ -98,5 +99,16 @@ namespace RainbowForge.Texture
 			r.BaseStream.Seek(DdsStart, SeekOrigin.Begin);
 			return r.ReadBytes((int) Texsize);
 		}
+
+		// unfinished
+		public static readonly Dictionary<uint, string> TextureMapTypes = new()
+		{
+			{ 0x0, "Diffuse Map" }, // older GUI /skin preview?/ textures sometimes have this type
+			{ 0x1, "Normal Map" }, // not just yellow (RG = XY) ones, head detail (RGA = XYZ) as well
+			{ 0x2, "Specular Map (PBR)" }, // usually holds gloss, metalness and cavity
+			{ 0x3, "GUI/Cubemap/Spritesheet" }, // possibly more
+			{ 0x5, "Normal Map v2" }, // ?
+			{ 0x7, "ID Map" } // internally 'ColorMask'
+		};
 	}
 }

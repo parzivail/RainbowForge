@@ -10,7 +10,7 @@ namespace RainbowForge.Texture
 
 	public class DdsHelper
 	{
-		public static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureTypes = new()
+		public static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureFormats = new()
 		{
 			{0x0, DirectXTexUtil.DXGIFormat.B8G8R8A8UNORM},
 			{0x2, DirectXTexUtil.DXGIFormat.BC1UNORM},
@@ -31,7 +31,7 @@ namespace RainbowForge.Texture
 
 		public static MemoryStream GetDdsStream(Texture texture, byte[] surface)
 		{
-			var dxgiFormat = TextureTypes[texture.TexFormat];
+			var dxgiFormat = TextureFormats[texture.TexFormat];
 
 			var meta = DirectXTexUtil.GenerateMataData(texture.Width, texture.Height, (int) texture.Mips, dxgiFormat, false);
 			DirectXTexUtil.GenerateDDSHeader(meta, DirectXTexUtil.DDSFlags.NONE, out var header, out var dx10);
