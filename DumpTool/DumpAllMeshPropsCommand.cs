@@ -2,6 +2,8 @@
 using System.IO;
 using CommandLine;
 using LiteDB;
+using RainbowForge;
+using RainbowForge.Forge;
 
 namespace DumpTool
 {
@@ -16,8 +18,8 @@ namespace DumpTool
 
 		public static void Run(DumpAllMeshPropsCommand args)
 		{
-			Program.AssertFileExists(args.IndexFilename);
-			var forge = Program.GetForge(args.ForgeFilename);
+			FileSystemUtil.AssertFileExists(args.IndexFilename);
+			var forge = Forge.GetForge(args.ForgeFilename);
 
 			try
 			{

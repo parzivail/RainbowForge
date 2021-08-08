@@ -83,6 +83,13 @@ namespace RainbowForge.Forge
 			return new Forge(version, headerOffset, numEntries, entries, r);
 		}
 
+		public static Forge GetForge(string filename)
+		{
+			FileSystemUtil.AssertFileExists(filename);
+			var forgeStream = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+			return Read(forgeStream);
+		}
+
 		public ForgeContainer GetContainer(ulong entryUid)
 		{
 			return GetContainer(_uidToEntryIndexMap[entryUid]);

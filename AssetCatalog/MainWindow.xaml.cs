@@ -10,8 +10,10 @@ using Microsoft.Win32;
 using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
+using LiteDB;
 using RainbowForge;
 using RainbowForge.Dump;
+using RainbowForge.Forge;
 using RainbowForge.Forge.Container;
 using RainbowForge.Mesh;
 using RainbowForge.Texture;
@@ -26,6 +28,9 @@ namespace AssetCatalog
 		private readonly ModelRenderer _modelRenderer;
 
 		private ulong _loadedMeshUid;
+
+		private string _exportDir = "_export";
+		private string _indexFileName = "index.db";
 
 		public MainWindow()
 		{
@@ -97,14 +102,41 @@ namespace AssetCatalog
 			try
 			{
 				var metaEntry = forge.Entries.First(entry1 => entry1.Uid == ForgeCatalog.Instance.SelectedEntry.Uid);
-				DumpHelper.Dump(forge, metaEntry, Environment.CurrentDirectory);
-
-				// Console.Error.WriteLine($"Dumped UID {Uid}");  // there's no console here :>
+				var outputDir = Path.Combine(Environment.CurrentDirectory, _exportDir);
+				Directory.CreateDirectory(outputDir);
+				DumpHelper.Dump(forge, metaEntry, outputDir);
 			}
 			catch (Exception err)
 			{
-				// Console.Error.WriteLine($"Error while dumping: {err}");  // there's no console here :>
+				ShowError(err);
 			}
+		}
+
+		private void OnDumpMeshprops_Click(object sender, RoutedEventArgs e)
+		{
+			var entry = ForgeCatalog.Instance.SelectedEntry;
+			if (entry == null || MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.Mesh)
+				return;
+
+			// heavily WIP
+			var forgePath = Path.GetDirectoryName(ForgeCatalog.Instance.Status);
+			var ondemandPath = Path.Combine(forgePath, "datapc64_ondemand.forge");
+			var forge = Forge.GetForge(ondemandPath);
+			var db = new LiteDatabase(_indexFileName);
+			foreach (var _entry in forge.Entries)
+				try
+				{
+					if (DumpTool.FindAllMeshPropsCommand.SearchFlatArchive(forge, _entry, entry.Uid))
+					{
+						var __entry = forge.Entries.First(entry1 => entry1.Uid == _entry.Uid);
+
+						DumpTool.DumpMeshPropsCommand.ProcessFlatArchive(db, forge, __entry, Path.Combine(Environment.CurrentDirectory, _exportDir), Path.GetDirectoryName(ondemandPath));
+					}
+				}
+				catch (Exception err)
+				{
+					ShowError(err);
+				}
 		}
 
 		private void OnSaveEntry_Click(object sender, RoutedEventArgs e)
@@ -120,6 +152,11 @@ namespace AssetCatalog
 			{
 				var filetype = MagicHelper.GetFiletype(entry.Name.FileType);
 
+				var isMesh = filetype == AssetType.Mesh;
+				DumpMeshPropsButton.IsEnabled = isMesh;
+				DumpMeshPropsButton.Opacity = Convert.ToDouble(isMesh);
+				var statsTextBox = stats;
+
 				switch (filetype)
 				{
 					case AssetType.Mesh:
@@ -131,18 +168,18 @@ namespace AssetCatalog
 								throw new InvalidDataException("Container is not asset");
 
 							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
-							var header = MeshHeader.Read(stream);
-							var mesh = Mesh.Read(stream, header);
+								var header = MeshHeader.Read(stream);
+								var mesh = Mesh.Read(stream, header);
 
-							_modelRenderer.BuildModelQuads(mesh);
-							_modelRenderer.SetTexture(null);
-							_modelRenderer.SetPartBounds(header.ObjectBoundingBoxes.Take((int) (header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
+								_modelRenderer.BuildModelQuads(mesh);
+								_modelRenderer.SetTexture(null);
+								_modelRenderer.SetPartBounds(header.ObjectBoundingBoxes.Take((int) (header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
+								statsTextBox.Text = $"Vertices\t: {header.NumVerts}\nLods\t: {header.NumLods}\nMats:\t: {mesh.Objects.Count / header.NumLods}\nType\t: {header.MeshType}";
 						}
 						catch (Exception e)
 						{
 							ShowError(e);
 						}
-
 
 						break;
 					}
@@ -155,15 +192,14 @@ namespace AssetCatalog
 								throw new InvalidDataException("Container is not asset");
 
 							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
-							var texture = Texture.Read(stream);
+								var texture = Texture.Read(stream);
+								var bmp = DdsHelper.GetBitmap(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
-							// TODO
-							// var bmp = DdsHelper.GetBitmap(DdsHelper.GetDds(texture, texture.ReadSurfaceBytes(stream)));
-
-							_modelRenderer.BuildTextureMesh(texture);
-							// _modelRenderer.SetTexture(bmp);
-							_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
-						}
+								_modelRenderer.BuildTextureMesh(texture);
+								_modelRenderer.SetTexture(bmp);
+								_modelRenderer.SetPartBounds(Array.Empty<BoundingBox>());
+								statsTextBox.Text = $"Width\t: {texture.Width}\nHeight\t: {texture.Height}\nFormat\t: {DdsHelper.TextureFormats[texture.TexFormat]}\nType\t: {(Texture.TextureMapTypes.TryGetValue(texture.TexType, out var rType) ? rType : texture.TexType)}";
+							}
 						catch (Exception e)
 						{
 							ShowError(e);

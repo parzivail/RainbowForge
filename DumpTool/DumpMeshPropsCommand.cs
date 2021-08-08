@@ -27,8 +27,8 @@ namespace DumpTool
 
 		public static void Run(DumpMeshPropsCommand args)
 		{
-			Program.AssertFileExists(args.IndexFilename);
-			var forge = Program.GetForge(args.ForgeFilename);
+			FileSystemUtil.AssertFileExists(args.IndexFilename);
+			var forge = Forge.GetForge(args.ForgeFilename);
 
 			try
 			{
@@ -102,7 +102,7 @@ namespace DumpTool
 				foreach (var resolvedForgeFile in resolvedExterns.Keys)
 				{
 					var filename = Path.Combine(rootForgeDir, resolvedForgeFile + ".forge");
-					using var resolvedForgeStream = new BinaryReader(File.Open(filename, FileMode.Open));
+					using var resolvedForgeStream = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 					var resolvedForge = Forge.Read(resolvedForgeStream);
 
 					foreach (var resolvedUid in resolvedExterns[resolvedForgeFile])
