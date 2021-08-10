@@ -66,8 +66,6 @@ namespace RainbowForge.Dump
 
 					foreach (var arcEntry in arc.Entries)
 					{
-						Directory.CreateDirectory(arcDir);
-
 						var name = $"idx{arcEntry.Index}_filetype{arcEntry.Meta.Magic}";
 
 						if (Enum.IsDefined(typeof(Magic), (ulong) arcEntry.Meta.Magic))
@@ -93,6 +91,7 @@ namespace RainbowForge.Dump
 
 		public static void DumpBin(string bank, string name, Stream stream, long writeOffset = 0, int writeLength = -1, string ext = "bin")
 		{
+			Directory.CreateDirectory(bank);
 			var filename = Path.Combine(bank, $"{name}.{ext}");
 
 			using var fs = File.Open(filename, FileMode.Create);
@@ -111,6 +110,7 @@ namespace RainbowForge.Dump
 
 		private static void DumpMeshObj(string bank, string name, Mesh.Mesh mesh)
 		{
+			Directory.CreateDirectory(bank);
 			var filename = Path.Combine(bank, $"{name}.obj");
 
 			var obj = new ObjFile();
@@ -151,7 +151,7 @@ namespace RainbowForge.Dump
 			obj.WriteTo(filename);
 		}
 
-		public static void DumpNonContainerChildren(string rootDir, BinaryReader assetStream, FlatArchive arc, FlatArchiveEntry entry, List<ulong> unresolvedExterns)
+		public static void DumpNonContainerChildren(string rootDir, BinaryReader assetStream, FlatArchive arc, FlatArchiveEntry entry, List<KeyValuePair<string, ulong>> unresolvedExterns)
 		{
 			void TryRecurseChildren(string dir, ulong uid)
 			{
@@ -164,7 +164,7 @@ namespace RainbowForge.Dump
 				else if (uid >> 24 == 0xF8)
 					Console.WriteLine($"Link container node references unresolved internal UID {uid} (0x{uid:X16})");
 				else if (uid != 0)
-					unresolvedExterns.Add(uid);
+					unresolvedExterns.Add(new KeyValuePair<string, ulong>(dir, uid));
 			}
 
 			assetStream.BaseStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
@@ -193,42 +193,51 @@ namespace RainbowForge.Dump
 				{
 					var mat = MaterialContainer.Read(assetStream);
 					foreach (var mipContainerReference in mat.BaseMipContainers)
-						TryRecurseChildren(rootDir, mipContainerReference.MipContainerUid);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} BaseMipContainers"), mipContainerReference.MipContainerUid);
 					foreach (var mipContainerReference in mat.SecondaryMipContainers)
-						TryRecurseChildren(rootDir, mipContainerReference.MipContainerUid);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} SecondaryMipContainers"), mipContainerReference.MipContainerUid);
 					foreach (var mipContainerReference in mat.TertiaryMipContainers)
-						TryRecurseChildren(rootDir, mipContainerReference.MipContainerUid);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} TertiaryMipContainers"), mipContainerReference.MipContainerUid);
 
 					break;
 				}
 				case Magic.MipContainer:
 				{
 					var mipContainer = MipContainer.Read(assetStream);
-					TryRecurseChildren(rootDir, mipContainer.MipUid);
+					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} Mips"), mipContainer.MipUid);
 					break;
 				}
 				case Magic.MeshProperties:
 				{
 					var meshProps = MeshProperties.Read(assetStream);
-					TryRecurseChildren(rootDir, meshProps.MeshUid);
+					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} Meshes"), meshProps.MeshUid);
 
 					foreach (var materialContainer in meshProps.MaterialContainers)
-						TryRecurseChildren(rootDir, materialContainer);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} MaterialContainers"), materialContainer);
 					break;
 				}
 				case Magic.MipSet:
 				{
 					var mipSet = MipSet.Read(assetStream);
-					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && !unresolvedExterns.Contains(arg)))
-						unresolvedExterns.Add(uid);
-					foreach (var uid in mipSet.TexUidMipSet2.Where(arg => arg != 0 && !unresolvedExterns.Contains(arg)))
-						unresolvedExterns.Add(uid);
+					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && unresolvedExterns.All(pair => pair.Value != arg)))
+						unresolvedExterns.Add(new KeyValuePair<string, ulong>(rootDir, uid));
+					foreach (var uid in mipSet.TexUidMipSet2.Where(arg => arg != 0 && unresolvedExterns.All(pair => pair.Value != arg)))
+						unresolvedExterns.Add(new KeyValuePair<string, ulong>(rootDir, uid));
 					break;
 				}
 				// The root entry is a UidLinkContainer
 				case Magic.FlatArchive1:
 				case Magic.FlatArchive2:
 				case Magic.FlatArchive3:
+				case Magic.FlatArchive4:
+				case Magic.FlatArchive5:
+				case Magic.FlatArchive6:
+				case Magic.FlatArchive7:
+				case Magic.FlatArchive8:
+				case Magic.FlatArchive9:
+				case Magic.FlatArchive10:
+				case Magic.FlatArchive11:
+				case Magic.FlatArchive12:
 				{
 					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
@@ -236,13 +245,13 @@ namespace RainbowForge.Dump
 						if (linkEntry.UidLinkNode1 != null)
 						{
 							var uid = linkEntry.UidLinkNode1.LinkedUid;
-							TryRecurseChildren(rootDir, uid);
+							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} UidLinkNode1"), uid);
 						}
 
 						if (linkEntry.UidLinkNode2 != null)
 						{
 							var uid = linkEntry.UidLinkNode2.LinkedUid;
-							TryRecurseChildren(rootDir, uid);
+							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} UidLinkNode2"), uid);
 						}
 					}
 

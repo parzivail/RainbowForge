@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="Prism/App.axaml" value="Prism/Prism.csproj" />
+        <entry key="Prism/Views/MainWindow.axaml" value="Prism/Prism.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

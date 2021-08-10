@@ -35,6 +35,15 @@ namespace RainbowForge
 				Magic.FlatArchive1 => AssetType.FlatArchive,
 				Magic.FlatArchive2 => AssetType.FlatArchive,
 				Magic.FlatArchive3 => AssetType.FlatArchive,
+				Magic.FlatArchive4 => AssetType.FlatArchive,
+				Magic.FlatArchive5 => AssetType.FlatArchive,
+				Magic.FlatArchive6 => AssetType.FlatArchive,
+				Magic.FlatArchive7 => AssetType.FlatArchive,
+				Magic.FlatArchive8 => AssetType.FlatArchive,
+				Magic.FlatArchive9 => AssetType.FlatArchive,
+				Magic.FlatArchive10 => AssetType.FlatArchive,
+				Magic.FlatArchive11 => AssetType.FlatArchive,
+				Magic.FlatArchive12 => AssetType.FlatArchive,
 				_ => AssetType.Unknown
 			};
 		}

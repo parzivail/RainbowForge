@@ -59,10 +59,9 @@ namespace DumpTool
 
 			foreach (var meshProp in arc.Entries)
 			{
-				var unresolvedExterns = new List<ulong>();
+				var unresolvedExterns = new List<KeyValuePair<string, ulong>>();
 
 				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"{(Magic) meshProp.Meta.Magic}_{meshProp.Meta.Uid}");
-				Directory.CreateDirectory(outputDir);
 
 				try
 				{
@@ -73,7 +72,7 @@ namespace DumpTool
 					continue;
 				}
 
-				var resolvedExterns = new Dictionary<string, List<ulong>>();
+				var resolvedExterns = new Dictionary<string, List<KeyValuePair<string, ulong>>>();
 
 				var nameCollection = db.GetCollection<FilenameDocument>("filenames");
 
@@ -85,18 +84,18 @@ namespace DumpTool
 						var collection = db.GetCollection<EntryDocument>(collectionName, BsonAutoId.Int64);
 						collection.EnsureIndex(document => document.Uid);
 
-						if (!collection.Query().Where(document => document.Uid == unresolvedExtern).Exists()) continue;
+						if (!collection.Query().Where(document => document.Uid == unresolvedExtern.Value).Exists()) continue;
 
 						if (!resolvedExterns.ContainsKey(filename))
-							resolvedExterns[filename] = new List<ulong>();
+							resolvedExterns[filename] = new List<KeyValuePair<string, ulong>>();
 
 						found = true;
 						resolvedExterns[filename].Add(unresolvedExtern);
-						Console.WriteLine($"Resolved external reference {filename} => UID {unresolvedExtern}");
+						Console.WriteLine($"Resolved external reference {filename} => UID {unresolvedExtern.Value}");
 					}
 
 					if (!found)
-						Console.WriteLine($"Unresolved external reference to UID {unresolvedExtern}");
+						Console.WriteLine($"Unresolved external reference to UID {unresolvedExtern.Value}");
 				}
 
 				foreach (var resolvedForgeFile in resolvedExterns.Keys)
@@ -107,10 +106,11 @@ namespace DumpTool
 
 					foreach (var resolvedUid in resolvedExterns[resolvedForgeFile])
 					{
-						var resolvedEntry = resolvedForge.Entries.First(entry1 => entry1.Uid == resolvedUid);
-						DumpHelper.Dump(resolvedForge, resolvedEntry, outputDir);
+						var resolvedEntry = resolvedForge.Entries.First(entry1 => entry1.Uid == resolvedUid.Value);
 
-						Console.WriteLine($"Dumped {resolvedForgeFile}/{resolvedUid}");
+						DumpHelper.Dump(resolvedForge, resolvedEntry, Path.Combine(outputDir, resolvedUid.Key));
+
+						Console.WriteLine($"Dumped {resolvedForgeFile}/{resolvedUid.Value}");
 					}
 				}
 			}

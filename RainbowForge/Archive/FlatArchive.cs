@@ -20,6 +20,9 @@ namespace RainbowForge.Archive
 			while (r.BaseStream.Position != r.BaseStream.Length)
 				entries.Add(FlatArchiveEntry.Read(r, index++));
 
+			if (r.BaseStream.Length != r.BaseStream.Position)
+				throw new InvalidDataException();
+
 			return new FlatArchive(entries.ToArray());
 		}
 	}

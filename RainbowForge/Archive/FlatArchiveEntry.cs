@@ -24,6 +24,10 @@ namespace RainbowForge.Archive
 			var length = meta.Var1 - 8; // length - int64(uid)
 
 			var payloadOffset = r.BaseStream.Position;
+
+			if (r.BaseStream.Length < r.BaseStream.Position + length)
+				throw new EndOfStreamException();
+
 			r.BaseStream.Seek(length, SeekOrigin.Current);
 
 			return new FlatArchiveEntry(meta, index, payloadOffset, (int) length);

@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using CommandLine;
 using RainbowForge;
+using RainbowForge.Archive;
 using RainbowForge.Forge;
+using RainbowForge.Forge.Container;
 
 namespace DumpTool
 {
@@ -24,8 +26,20 @@ namespace DumpTool
 			{
 				var forge = Forge.GetForge(file);
 
-				if (forge.Entries.Any(entry => entry.Uid == args.Uid))
-					Console.WriteLine(file);
+				foreach (var entry in forge.Entries)
+				{
+					if (entry.Uid == args.Uid)
+						Console.WriteLine(file);
+
+					var container = forge.GetContainer(entry.Uid);
+					if (container is not ForgeAsset forgeAsset) return;
+
+					var assetStream = forgeAsset.GetDataStream(forge);
+					var arc = FlatArchive.Read(assetStream);
+
+					if (arc.Entries.Any(archiveEntry => archiveEntry.Meta.Uid == args.Uid))
+						Console.WriteLine($"{file} -> within flat archive {entry.Uid}");
+				}
 			}
 		}
 	}

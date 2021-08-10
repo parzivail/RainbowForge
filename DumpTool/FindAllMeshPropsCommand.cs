@@ -27,16 +27,19 @@ namespace DumpTool
 					if (SearchFlatArchive(forge, entry, args.Uid))
 						Console.WriteLine(entry.Uid);
 				}
-				catch (Exception e)
+				catch
 				{
-					// Console.Error.WriteLine($"Error while dumping: {e}");
+					// ignored
 				}
 		}
 
 		public static bool SearchFlatArchive(Forge forge, Entry entry, ulong uid)
 		{
+			if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive)
+				return false;
+
 			var container = forge.GetContainer(entry.Uid);
-			if (container is not ForgeAsset forgeAsset || MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive)
+			if (container is not ForgeAsset forgeAsset)
 				return false;
 
 			var assetStream = forgeAsset.GetDataStream(forge);

@@ -111,14 +111,14 @@ namespace Sandbox
 
 			foreach (var meshProp in arc.Entries.Where(archiveEntry => MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
 			{
-				var unresolvedExterns = new List<ulong>();
+				var unresolvedExterns = new List<KeyValuePair<string, ulong>>();
 
 				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"meshprop_{meshProp.Meta.Uid}");
 				Directory.CreateDirectory(outputDir);
 
 				DumpHelper.DumpNonContainerChildren(outputDir, assetStream, arc, meshProp, unresolvedExterns);
 
-				var resolvedExterns = new Dictionary<string, List<ulong>>();
+				var resolvedExterns = new Dictionary<string, List<KeyValuePair<string, ulong>>>();
 
 				var nameCollection = db.GetCollection<FilenameDocument>("filenames");
 
@@ -130,10 +130,10 @@ namespace Sandbox
 						var collection = db.GetCollection<EntryDocument>(collectionName, BsonAutoId.Int64);
 						collection.EnsureIndex(document => document.Uid);
 
-						if (!collection.Query().Where(document => document.Uid == unresolvedExtern).Exists()) continue;
+						if (!collection.Query().Where(document => document.Uid == unresolvedExtern.Value).Exists()) continue;
 
 						if (!resolvedExterns.ContainsKey(filename))
-							resolvedExterns[filename] = new List<ulong>();
+							resolvedExterns[filename] = new List<KeyValuePair<string, ulong>>();
 
 						found = true;
 						resolvedExterns[filename].Add(unresolvedExtern);
@@ -152,8 +152,8 @@ namespace Sandbox
 
 					foreach (var resolvedUid in resolvedExterns[resolvedForgeFile])
 					{
-						var resolvedEntry = resolvedForge.Entries.First(entry1 => entry1.Uid == resolvedUid);
-						DumpHelper.Dump(resolvedForge, resolvedEntry, outputDir);
+						var resolvedEntry = resolvedForge.Entries.First(entry1 => entry1.Uid == resolvedUid.Value);
+						DumpHelper.Dump(resolvedForge, resolvedEntry, Path.Combine(outputDir, resolvedUid.Key));
 
 						Console.WriteLine($"{resolvedForgeFile}/{resolvedUid} Dumped");
 					}
