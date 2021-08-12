@@ -1,4 +1,4 @@
-﻿using OpenTK.Mathematics;
+﻿using System.Numerics;
 
 namespace RainbowForge.Mesh
 {
@@ -10,5 +10,21 @@ namespace RainbowForge.Mesh
 		public Vector3[] Binormals { get; init; }
 		public Vector2[] TexCoords { get; init; }
 		public Color4[,] Colors { get; init; }
+	}
+
+	public class Color4
+	{
+		public Color4(float red, float green, float blue, float alpha)
+		{
+			R = red;
+			G = green;
+			B = blue;
+			A = alpha;
+		}
+
+		public float R { get; set; }
+		public float G { get; set; }
+		public float B { get; set; }
+		public float A { get; set; }
 	}
 }

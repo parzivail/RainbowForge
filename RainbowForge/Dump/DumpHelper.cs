@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
-using OpenTK.Mathematics;
 using RainbowForge.Archive;
 using RainbowForge.Forge;
 using RainbowForge.Forge.Container;
@@ -94,6 +93,11 @@ namespace RainbowForge.Dump
 			Directory.CreateDirectory(bank);
 			var filename = Path.Combine(bank, $"{name}.{ext}");
 
+			DumpBin(filename, stream, writeOffset, writeLength);
+		}
+
+		public static void DumpBin(string filename, Stream stream, long writeOffset = 0, int writeLength = -1)
+		{
 			using var fs = File.Open(filename, FileMode.Create);
 			stream.Seek(writeOffset, SeekOrigin.Begin);
 			if (writeLength == -1)
@@ -137,16 +141,16 @@ namespace RainbowForge.Dump
 			for (var i = 0; i < container.Vertices.Length; i++)
 			{
 				var vert = container.Vertices[i];
-				var color = container.Colors?[0, i] ?? Color4.White;
+				var color = container.Colors?[0, i] ?? new Color4(1, 1, 1, 1);
 
 				obj.Vertices.Add(new ObjVertex(vert.X, vert.Y, vert.Z, color.R, color.G, color.B, color.A));
 			}
 
-			foreach (var (x, y, z) in container.Normals)
-				obj.VertexNormals.Add(new ObjVector3(x, y, z));
+			foreach (var v in container.Normals)
+				obj.VertexNormals.Add(new ObjVector3(v.X, v.Y, v.Z));
 
-			foreach (var (x, y) in container.TexCoords)
-				obj.TextureVertices.Add(new ObjVector3(x, y));
+			foreach (var v in container.TexCoords)
+				obj.TextureVertices.Add(new ObjVector3(v.X, v.Y));
 
 			obj.WriteTo(filename);
 		}

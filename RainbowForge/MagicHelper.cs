@@ -24,11 +24,11 @@ namespace RainbowForge
 			return (Magic) magic switch
 			{
 				Magic.Mesh => AssetType.Mesh,
-				Magic.TextureA => AssetType.Texture,
-				Magic.TextureB => AssetType.Texture,
-				Magic.TextureC => AssetType.Texture,
-				Magic.TextureD => AssetType.Texture,
-				Magic.TextureE => AssetType.Texture,
+				Magic.Texture1 => AssetType.Texture,
+				Magic.Texture2 => AssetType.Texture,
+				Magic.Texture3 => AssetType.Texture,
+				Magic.Texture4 => AssetType.Texture,
+				Magic.Texture5 => AssetType.Texture,
 				Magic.TextureGui1 => AssetType.Texture,
 				Magic.TextureGui2 => AssetType.Texture,
 				Magic.WemSound => AssetType.Sound,

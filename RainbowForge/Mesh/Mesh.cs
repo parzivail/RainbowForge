@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenTK.Mathematics;
+using System.Numerics;
 
 namespace RainbowForge.Mesh
 {

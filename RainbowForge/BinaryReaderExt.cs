@@ -1,5 +1,6 @@
 ﻿using System.IO;
-using OpenTK.Mathematics;
+using System.Numerics;
+using RainbowForge.Mesh;
 
 namespace RainbowForge
 {
@@ -52,9 +53,8 @@ namespace RainbowForge
 
 		public static Vector2 ReadUInt32AsUv(this BinaryReader r)
 		{
-			var packedCoords = r.ReadBytes(4);
-
-			return new Vector2(Half.FromBytes(packedCoords, 0), Half.FromBytes(packedCoords, 2));
+			var vec = r.ReadStruct<Vec2H>(4);
+			return new Vector2((float)vec.X, (float)vec.Y);
 		}
 
 		public static T ReadStruct<T>(this BinaryReader stream, int size) where T : struct

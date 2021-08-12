@@ -18,7 +18,7 @@ namespace RainbowForge.RenderPipeline
 		public static MipContainer Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.MipContainer, magic);
+			// MagicHelper.AssertEquals(Magic.MipContainer, magic);
 
 			var mipUid = r.ReadUInt64();
 			var textureType = r.ReadUInt32();

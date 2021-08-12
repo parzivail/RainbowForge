@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace RainbowForge.Archive
 {
@@ -24,6 +25,19 @@ namespace RainbowForge.Archive
 				throw new InvalidDataException();
 
 			return new FlatArchive(entries.ToArray());
+		}
+
+		public BinaryReader GetEntryStream(Stream archiveStream, ulong entryUid)
+		{
+			var entry = Entries.FirstOrDefault(entry => entry.Meta.Uid == entryUid);
+			if (entry == null)
+				return null;
+
+			var ms = new MemoryStream();
+			archiveStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
+			archiveStream.CopyStream(ms, entry.PayloadLength);
+			ms.Seek(0, SeekOrigin.Begin);
+			return new BinaryReader(ms);
 		}
 	}
 }

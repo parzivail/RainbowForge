@@ -6,7 +6,6 @@
 
     <ItemGroup>
       <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
-      <PackageReference Include="OpenTK.Mathematics" Version="4.5.0" />
       <PackageReference Include="Pfim" Version="0.10.1" />
       <PackageReference Include="Zstandard.Net" Version="1.1.7" />
     </ItemGroup>

@@ -1,26 +1,20 @@
-﻿using Avalonia;
-using Avalonia.ReactiveUI;
+using System;
+using System.Windows.Forms;
 
 namespace Prism
 {
-	internal class Program
+	internal static class Program
 	{
-		// Initialization code. Don't use any Avalonia, third-party APIs or any
-		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-		// yet and stuff might break.
-		public static void Main(string[] args)
+		/// <summary>
+		///     The main entry point for the application.
+		/// </summary>
+		[STAThread]
+		private static void Main()
 		{
-			BuildAvaloniaApp()
-				.StartWithClassicDesktopLifetime(args);
-		}
-
-		// Avalonia configuration, don't remove; also used by visual designer.
-		public static AppBuilder BuildAvaloniaApp()
-		{
-			return AppBuilder.Configure<App>()
-				.UsePlatformDetect()
-				.LogToTrace()
-				.UseReactiveUI();
+			Application.SetHighDpiMode(HighDpiMode.SystemAware);
+			Application.EnableVisualStyles();
+			Application.SetCompatibleTextRenderingDefault(false);
+			Application.Run(new PrismForm());
 		}
 	}
 }
