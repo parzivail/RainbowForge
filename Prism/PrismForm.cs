@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using OpenTK;
 using OpenTK.Graphics;
+using Pfim;
 using Prism.Controls;
 using Prism.Extensions;
 using Prism.Render;
@@ -19,6 +20,7 @@ using RainbowForge.Forge.Container;
 using RainbowForge.Mesh;
 using RainbowForge.RenderPipeline;
 using RainbowForge.Texture;
+using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
 namespace Prism
@@ -182,13 +184,14 @@ namespace Prism
 
 		private void DumpSelectionAsBin(string fileName)
 		{
-			using var stream = GetSelectedStream();
+			var streamData = GetAssetStream(_assetList.SelectedObject);
+			using var stream = streamData.Stream;
 			DumpHelper.DumpBin(fileName, stream.BaseStream);
 		}
 
-		private BinaryReader GetSelectedStream()
+		private AssetStream GetAssetStream(object o)
 		{
-			switch (_assetList.SelectedObject)
+			switch (o)
 			{
 				case Entry entry:
 				{
@@ -196,7 +199,7 @@ namespace Prism
 					if (container is not ForgeAsset forgeAsset)
 						return null;
 
-					return forgeAsset.GetDataStream(_openedForge);
+					return new AssetStream(entry.Uid, entry.Name.FileType, forgeAsset.GetDataStream(_openedForge));
 				}
 				case FlatArchiveEntry flatArchiveEntry:
 				{
@@ -206,7 +209,7 @@ namespace Prism
 
 					using var assetStream = forgeAsset.GetDataStream(_openedForge);
 					var arc = FlatArchive.Read(assetStream);
-					return arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.Meta.Uid);
+					return new AssetStream(flatArchiveEntry.Meta.Uid, flatArchiveEntry.Meta.Magic, arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.Meta.Uid));
 				}
 			}
 
@@ -215,7 +218,7 @@ namespace Prism
 
 		private void SetPreviewPanel(Control control)
 		{
-			using (_splitContainer.SuspendPainting())
+			using (_splitContainer.Panel2.SuspendPainting())
 			{
 				_splitContainer.Panel2.Controls.Clear();
 				_splitContainer.Panel2.Controls.Add(control);
@@ -308,42 +311,7 @@ namespace Prism
 				}
 			});
 
-			_assetList.SelectionChanged += (sender, args) =>
-			{
-				new Task(o =>
-				{
-					switch (o)
-					{
-						case Entry entry:
-						{
-							var container = _openedForge.GetContainer(entry.Uid);
-							if (container is not ForgeAsset forgeAsset)
-								return;
-
-							BeginInvoke((Action)(() =>
-							{
-								using var assetStream = forgeAsset.GetDataStream(_openedForge);
-								PreviewAsset(entry.Uid, entry.Name.FileType, assetStream);
-							}));
-							break;
-						}
-						case FlatArchiveEntry flatArchiveEntry:
-						{
-							var container = _openedForge.GetContainer(_flatArchiveEntryMap[flatArchiveEntry.Meta.Uid]);
-							if (container is not ForgeAsset forgeAsset)
-								return;
-
-							BeginInvoke((Action)(() =>
-							{
-								using var assetStream = forgeAsset.GetDataStream(_openedForge);
-								var arc = FlatArchive.Read(assetStream);
-								PreviewAsset(flatArchiveEntry.Meta.Uid, flatArchiveEntry.Meta.Magic, arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.Meta.Uid));
-							}));
-							break;
-						}
-					}
-				}, _assetList.SelectedObject).Start();
-			};
+			_assetList.SelectedIndexChanged += OnAssetListOnSelectionChanged;
 
 			_assetList.CanExpandGetter = model => { return model is Entry e && MagicHelper.GetFiletype(e.Name.FileType) == AssetType.FlatArchive; };
 
@@ -364,96 +332,157 @@ namespace Prism
 			};
 		}
 
-		private void PreviewAsset(ulong uid, uint fileType, BinaryReader stream)
+		private async void OnAssetListOnSelectionChanged(object sender, EventArgs args)
 		{
-			switch (MagicHelper.GetFiletype(fileType))
+			var selectedEntry = _assetList.SelectedObject;
+			lock (_openedForge)
+			{
+				var stream = GetAssetStream(selectedEntry);
+				if (stream != null)
+					PreviewAsset(stream);
+			}
+		}
+
+		private void PreviewAsset(AssetStream assetStream)
+		{
+			using var stream = assetStream.Stream;
+			switch (MagicHelper.GetFiletype(assetStream.Magic))
 			{
 				case AssetType.Mesh:
 				{
-					SetPreviewPanel(_glControl);
-
 					var header = MeshHeader.Read(stream);
 					var mesh = Mesh.Read(stream, header);
 
-					using (_glControl.SuspendPainting())
+					OnUiThread(() =>
 					{
-						_renderer3d.BuildModelQuads(mesh);
-						_renderer3d.SetTexture(null);
-						_renderer3d.SetPartBounds(header.ObjectBoundingBoxes.Take((int)(header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
-					}
+						SetPreviewPanel(_glControl);
+						using (_glControl.SuspendPainting())
+						{
+							_renderer3d.BuildModelQuads(mesh);
+							_renderer3d.SetTexture(null);
+							_renderer3d.SetPartBounds(header.ObjectBoundingBoxes.Take((int)(header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
+						}
+					});
 
 					break;
 				}
 				case AssetType.Texture:
 				{
-					SetPreviewPanel(_imageControl);
-
 					var texture = Texture.Read(stream);
-					using var bmp = DdsHelper.GetBitmap(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
-					_renderer2d.SetTexture(bmp);
+					using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
+
+					var newData = image.Data;
+					var newDataLen = image.DataLen;
+					var stride = image.Stride;
+					SKColorType colorType;
+					switch (image.Format)
+					{
+						case ImageFormat.Rgb8:
+							colorType = SKColorType.Gray8;
+							break;
+						case ImageFormat.R5g6b5:
+							// color channels still need to be swapped
+							colorType = SKColorType.Rgb565;
+							break;
+						case ImageFormat.Rgba16:
+							// color channels still need to be swapped
+							colorType = SKColorType.Argb4444;
+							break;
+						case ImageFormat.Rgb24:
+							// Skia has no 24bit pixels, so we upscale to 32bit
+							var pixels = image.DataLen / 3;
+							newDataLen = pixels * 4;
+							newData = new byte[newDataLen];
+							for (var i = 0; i < pixels; i++)
+							{
+								newData[i * 4] = image.Data[i * 3];
+								newData[i * 4 + 1] = image.Data[i * 3 + 1];
+								newData[i * 4 + 2] = image.Data[i * 3 + 2];
+								newData[i * 4 + 3] = 255;
+							}
+
+							stride = image.Width * 4;
+							colorType = SKColorType.Bgra8888;
+							break;
+						case ImageFormat.Rgba32:
+							colorType = SKColorType.Bgra8888;
+							break;
+						default:
+							throw new ArgumentException($"Skia unable to interpret pfim format: {image.Format}");
+					}
+
+					var imageInfo = new SKImageInfo(image.Width, image.Height, colorType);
+					var handle = GCHandle.Alloc(newData, GCHandleType.Pinned);
+					var ptr = Marshal.UnsafeAddrOfPinnedArrayElement(newData, 0);
+
+					using (var data = SKData.Create(ptr, newDataLen, (address, context) => handle.Free()))
+					using (var skImage = SKImage.FromPixels(imageInfo, data, stride))
+					{
+						_renderer2d.SetTexture(SKBitmap.FromImage(skImage));
+					}
+
+					OnUiThread(() => { SetPreviewPanel(_imageControl); });
 
 					break;
 				}
 				default:
-					SetPreviewPanel(_infoControl);
+				{
+					List<TreeListViewEntry> entries;
 
-					switch ((Magic)fileType)
+					switch ((Magic)assetStream.Magic)
 					{
 						case Magic.MeshProperties:
 						{
 							var mp = MeshProperties.Read(stream);
 
-							_infoControl.SetObjects(new List<TreeListViewEntry>
+							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(uid, fileType),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
 								new("MeshProperties", null,
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
 									new TreeListViewEntry("Mesh UID", mp.MeshUid),
 									new TreeListViewEntry("MaterialContainers", null, mp.MaterialContainers.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
 								)
-							});
-							_infoControl.ExpandAll();
+							};
 							break;
 						}
 						case Magic.MaterialContainer:
 						{
 							var mc = MaterialContainer.Read(stream);
 
-							_infoControl.SetObjects(new List<TreeListViewEntry>
+							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(uid, fileType),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
 								new("MaterialContainer", null,
 									new TreeListViewEntry("BaseMipContainers", null, mc.BaseMipContainers.Select(CreateMipContainerReferenceEntry).ToArray()),
 									new TreeListViewEntry("SecondaryMipContainers", null, mc.SecondaryMipContainers.Select(CreateMipContainerReferenceEntry).ToArray()),
 									new TreeListViewEntry("TertiaryMipContainers", null, mc.TertiaryMipContainers.Select(CreateMipContainerReferenceEntry).ToArray())
 								)
-							});
-							_infoControl.ExpandAll();
+							};
 							break;
 						}
 						case Magic.MipContainer:
 						{
 							var mc = MipContainer.Read(stream);
 
-							_infoControl.SetObjects(new List<TreeListViewEntry>
+							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(uid, fileType),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
 								new("MipContainer", null,
 									new TreeListViewEntry("MipUid", mc.MipUid),
 									new TreeListViewEntry("TextureType", mc.TextureType)
 								)
-							});
-							_infoControl.ExpandAll();
+							};
 							break;
 						}
 						case Magic.MipSet:
 						{
 							var mc = MipSet.Read(stream);
 
-							_infoControl.SetObjects(new List<TreeListViewEntry>
+							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(uid, fileType),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
 								new("MipContainer", null,
 									new TreeListViewEntry("Var1", mc.Var1),
 									new TreeListViewEntry("Var2", mc.Var2),
@@ -462,23 +491,37 @@ namespace Prism
 									new TreeListViewEntry("TexUidMipSet1", null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray()),
 									new TreeListViewEntry("TexUidMipSet1", null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
 								)
-							});
-							_infoControl.ExpandAll();
+							};
 							break;
 						}
 						default:
 						{
-							_infoControl.SetObjects(new List<TreeListViewEntry>
+							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(uid, fileType)
-							});
-							_infoControl.ExpandAll();
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic)
+							};
 							break;
 						}
 					}
 
+					OnUiThread(() =>
+					{
+						_infoControl.SetObjects(entries);
+						_infoControl.ExpandAll();
+						SetPreviewPanel(_infoControl);
+					});
+
 					break;
+				}
 			}
+		}
+
+		private void OnUiThread(Action action)
+		{
+			if (!InvokeRequired)
+				action();
+			else
+				BeginInvoke(action);
 		}
 
 		private TreeListViewEntry CreateMipContainerReferenceEntry(MipContainerReference mcr)
@@ -490,7 +533,7 @@ namespace Prism
 			);
 		}
 
-		private static TreeListViewEntry GetMetadataInfoEntry(ulong uid, uint fileType)
+		private static TreeListViewEntry GetMetadataInfoEntry(ulong uid, ulong fileType)
 		{
 			return new TreeListViewEntry("Metadata", null,
 				new TreeListViewEntry("UID", uid),
@@ -506,6 +549,8 @@ namespace Prism
 			Text = $"Prism - {filename}";
 		}
 	}
+
+	internal record AssetStream(ulong Uid, ulong Magic, BinaryReader Stream);
 
 	internal record TreeListViewEntry(string Key, object Value, params TreeListViewEntry[] Children);
 }

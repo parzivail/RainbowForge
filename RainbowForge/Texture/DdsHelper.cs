@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
+using ImageFormat = Pfim.ImageFormat;
 
 namespace RainbowForge.Texture
 {
-	using ImageFormat = Pfim.ImageFormat;
-
 	public class DdsHelper
 	{
 		public static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureFormats = new()
@@ -47,51 +47,28 @@ namespace RainbowForge.Texture
 
 		public static Bitmap GetBitmap(MemoryStream ms)
 		{
-			using (Pfim.IImage image = Pfim.Pfim.FromStream(ms))
+			using var image = Pfim.Pfim.FromStream(ms);
+
+			var format = image.Format switch
 			{
-				PixelFormat format;
+				ImageFormat.Rgb24 => PixelFormat.Format24bppRgb,
+				ImageFormat.Rgba32 => PixelFormat.Format32bppArgb,
+				ImageFormat.R5g5b5 => PixelFormat.Format16bppRgb555,
+				ImageFormat.R5g6b5 => PixelFormat.Format16bppRgb565,
+				ImageFormat.R5g5b5a1 => PixelFormat.Format16bppArgb1555,
+				ImageFormat.Rgb8 => PixelFormat.Format8bppIndexed,
+				_ => throw new NotImplementedException($"{image.Format} is not recognized")
+			};
 
-				switch (image.Format)
-				{
-                    case ImageFormat.Rgb24:
-                        format = PixelFormat.Format24bppRgb;
-                        break;
-
-                    case ImageFormat.Rgba32:
-						format = PixelFormat.Format32bppArgb;
-						break;
-
-                    case ImageFormat.R5g5b5:
-                        format = PixelFormat.Format16bppRgb555;
-                        break;
-
-                    case ImageFormat.R5g6b5:
-                        format = PixelFormat.Format16bppRgb565;
-                        break;
-
-                    case ImageFormat.R5g5b5a1:
-                        format = PixelFormat.Format16bppArgb1555;
-                        break;
-
-                    case ImageFormat.Rgb8:
-                        format = PixelFormat.Format8bppIndexed;
-                        break;
-
-                    default:
-						var msg = $"{image.Format} is not recognized";
-						throw new System.NotImplementedException(msg);
-				}
-
-				var handle = GCHandle.Alloc(image.Data, GCHandleType.Pinned);
-				try
-				{
-					var data = Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
-					return new Bitmap(image.Width, image.Height, image.Stride, format, data);
-				}
-				finally
-				{
-					handle.Free();
-				}
+			var handle = GCHandle.Alloc(image.Data, GCHandleType.Pinned);
+			try
+			{
+				var data = Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
+				return new Bitmap(image.Width, image.Height, image.Stride, format, data);
+			}
+			finally
+			{
+				handle.Free();
 			}
 		}
 	}

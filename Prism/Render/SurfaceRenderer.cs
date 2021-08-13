@@ -1,6 +1,4 @@
 ﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -8,7 +6,6 @@ namespace Prism.Render
 {
 	public class SurfaceRenderer
 	{
-		private readonly MemoryStream _imageStream = new();
 		private readonly SKControl _imageControl;
 
 		private static readonly float _transparentCheckerboardScale = 8f;
@@ -60,14 +57,16 @@ namespace Prism.Render
 			_imageControl.Invalidate();
 		}
 
-		public void SetTexture(Bitmap bitmap)
+		public void SetTexture(SKBitmap bitmap)
 		{
-			_imageStream.Seek(0, SeekOrigin.Begin);
-			bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
-			bitmap.Save(_imageStream, ImageFormat.Png);
-
-			_imageStream.Seek(0, SeekOrigin.Begin);
-			_texture = SKBitmap.Decode(_imageStream.GetBuffer());
+			if (_texture == null)
+				_texture = bitmap;
+			else
+				lock (_texture)
+				{
+					_texture?.Dispose();
+					_texture = bitmap;
+				}
 
 			ContentTransformation = SKMatrix.Identity
 				.PreConcat(SKMatrix.CreateTranslation((_imageControl.Width - bitmap.Width) / 2f, (_imageControl.Height - bitmap.Height) / 2f));
@@ -83,9 +82,6 @@ namespace Prism.Render
 			var canvas = args.Surface.Canvas;
 			canvas.Clear(checkerboardColor1);
 
-			if (_texture == null)
-				return;
-
 			_transparentCheckerboardPaint.Color = checkerboardColor2;
 
 			var rect = new SKRect(0, 0, args.Info.Width, args.Info.Height);
@@ -96,7 +92,11 @@ namespace Prism.Render
 
 			canvas.SetMatrix(ContentTransformation);
 
-			canvas.DrawBitmap(_texture, 0, 0);
+			if (_texture != null)
+				lock (_texture)
+				{
+					canvas.DrawBitmap(_texture, 0, 0);
+				}
 
 			canvas.Restore();
 		}
