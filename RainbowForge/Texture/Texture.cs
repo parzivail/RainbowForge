@@ -44,7 +44,7 @@ namespace RainbowForge.Texture
 			var var3 = r.ReadUInt32();
 
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.DdsPayload, magic);
+			MagicHelper.AssertEquals(Magic.CompiledTextureMap, magic);
 
 			var dataStart = r.BaseStream.Position;
 

@@ -56,7 +56,7 @@ namespace RainbowForge.Mesh
 
 			// model header
 			var innerModelStructMagic = r.ReadUInt32(); // [-0x8], inner model struct type
-			MagicHelper.AssertEquals(Magic.InnerModelStruct, innerModelStructMagic);
+			MagicHelper.AssertEquals(Magic.CompiledMesh, innerModelStructMagic);
 
 			var sizeUntilFooter = r.ReadUInt32(); // [-0x4]
 			var dataStart = r.BaseStream.Position; // inner model zero byte

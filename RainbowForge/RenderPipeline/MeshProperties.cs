@@ -32,7 +32,7 @@ namespace RainbowForge.RenderPipeline
 		public static MeshProperties Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.MeshProperties, magic);
+			MagicHelper.AssertEquals(Magic.Mesh, magic);
 
 			var var1 = r.ReadUInt32();
 
