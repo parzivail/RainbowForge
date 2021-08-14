@@ -2,7 +2,7 @@
 using System.IO;
 using CommandLine;
 using RainbowForge;
-using RainbowForge.Forge;
+using RainbowForge.Core;
 
 namespace DumpTool
 {

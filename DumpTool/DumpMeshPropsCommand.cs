@@ -6,10 +6,10 @@ using CommandLine;
 using LiteDB;
 using RainbowForge;
 using RainbowForge.Archive;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
 using RainbowForge.Database;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
 
 namespace DumpTool
 {

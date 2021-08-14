@@ -1,4 +1,4 @@
-﻿using RainbowForge.Forge;
+﻿using RainbowForge.Core;
 
 namespace RainbowForge.Database
 {

@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 using AssetCatalog.Model;
-using RainbowForge.Forge;
+using RainbowForge.Core;
 
 namespace AssetCatalog.Converters
 {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using CommandLine;
 using RainbowForge;
 using RainbowForge.Archive;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
 
 namespace DumpTool
 {

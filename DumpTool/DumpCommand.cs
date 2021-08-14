@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using CommandLine;
+using RainbowForge.Core;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
 
 namespace DumpTool
 {

@@ -4,8 +4,8 @@ using System.Linq;
 using CommandLine;
 using RainbowForge;
 using RainbowForge.Archive;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
 
 namespace DumpTool
 {

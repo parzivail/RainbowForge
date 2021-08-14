@@ -9,8 +9,9 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Wpf;
 using RainbowForge;
-using RainbowForge.Mesh;
-using RainbowForge.Texture;
+using RainbowForge.Image;
+using RainbowForge.Model;
+using Color4 = OpenTK.Mathematics.Color4;
 
 namespace AssetCatalog.Render
 {
@@ -357,16 +358,17 @@ namespace AssetCatalog.Render
 				_zoom = -350;
 		}
 
-		public void BuildModelQuads(Mesh mesh)
+		public void BuildModelQuads(CompiledMeshObject compiledMeshObject)
 		{
-			if (mesh.Objects.Count == 0)
+			if (compiledMeshObject.Objects.Count == 0)
 				return;
 
 			_vbo.InitializeVbo(
-				mesh.Container.Vertices,
-				mesh.Container.Normals,
-				mesh.Container.TexCoords,
-				mesh.Objects.Take((int) (mesh.Objects.Count / mesh.MeshHeader.NumLods)).SelectMany(pointers => pointers.SelectMany(pointer => new uint[] {pointer.A, pointer.B, pointer.C})).ToArray()
+				compiledMeshObject.Container.Vertices,
+				compiledMeshObject.Container.Normals,
+				compiledMeshObject.Container.TexCoords,
+				compiledMeshObject.Objects.Take((int)(compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods))
+					.SelectMany(pointers => pointers.SelectMany(pointer => new uint[] { pointer.A, pointer.B, pointer.C })).ToArray()
 			);
 		}
 

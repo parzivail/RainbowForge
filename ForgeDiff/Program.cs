@@ -7,8 +7,6 @@ using RainbowForge;
 using RainbowForge.Archive;
 using RainbowForge.Database;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
 
 namespace ForgeDiff
 {

@@ -3,7 +3,7 @@ using System.IO;
 using CommandLine;
 using LiteDB;
 using RainbowForge;
-using RainbowForge.Forge;
+using RainbowForge.Core;
 
 namespace DumpTool
 {

@@ -7,7 +7,7 @@ using Prism.Extensions;
 using Prism.Render.Shader;
 using Prism.Resources;
 using RainbowForge;
-using RainbowForge.Mesh;
+using RainbowForge.Model;
 
 namespace Prism.Render
 {
@@ -33,7 +33,7 @@ namespace Prism.Render
 
 		private int _zoom = 1;
 
-		private Mesh _mesh;
+		private CompiledMeshObject _compiledMeshObject;
 
 		public ModelRenderer(IRenderContext renderContext)
 		{
@@ -388,18 +388,19 @@ namespace Prism.Render
 			_renderContext.MarkDirty();
 		}
 
-		public void BuildModelQuads(Mesh mesh)
+		public void BuildModelQuads(CompiledMeshObject compiledMeshObject)
 		{
-			if (mesh.Objects.Count == 0)
+			if (compiledMeshObject.Objects.Count == 0)
 				return;
 
-			_mesh = mesh;
+			_compiledMeshObject = compiledMeshObject;
 
 			_vbo.InitializeVbo(
-				mesh.Container.Vertices,
-				mesh.Container.Normals,
-				mesh.Container.TexCoords,
-				mesh.Objects.Take((int)(mesh.Objects.Count / mesh.MeshHeader.NumLods)).SelectMany(pointers => pointers.SelectMany(pointer => new uint[] { pointer.A, pointer.B, pointer.C })).ToArray()
+				compiledMeshObject.Container.Vertices,
+				compiledMeshObject.Container.Normals,
+				compiledMeshObject.Container.TexCoords,
+				compiledMeshObject.Objects.Take((int)(compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods))
+					.SelectMany(pointers => pointers.SelectMany(pointer => new uint[] { pointer.A, pointer.B, pointer.C })).ToArray()
 			);
 
 			_renderContext.MarkDirty();

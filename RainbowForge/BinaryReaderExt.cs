@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Numerics;
-using RainbowForge.Mesh;
+using RainbowForge.Model;
 
 namespace RainbowForge
 {

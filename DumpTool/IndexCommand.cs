@@ -4,8 +4,8 @@ using System.Linq;
 using CommandLine;
 using LiteDB;
 using RainbowForge;
+using RainbowForge.Core;
 using RainbowForge.Database;
-using RainbowForge.Forge;
 
 namespace DumpTool
 {

@@ -6,17 +6,16 @@ using System.Windows;
 using System.Windows.Input;
 using AssetCatalog.Model;
 using AssetCatalog.Render;
+using DumpTool;
+using LiteDB;
 using Microsoft.Win32;
 using ModernWpf.Controls;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Wpf;
-using LiteDB;
 using RainbowForge;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
-using RainbowForge.Mesh;
-using RainbowForge.Texture;
+using RainbowForge.Image;
+using RainbowForge.Model;
 
 namespace AssetCatalog
 {
@@ -126,11 +125,11 @@ namespace AssetCatalog
 			foreach (var _entry in forge.Entries)
 				try
 				{
-					if (DumpTool.FindAllMeshPropsCommand.SearchFlatArchive(forge, _entry, entry.Uid))
+					if (FindAllMeshPropsCommand.SearchFlatArchive(forge, _entry, entry.Uid))
 					{
 						var __entry = forge.Entries.First(entry1 => entry1.Uid == _entry.Uid);
 
-						DumpTool.DumpMeshPropsCommand.ProcessFlatArchive(db, forge, __entry, Path.Combine(Environment.CurrentDirectory, _exportDir), Path.GetDirectoryName(ondemandPath));
+						DumpMeshPropsCommand.ProcessFlatArchive(db, forge, __entry, Path.Combine(Environment.CurrentDirectory, _exportDir), Path.GetDirectoryName(ondemandPath));
 					}
 				}
 				catch (Exception err)
@@ -169,7 +168,7 @@ namespace AssetCatalog
 
 							using var stream = forgeAsset.GetDataStream(ForgeCatalog.Instance.OpenedForge);
 								var header = MeshHeader.Read(stream);
-								var mesh = Mesh.Read(stream, header);
+								var mesh = CompiledMeshObject.Read(stream, header);
 
 								_modelRenderer.BuildModelQuads(mesh);
 								_modelRenderer.SetTexture(null);

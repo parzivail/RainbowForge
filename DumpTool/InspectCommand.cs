@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CommandLine;
 using RainbowForge;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
 
 namespace DumpTool
 {

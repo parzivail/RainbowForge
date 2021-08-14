@@ -6,15 +6,15 @@ namespace RainbowForge.RenderPipeline
 	{
 		public ulong EntryUid { get; }
 		public uint Magic { get; }
-		public ulong MipContainerUid { get; }
+		public ulong TextureMapSpecUid { get; }
 		public uint Var1 { get; }
 		public uint MipTarget { get; }
 
-		private MipContainerReference(ulong entryUid, uint magic, ulong mipContainerUid, uint var1, uint mipTarget)
+		private MipContainerReference(ulong entryUid, uint magic, ulong textureMapSpecUid, uint var1, uint mipTarget)
 		{
 			EntryUid = entryUid;
 			Magic = magic;
-			MipContainerUid = mipContainerUid;
+			TextureMapSpecUid = textureMapSpecUid;
 			Var1 = var1;
 			MipTarget = mipTarget;
 		}

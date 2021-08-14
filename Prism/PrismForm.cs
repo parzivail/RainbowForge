@@ -14,12 +14,12 @@ using Prism.Extensions;
 using Prism.Render;
 using RainbowForge;
 using RainbowForge.Archive;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
-using RainbowForge.Mesh;
+using RainbowForge.Image;
+using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
-using RainbowForge.Texture;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -351,7 +351,7 @@ namespace Prism
 				case AssetType.Mesh:
 				{
 					var header = MeshHeader.Read(stream);
-					var mesh = Mesh.Read(stream, header);
+					var mesh = CompiledMeshObject.Read(stream, header);
 
 					OnUiThread(() =>
 					{
@@ -433,44 +433,44 @@ namespace Prism
 					{
 						case Magic.Mesh:
 						{
-							var mp = MeshProperties.Read(stream);
+							var mp = Mesh.Read(stream);
 
 							entries = new List<TreeListViewEntry>
 							{
 								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
-								new("MeshProperties", null,
+								new(nameof(Mesh), null,
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
-									new TreeListViewEntry("Mesh UID", mp.MeshUid),
-									new TreeListViewEntry("MaterialContainers", null, mp.MaterialContainers.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+									new TreeListViewEntry("Mesh UID", mp.CompiledMeshObjectUid),
+									new TreeListViewEntry(nameof(Mesh.Materials), null, mp.Materials.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
 								)
 							};
 							break;
 						}
 						case Magic.Material:
 						{
-							var mc = MaterialContainer.Read(stream);
+							var mc = Material.Read(stream);
 
 							entries = new List<TreeListViewEntry>
 							{
 								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
-								new("MaterialContainer", null,
-									new TreeListViewEntry("BaseMipContainers", null, mc.BaseMipContainers.Select(CreateMipContainerReferenceEntry).ToArray()),
-									new TreeListViewEntry("SecondaryMipContainers", null, mc.SecondaryMipContainers.Select(CreateMipContainerReferenceEntry).ToArray()),
-									new TreeListViewEntry("TertiaryMipContainers", null, mc.TertiaryMipContainers.Select(CreateMipContainerReferenceEntry).ToArray())
+								new(nameof(Material), null,
+									new TreeListViewEntry(nameof(Material.BaseTextureMapSpecs), null, mc.BaseTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray()),
+									new TreeListViewEntry(nameof(Material.SecondaryTextureMapSpecs), null, mc.SecondaryTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray()),
+									new TreeListViewEntry(nameof(Material.TertiaryTextureMapSpecs), null, mc.TertiaryTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray())
 								)
 							};
 							break;
 						}
 						case Magic.TextureMapSpec:
 						{
-							var mc = MipContainer.Read(stream);
+							var mc = TextureMapSpec.Read(stream);
 
 							entries = new List<TreeListViewEntry>
 							{
 								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
-								new("MipContainer", null,
-									new TreeListViewEntry("MipUid", mc.MipUid),
+								new(nameof(TextureMapSpec), null,
+									new TreeListViewEntry(nameof(TextureMapSpec.TextureMapUid), mc.TextureMapUid),
 									new TreeListViewEntry("TextureType", mc.TextureType)
 								)
 							};
@@ -478,18 +478,18 @@ namespace Prism
 						}
 						case Magic.TextureMap:
 						{
-							var mc = MipSet.Read(stream);
+							var mc = TextureMap.Read(stream);
 
 							entries = new List<TreeListViewEntry>
 							{
 								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
-								new("MipContainer", null,
+								new(nameof(TextureMap), null,
 									new TreeListViewEntry("Var1", mc.Var1),
 									new TreeListViewEntry("Var2", mc.Var2),
 									new TreeListViewEntry("Var3", mc.Var3),
 									new TreeListViewEntry("Var4", mc.Var4),
-									new TreeListViewEntry("TexUidMipSet1", null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray()),
-									new TreeListViewEntry("TexUidMipSet1", null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet1), null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray()),
+									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet2), null, mc.TexUidMipSet2.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
 								)
 							};
 							break;
@@ -529,7 +529,7 @@ namespace Prism
 			return new TreeListViewEntry("MipContainerReference", null,
 				new TreeListViewEntry("Var1", mcr.Var1),
 				new TreeListViewEntry("MipTarget", mcr.MipTarget),
-				new TreeListViewEntry("MipContainerUid", mcr.MipContainerUid)
+				new TreeListViewEntry("MipContainerUid", mcr.TextureMapSpecUid)
 			);
 		}
 

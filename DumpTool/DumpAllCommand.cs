@@ -1,7 +1,7 @@
 ﻿using System;
 using CommandLine;
+using RainbowForge.Core;
 using RainbowForge.Dump;
-using RainbowForge.Forge;
 
 namespace DumpTool
 {

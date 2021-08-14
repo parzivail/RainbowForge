@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 using RainbowForge;
-using RainbowForge.Forge;
+using RainbowForge.Core;
 
 namespace AssetCatalog.Converters
 {

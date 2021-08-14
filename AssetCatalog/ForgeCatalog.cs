@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AssetCatalog.Model;
-using RainbowForge.Forge;
+using RainbowForge.Core;
 
 namespace AssetCatalog
 {

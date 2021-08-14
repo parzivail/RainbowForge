@@ -42,7 +42,10 @@
 		BallJointCommonData = 0x460DD209,
 		LiteRagdoll = 0x891043D5,
 		BoxShape = 0x4EC68E98,
-		BuildRow = 0x348B28D6
+		BuildRow = 0x348B28D6,
+		FireFontDescriptor = 0x58E38D86,
+		MeshShape = 0xB22B3E61,
+		PostEffects = 0xC83B8907
 	}
 
 	public enum ContainerMagic : uint

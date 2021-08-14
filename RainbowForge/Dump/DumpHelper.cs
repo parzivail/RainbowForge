@@ -4,19 +4,19 @@ using System.IO;
 using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using RainbowForge.Archive;
-using RainbowForge.Forge;
-using RainbowForge.Forge.Container;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
+using RainbowForge.Image;
 using RainbowForge.Link;
-using RainbowForge.Mesh;
+using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
 using RainbowForge.Sound;
-using RainbowForge.Texture;
 
 namespace RainbowForge.Dump
 {
 	public class DumpHelper
 	{
-		public static void Dump(Forge.Forge forge, Entry entry, string outputDirectory)
+		public static void Dump(Forge forge, Entry entry, string outputDirectory)
 		{
 			var container = forge.GetContainer(entry.Uid);
 			if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
@@ -30,7 +30,7 @@ namespace RainbowForge.Dump
 				{
 					var header = MeshHeader.Read(assetStream);
 
-					var mesh = Mesh.Mesh.Read(assetStream, header);
+					var mesh = CompiledMeshObject.Read(assetStream, header);
 
 					DumpMeshObj(outputDirectory, $"id{entry.Uid}_type{header.MeshType}_v{header.Revision}", mesh);
 
@@ -38,7 +38,7 @@ namespace RainbowForge.Dump
 				}
 				case AssetType.Texture:
 				{
-					var texture = Texture.Texture.Read(assetStream);
+					var texture = Texture.Read(assetStream);
 
 					var surface = texture.ReadSurfaceBytes(assetStream);
 
@@ -106,22 +106,22 @@ namespace RainbowForge.Dump
 				stream.CopyStream(fs, writeLength);
 		}
 
-		private static void DumpTexture(string bank, string name, Texture.Texture texture, byte[] surface)
+		private static void DumpTexture(string bank, string name, Texture texture, byte[] surface)
 		{
 			using var stream = DdsHelper.GetDdsStream(texture, surface);
 			DumpBin(bank, name, stream, ext: "dds");
 		}
 
-		private static void DumpMeshObj(string bank, string name, Mesh.Mesh mesh)
+		private static void DumpMeshObj(string bank, string name, CompiledMeshObject compiledMeshObject)
 		{
 			Directory.CreateDirectory(bank);
 			var filename = Path.Combine(bank, $"{name}.obj");
 
 			var obj = new ObjFile();
 
-			for (var objId = 0; objId < mesh.Objects.Count / mesh.MeshHeader.NumLods; objId++)
+			for (var objId = 0; objId < compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods; objId++)
 			{
-				var o = mesh.Objects[objId];
+				var o = compiledMeshObject.Objects[objId];
 				foreach (var face in o)
 				{
 					var objFace = new ObjFace
@@ -137,7 +137,7 @@ namespace RainbowForge.Dump
 				}
 			}
 
-			var container = mesh.Container;
+			var container = compiledMeshObject.Container;
 			for (var i = 0; i < container.Vertices.Length; i++)
 			{
 				var vert = container.Vertices[i];
@@ -195,34 +195,34 @@ namespace RainbowForge.Dump
 				}
 				case Magic.Material:
 				{
-					var mat = MaterialContainer.Read(assetStream);
-					foreach (var mipContainerReference in mat.BaseMipContainers)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} BaseMipContainers"), mipContainerReference.MipContainerUid);
-					foreach (var mipContainerReference in mat.SecondaryMipContainers)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} SecondaryMipContainers"), mipContainerReference.MipContainerUid);
-					foreach (var mipContainerReference in mat.TertiaryMipContainers)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} TertiaryMipContainers"), mipContainerReference.MipContainerUid);
+					var mat = Material.Read(assetStream);
+					foreach (var mipContainerReference in mat.BaseTextureMapSpecs)
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Material.BaseTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
+					foreach (var mipContainerReference in mat.SecondaryTextureMapSpecs)
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Material.SecondaryTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
+					foreach (var mipContainerReference in mat.TertiaryTextureMapSpecs)
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Material.TertiaryTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
 
 					break;
 				}
 				case Magic.TextureMapSpec:
 				{
-					var mipContainer = MipContainer.Read(assetStream);
-					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} Mips"), mipContainer.MipUid);
+					var mipContainer = TextureMapSpec.Read(assetStream);
+					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Magic.TextureMapSpec)}"), mipContainer.TextureMapUid);
 					break;
 				}
 				case Magic.Mesh:
 				{
-					var meshProps = MeshProperties.Read(assetStream);
-					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} Meshes"), meshProps.MeshUid);
+					var meshProps = Mesh.Read(assetStream);
+					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Magic.Mesh)}"), meshProps.CompiledMeshObjectUid);
 
-					foreach (var materialContainer in meshProps.MaterialContainers)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} MaterialContainers"), materialContainer);
+					foreach (var materialContainer in meshProps.Materials)
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Mesh.Materials)}"), materialContainer);
 					break;
 				}
 				case Magic.TextureMap:
 				{
-					var mipSet = MipSet.Read(assetStream);
+					var mipSet = TextureMap.Read(assetStream);
 					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && unresolvedExterns.All(pair => pair.Value != arg)))
 						unresolvedExterns.Add(new KeyValuePair<string, ulong>(rootDir, uid));
 					foreach (var uid in mipSet.TexUidMipSet2.Where(arg => arg != 0 && unresolvedExterns.All(pair => pair.Value != arg)))
@@ -249,13 +249,13 @@ namespace RainbowForge.Dump
 						if (linkEntry.UidLinkNode1 != null)
 						{
 							var uid = linkEntry.UidLinkNode1.LinkedUid;
-							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} UidLinkNode1"), uid);
+							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(UidLinkEntry.UidLinkNode1)}"), uid);
 						}
 
 						if (linkEntry.UidLinkNode2 != null)
 						{
 							var uid = linkEntry.UidLinkNode2.LinkedUid;
-							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} UidLinkNode2"), uid);
+							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(UidLinkEntry.UidLinkNode2)}"), uid);
 						}
 					}
 
@@ -287,34 +287,34 @@ namespace RainbowForge.Dump
 			{
 				case Magic.Material:
 				{
-					var mat = MaterialContainer.Read(assetStream);
-					foreach (var mipContainerReference in mat.BaseMipContainers)
-						TryRecurseChildren(mipContainerReference.MipContainerUid);
-					foreach (var mipContainerReference in mat.SecondaryMipContainers)
-						TryRecurseChildren(mipContainerReference.MipContainerUid);
-					foreach (var mipContainerReference in mat.TertiaryMipContainers)
-						TryRecurseChildren(mipContainerReference.MipContainerUid);
+					var mat = Material.Read(assetStream);
+					foreach (var mipContainerReference in mat.BaseTextureMapSpecs)
+						TryRecurseChildren(mipContainerReference.TextureMapSpecUid);
+					foreach (var mipContainerReference in mat.SecondaryTextureMapSpecs)
+						TryRecurseChildren(mipContainerReference.TextureMapSpecUid);
+					foreach (var mipContainerReference in mat.TertiaryTextureMapSpecs)
+						TryRecurseChildren(mipContainerReference.TextureMapSpecUid);
 
 					break;
 				}
 				case Magic.TextureMapSpec:
 				{
-					var mipContainer = MipContainer.Read(assetStream);
-					TryRecurseChildren(mipContainer.MipUid);
+					var mipContainer = TextureMapSpec.Read(assetStream);
+					TryRecurseChildren(mipContainer.TextureMapUid);
 					break;
 				}
 				case Magic.Mesh:
 				{
-					var meshProps = MeshProperties.Read(assetStream);
-					TryRecurseChildren(meshProps.MeshUid);
+					var meshProps = Mesh.Read(assetStream);
+					TryRecurseChildren(meshProps.CompiledMeshObjectUid);
 
-					foreach (var materialContainer in meshProps.MaterialContainers)
+					foreach (var materialContainer in meshProps.Materials)
 						TryRecurseChildren(materialContainer);
 					break;
 				}
 				case Magic.TextureMap:
 				{
-					var mipSet = MipSet.Read(assetStream);
+					var mipSet = TextureMap.Read(assetStream);
 					foreach (var uid in mipSet.TexUidMipSet1.Where(arg => arg != 0 && !referencedExterns.Contains(arg)))
 						referencedExterns.Add(uid);
 					foreach (var uid in mipSet.TexUidMipSet2.Where(arg => arg != 0 && !referencedExterns.Contains(arg)))

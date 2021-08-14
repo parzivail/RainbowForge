@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using RainbowForge.Forge;
+using RainbowForge.Core;
 
 namespace AssetCatalog.Model
 {
