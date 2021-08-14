@@ -431,7 +431,7 @@ namespace Prism
 
 					switch ((Magic)assetStream.Magic)
 					{
-						case Magic.MeshProperties:
+						case Magic.Mesh:
 						{
 							var mp = MeshProperties.Read(stream);
 
@@ -447,7 +447,7 @@ namespace Prism
 							};
 							break;
 						}
-						case Magic.MaterialContainer:
+						case Magic.Material:
 						{
 							var mc = MaterialContainer.Read(stream);
 
@@ -462,7 +462,7 @@ namespace Prism
 							};
 							break;
 						}
-						case Magic.MipContainer:
+						case Magic.TextureMapSpec:
 						{
 							var mc = MipContainer.Read(stream);
 
@@ -476,7 +476,7 @@ namespace Prism
 							};
 							break;
 						}
-						case Magic.MipSet:
+						case Magic.TextureMap:
 						{
 							var mc = MipSet.Read(stream);
 

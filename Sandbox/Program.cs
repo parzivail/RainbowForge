@@ -106,10 +106,10 @@ namespace Sandbox
 			var assetStream = forgeAsset.GetDataStream(forge);
 			var arc = FlatArchive.Read(assetStream);
 
-			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
+			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.Mesh, archiveEntry.Meta.Magic)))
 				return;
 
-			foreach (var meshProp in arc.Entries.Where(archiveEntry => MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
+			foreach (var meshProp in arc.Entries.Where(archiveEntry => MagicHelper.Equals(Magic.Mesh, archiveEntry.Meta.Magic)))
 			{
 				var unresolvedExterns = new List<KeyValuePair<string, ulong>>();
 

@@ -51,7 +51,7 @@ namespace DumpTool
 			var assetStream = forgeAsset.GetDataStream(forge);
 			var arc = FlatArchive.Read(assetStream);
 
-			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.MeshProperties, archiveEntry.Meta.Magic)))
+			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.Mesh, archiveEntry.Meta.Magic)))
 			{
 				Console.Error.WriteLine("No MeshProperties containers found");
 				return;

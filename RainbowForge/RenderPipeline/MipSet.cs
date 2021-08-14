@@ -28,7 +28,7 @@ namespace RainbowForge.RenderPipeline
 		public static MipSet Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.MipSet, magic);
+			MagicHelper.AssertEquals(Magic.TextureMap, magic);
 
 			var var1 = r.ReadUInt32();
 			var var2 = r.ReadUInt32();
