@@ -45,7 +45,25 @@
 		BuildRow = 0x348B28D6,
 		FireFontDescriptor = 0x58E38D86,
 		MeshShape = 0xB22B3E61,
-		PostEffects = 0xC83B8907
+		PostEffects = 0xC83B8907,
+		AtomGraph = 0xC0C861CD,
+		BarrelShape = 0x97CD8890,
+		BodyPartMapping = 0xB3ADF542,
+		CapsuleShape = 0xB8599052,
+		ClutterGenerationSettings = 0xB144F3A0,
+		ConvexVerticesShape = 0x53667A87,
+		EntityGroup = 0x3F742D26,
+		GameSetting = 0x52534498,
+		ListShape = 0x86EBFD8D,
+		LODSelector = 0x51DC6B80,
+		MarketingCamera = 0x5B7FC715,
+		OmniLight = 0x344780D6,
+		PersistableOptionsProfile = 0x8F07EDFF,
+		RagdollNew = 0xC8DBDE7F,
+		SoundPropagationMap = 0x97FCF21E,
+		SphereShape = 0xFA3F7A18,
+		Gadget = 0xB1F352BC,
+		Weapon = 0x6E9FA2D0
 	}
 
 	public enum ContainerMagic : uint
