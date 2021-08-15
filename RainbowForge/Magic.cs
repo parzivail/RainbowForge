@@ -63,7 +63,9 @@
 		SoundPropagationMap = 0x97FCF21E,
 		SphereShape = 0xFA3F7A18,
 		Gadget = 0xB1F352BC,
-		Weapon = 0x6E9FA2D0
+		Weapon = 0x6E9FA2D0,
+		Charm = 0x40FCADEE,
+		Projectile = 0x73A641BD
 	}
 
 	public enum ContainerMagic : uint
