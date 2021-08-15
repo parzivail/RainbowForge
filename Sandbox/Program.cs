@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using RainbowForge;
+using RainbowForge.Archive;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
+using RainbowForge.Dump;
 
 namespace Sandbox
 {
@@ -52,45 +54,51 @@ namespace Sandbox
 			0xFA32E3AF, 0xFA53A1B9, 0xFA961D1B, 0xFABAE07A, 0xFB1080A9, 0xFB364970, 0xFB75DFB2, 0xFB911AC9, 0xFC6CDAC0, 0xFCE622E2, 0xFD73E329, 0xFDA4B79A, 0xFE15F469, 0xFE41FE3A,
 			0xFF138919, 0xFFC937C2
 		};
-		
+
 		private static void Main(string[] args)
 		{
-			// var magics = new List<ulong>();
-			//
-			// foreach (var filename in Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge"))
-			// {
-			// 	Console.WriteLine(filename);
-			// 	
-			// 	var forge = Forge.GetForge(filename);
-			//
-			// 	foreach (var entry in forge.Entries)
-			// 	{
-			// 		if (!magics.Contains(entry.Name.FileType))
-			// 			magics.Add(entry.Name.FileType);
-			//
-			// 		if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive) continue;
-			// 		
-			// 		var container = forge.GetContainer(entry.Uid);
-			// 		if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
-			//
-			// 		var assetStream = forgeAsset.GetDataStream(forge);
-			// 		var fa = FlatArchive.Read(assetStream);
-			//
-			// 		foreach (var fae in fa.Entries)
-			// 		{
-			// 			if (!magics.Contains(fae.Meta.Magic))
-			// 				magics.Add(fae.Meta.Magic);
-			// 		}
-			// 	}
-			// }
-			//
-			// Console.Clear();
-			//
-			// foreach (var magic in magics.OrderBy(arg => arg))
-			// {
-			// 	if (!Enum.IsDefined(typeof(Magic), magic))
-			// 		Console.WriteLine($"0x{magic:X8}");
-			// }
+			var magics = new Dictionary<ulong, int>();
+
+			foreach (var filename in Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge"))
+			{
+				Console.WriteLine(filename);
+
+				var forge = Forge.GetForge(filename);
+
+				foreach (var entry in forge.Entries)
+				{
+					if (!magics.ContainsKey(entry.Name.FileType))
+						magics[entry.Name.FileType] = 0;
+
+					magics[entry.Name.FileType]++;
+
+					if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive) continue;
+
+					var container = forge.GetContainer(entry.Uid);
+					if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
+
+					var assetStream = forgeAsset.GetDataStream(forge);
+					var fa = FlatArchive.Read(assetStream);
+
+					foreach (var fae in fa.Entries)
+					{
+						if (!magics.ContainsKey(fae.Meta.Magic))
+							magics[fae.Meta.Magic] = 0;
+
+						magics[fae.Meta.Magic]++;
+
+						if (fae.Meta.Magic == 0x74F7311D) DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\{fae.Meta.Uid}.bin", fa.GetEntryStream(assetStream.BaseStream, fae.Meta.Uid).BaseStream);
+					}
+				}
+			}
+
+			Console.Clear();
+
+			foreach (var (magic, count) in magics.OrderByDescending(arg => arg.Value))
+				if (!Enum.IsDefined(typeof(Magic), magic))
+					Console.WriteLine($"0x{magic:X8} - {count}");
+				else
+					Console.WriteLine($"0x{magic:X8} ({(Magic)magic}) - {count}");
 
 			// using var sr = new StreamReader("E:\\colby\\Desktop\\temp\\output.txt");
 			// using var sw = new StreamWriter("E:\\colby\\Desktop\\temp\\words.txt");
@@ -106,57 +114,57 @@ namespace Sandbox
 			// 	sw.WriteLine(line);
 			// }
 
-			using var sr = new StreamReader("E:\\colby\\Desktop\\temp\\ac_names.txt");
-			var words = sr.ReadToEnd().Split("\r\n").Select(UpperFirst).ToList();
-			words.Add("");
-
-			var results = new ConcurrentDictionary<uint, List<string>>();
-
-			var numWords = words.Count;
-			var completedWords = 0;
-
-			Parallel.ForEach(words, wordA =>
-			{
-				var bufferBytes = new byte[256];
-				foreach (var wordB in words)
-				{
-					foreach (var wordC in words)
-					{
-						var lineLength = wordA.Length + wordB.Length + wordC.Length;
-
-						for (var i = 0; i < wordA.Length; i++)
-							bufferBytes[i] = (byte)wordA[i];
-
-						for (var i = 0; i < wordB.Length; i++)
-							bufferBytes[i + wordA.Length] = (byte)wordB[i];
-
-						for (var i = 0; i < wordC.Length; i++)
-							bufferBytes[i + wordA.Length + wordB.Length] = (byte)wordC[i];
-
-						var crc = Crc32.CalculateHash(Crc32.DefaultSeed, bufferBytes, 0, lineLength);
-						if (!UnknownMagics.Contains(crc)) continue;
-
-						if (!results.ContainsKey(crc))
-							results[crc] = new List<string>();
-
-						results[crc].Add($"{wordA}{wordB}{wordC}");
-					}
-				}
-
-				Interlocked.Increment(ref completedWords);
-				Console.WriteLine($"{completedWords / (float)numWords * 100:F2}% - {wordA}");
-			});
-
-			using var sw = new StreamWriter("out.txt");
-			foreach (var (magic, possibleValues) in results)
-			{
-				sw.WriteLine($"0x{magic:X8}");
-
-				foreach (var value in possibleValues)
-					sw.WriteLine($"\t{value}");
-
-				sw.WriteLine();
-			}
+			// using var sr = new StreamReader("E:\\colby\\Desktop\\temp\\ac_names.txt");
+			// var words = sr.ReadToEnd().Split("\r\n").Select(UpperFirst).ToList();
+			// words.Add("");
+			//
+			// var results = new ConcurrentDictionary<uint, List<string>>();
+			//
+			// var numWords = words.Count;
+			// var completedWords = 0;
+			//
+			// Parallel.ForEach(words, wordA =>
+			// {
+			// 	var bufferBytes = new byte[256];
+			// 	foreach (var wordB in words)
+			// 	{
+			// 		foreach (var wordC in words)
+			// 		{
+			// 			var lineLength = wordA.Length + wordB.Length + wordC.Length;
+			//
+			// 			for (var i = 0; i < wordA.Length; i++)
+			// 				bufferBytes[i] = (byte)wordA[i];
+			//
+			// 			for (var i = 0; i < wordB.Length; i++)
+			// 				bufferBytes[i + wordA.Length] = (byte)wordB[i];
+			//
+			// 			for (var i = 0; i < wordC.Length; i++)
+			// 				bufferBytes[i + wordA.Length + wordB.Length] = (byte)wordC[i];
+			//
+			// 			var crc = Crc32.CalculateHash(Crc32.DefaultSeed, bufferBytes, 0, lineLength);
+			// 			if (!UnknownMagics.Contains(crc)) continue;
+			//
+			// 			if (!results.ContainsKey(crc))
+			// 				results[crc] = new List<string>();
+			//
+			// 			results[crc].Add($"{wordA}{wordB}{wordC}");
+			// 		}
+			// 	}
+			//
+			// 	Interlocked.Increment(ref completedWords);
+			// 	Console.WriteLine($"{completedWords / (float)numWords * 100:F2}% - {wordA}");
+			// });
+			//
+			// using var sw = new StreamWriter("out.txt");
+			// foreach (var (magic, possibleValues) in results)
+			// {
+			// 	sw.WriteLine($"0x{magic:X8}");
+			//
+			// 	foreach (var value in possibleValues)
+			// 		sw.WriteLine($"\t{value}");
+			//
+			// 	sw.WriteLine();
+			// }
 
 			Console.WriteLine("Done.");
 		}

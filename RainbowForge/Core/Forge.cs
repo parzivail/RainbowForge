@@ -95,6 +95,17 @@ namespace RainbowForge.Core
 			return GetContainer(_uidToEntryIndexMap[entryUid]);
 		}
 
+		public BinaryReader GetEntryStream(Entry entry)
+		{
+			var ms = new MemoryStream();
+			Stream.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
+			Stream.BaseStream.CopyStream(ms, (int)entry.Size);
+
+			ms.Seek(0, SeekOrigin.Begin);
+
+			return new BinaryReader(ms);
+		}
+
 		public ForgeContainer GetContainer(int i)
 		{
 			var entry = Entries[i];

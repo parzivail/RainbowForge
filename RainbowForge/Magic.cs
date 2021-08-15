@@ -66,6 +66,10 @@
 		Weapon = 0x6E9FA2D0,
 		Charm = 0x40FCADEE,
 		Projectile = 0x73A641BD
+		// 0x6F74DDB4 - Shader?
+		// 0x8D1D966B - some kind of UID mapping container
+		// 0x0FA3067F - sequential/indexed data
+		// 0x4CAED6B4 - another UID mapping container
 	}
 
 	public enum ContainerMagic : uint

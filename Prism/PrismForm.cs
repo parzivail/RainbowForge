@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
+using JeremyAnsel.Media.WavefrontObj;
 using OpenTK;
 using OpenTK.Graphics;
 using Pfim;
@@ -22,17 +23,18 @@ using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using Color4 = RainbowForge.Model.Color4;
 
 namespace Prism
 {
 	public class PrismForm : Form
 	{
-		private readonly OpenFileDialog _ofdForges;
-
 		private readonly ToolStripMenuItem _bOpenForge;
 		private readonly ToolStripMenuItem _bResetViewport;
 
 		private readonly ToolStripMenuItem _bDumpAsBin;
+		private readonly ToolStripMenuItem _bDumpAsDds;
+		private readonly ToolStripMenuItem _bDumpAsObj;
 
 		private readonly TreeListView _assetList;
 		private readonly MinimalSplitContainer _splitContainer;
@@ -54,6 +56,9 @@ namespace Prism
 				_openedForge = value;
 				_flatArchiveEntryMap = new Dictionary<ulong, ulong>();
 				_assetList.SetObjects(_openedForge.Entries);
+				UpdateAbility(null);
+
+				_assetList.SelectedIndex = 0;
 			}
 		}
 
@@ -109,7 +114,11 @@ namespace Prism
 							Text = "&Dump",
 							DropDownItems =
 							{
-								(_bDumpAsBin = new ToolStripMenuItem("&Bin"))
+								(_bDumpAsBin = new ToolStripMenuItem("&Binary file")),
+								new ToolStripSeparator(),
+								(_bDumpAsDds = new ToolStripMenuItem("&DirectDraw Surface")),
+								new ToolStripSeparator(),
+								(_bDumpAsObj = new ToolStripMenuItem("&Wavefront OBJ"))
 							}
 						},
 						new ToolStripDropDownButton
@@ -152,34 +161,43 @@ namespace Prism
 				ResumeLayout(true);
 			}
 
-			_ofdForges = new OpenFileDialog
-			{
-				Filter = "Forge Files|*.forge"
-			};
-
 			_bOpenForge.Click += (sender, args) =>
 			{
-				if (_ofdForges.ShowDialog() != DialogResult.OK)
+				var ofd = new OpenFileDialog
+				{
+					Filter = "Forge Files|*.forge"
+				};
+
+				if (ofd.ShowDialog() != DialogResult.OK)
 					return;
 
-				OpenForge(_ofdForges.FileName);
+				OpenForge(ofd.FileName);
 			};
 
 			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
 
-			_bDumpAsBin.Click += (sender, args) =>
-			{
-				var sfd = new SaveFileDialog
-				{
-					Filter = "Binary Files|*.bin"
-				};
-
-				if (sfd.ShowDialog() == DialogResult.OK)
-					DumpSelectionAsBin(sfd.FileName);
-			};
+			_bDumpAsBin.Click += CreateDumpEventHandler("Binary Files|*.bin", DumpSelectionAsBin);
+			_bDumpAsDds.Click += CreateDumpEventHandler("DirectDraw Surfaces|*.dds", DumpSelectionAsDds);
+			_bDumpAsObj.Click += CreateDumpEventHandler("Wavefront OBJs|*.obj", DumpSelectionAsObj);
 
 			SetupRenderer();
 			SetupAssetList();
+
+			UpdateAbility(null);
+		}
+
+		private static EventHandler CreateDumpEventHandler(string filter, Action<string> action)
+		{
+			return (_, _) =>
+			{
+				var sfd = new SaveFileDialog
+				{
+					Filter = filter
+				};
+
+				if (sfd.ShowDialog() == DialogResult.OK)
+					action(sfd.FileName);
+			};
 		}
 
 		private void DumpSelectionAsBin(string fileName)
@@ -189,6 +207,67 @@ namespace Prism
 			DumpHelper.DumpBin(fileName, stream.BaseStream);
 		}
 
+		private void DumpSelectionAsObj(string fileName)
+		{
+			var streamData = GetAssetStream(_assetList.SelectedObject);
+			using var stream = streamData.Stream;
+
+			var header = MeshHeader.Read(stream);
+
+			var compiledMeshObject = CompiledMeshObject.Read(stream, header);
+
+			var obj = new ObjFile();
+
+			for (var objId = 0; objId < compiledMeshObject.Objects.Count; objId++)
+			{
+				var lod = objId / compiledMeshObject.MeshHeader.NumLods;
+
+				var o = compiledMeshObject.Objects[objId];
+				foreach (var face in o)
+				{
+					var objFace = new ObjFace
+					{
+						ObjectName = $"lod{lod}_object{objId % compiledMeshObject.MeshHeader.NumLods}"
+					};
+
+					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
+					objFace.Vertices.Add(new ObjTriplet(face.B + 1, face.B + 1, face.B + 1));
+					objFace.Vertices.Add(new ObjTriplet(face.C + 1, face.C + 1, face.C + 1));
+
+					obj.Faces.Add(objFace);
+				}
+			}
+
+			var container = compiledMeshObject.Container;
+			for (var i = 0; i < container.Vertices.Length; i++)
+			{
+				var vert = container.Vertices[i];
+				var color = container.Colors?[0, i] ?? new Color4(1, 1, 1, 1);
+
+				obj.Vertices.Add(new ObjVertex(vert.X, vert.Y, vert.Z, color.R, color.G, color.B, color.A));
+			}
+
+			foreach (var v in container.Normals)
+				obj.VertexNormals.Add(new ObjVector3(v.X, v.Y, v.Z));
+
+			foreach (var v in container.TexCoords)
+				obj.TextureVertices.Add(new ObjVector3(v.X, v.Y));
+
+			obj.WriteTo(fileName);
+		}
+
+		private void DumpSelectionAsDds(string fileName)
+		{
+			var streamData = GetAssetStream(_assetList.SelectedObject);
+			using var stream = streamData.Stream;
+
+			var texture = Texture.Read(stream);
+			var surface = texture.ReadSurfaceBytes(stream);
+			using var ddsStream = DdsHelper.GetDdsStream(texture, surface);
+
+			DumpHelper.DumpBin(fileName, ddsStream);
+		}
+
 		private AssetStream GetAssetStream(object o)
 		{
 			switch (o)
@@ -196,10 +275,12 @@ namespace Prism
 				case Entry entry:
 				{
 					var container = _openedForge.GetContainer(entry.Uid);
-					if (container is not ForgeAsset forgeAsset)
-						return null;
 
-					return new AssetStream(entry.Uid, entry.Name.FileType, forgeAsset.GetDataStream(_openedForge));
+					return container switch
+					{
+						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.Name.FileType, forgeAsset.GetDataStream(_openedForge)),
+						_ => new AssetStream(entry.Uid, entry.Name.FileType, _openedForge.GetEntryStream(entry))
+					};
 				}
 				case FlatArchiveEntry flatArchiveEntry:
 				{
@@ -332,7 +413,7 @@ namespace Prism
 			};
 		}
 
-		private async void OnAssetListOnSelectionChanged(object sender, EventArgs args)
+		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
 		{
 			var selectedEntry = _assetList.SelectedObject;
 			lock (_openedForge)
@@ -340,7 +421,30 @@ namespace Prism
 				var stream = GetAssetStream(selectedEntry);
 				if (stream != null)
 					PreviewAsset(stream);
+
+				UpdateAbility(stream);
 			}
+		}
+
+		private void UpdateAbility(AssetStream assetStream)
+		{
+			AssetType type;
+			Magic magic;
+
+			if (assetStream == null)
+			{
+				type = AssetType.Unknown;
+				magic = 0;
+			}
+			else
+			{
+				type = MagicHelper.GetFiletype(assetStream.Magic);
+				magic = (Magic)assetStream.Magic;
+			}
+
+			_bDumpAsBin.Enabled = assetStream != null;
+			_bDumpAsDds.Enabled = type == AssetType.Texture;
+			_bDumpAsObj.Enabled = type == AssetType.Mesh;
 		}
 
 		private void PreviewAsset(AssetStream assetStream)
@@ -389,6 +493,7 @@ namespace Prism
 							colorType = SKColorType.Argb4444;
 							break;
 						case ImageFormat.Rgb24:
+						{
 							// Skia has no 24bit pixels, so we upscale to 32bit
 							var pixels = image.DataLen / 3;
 							newDataLen = pixels * 4;
@@ -404,6 +509,7 @@ namespace Prism
 							stride = image.Width * 4;
 							colorType = SKColorType.Bgra8888;
 							break;
+						}
 						case ImageFormat.Rgba32:
 							colorType = SKColorType.Bgra8888;
 							break;
@@ -411,7 +517,7 @@ namespace Prism
 							throw new ArgumentException($"Skia unable to interpret pfim format: {image.Format}");
 					}
 
-					var imageInfo = new SKImageInfo(image.Width, image.Height, colorType);
+					var imageInfo = new SKImageInfo(image.Width, image.Height, colorType, SKAlphaType.Unpremul);
 					var handle = GCHandle.Alloc(newData, GCHandleType.Pinned);
 					var ptr = Marshal.UnsafeAddrOfPinnedArrayElement(newData, 0);
 

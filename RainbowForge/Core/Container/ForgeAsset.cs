@@ -62,7 +62,7 @@ namespace RainbowForge.Core.Container
 
 		public BinaryReader GetDataStream(Forge forge)
 		{
-			return new(AssetBlock.GetDataStream(forge.Stream));
+			return new BinaryReader(AssetBlock.GetDataStream(forge.Stream));
 		}
 	}
 }
