@@ -2,7 +2,7 @@
 {
 	public enum Magic : ulong
 	{
-		Unknown = 0,
+		Metadata = 0,
 		FileContainer = 0x1014FA99,
 		CompiledMeshObject = 0xABEB2DFB,
 		CompiledMesh = 0xFC9E1595,

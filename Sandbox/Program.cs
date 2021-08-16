@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using RainbowForge;
-using RainbowForge.Archive;
-using RainbowForge.Core;
-using RainbowForge.Core.Container;
+using RainbowForge.Info;
 
 namespace Sandbox
 {
@@ -56,62 +52,64 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			// foreach (var file in Directory.GetFiles("R:\\Siege Dumps\\Unpacked", "*.bin"))
-			// {
-			// 	using var br = new BinaryReader(File.Open(file, FileMode.Open));
-			// 	AreaMap.Read(br);
-			// }
+			var files = Directory.GetFiles("R:\\Siege Dumps\\Unpacked\\World", "*.bin");
 
-			var magics = new Dictionary<ulong, int>();
-
-			foreach (var filename in Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge"))
+			foreach (var file in files)
 			{
-				Console.WriteLine(filename);
-
-				var forge = Forge.GetForge(filename);
-
-				foreach (var entry in forge.Entries)
-				{
-					if (!magics.ContainsKey(entry.Name.FileType))
-						magics[entry.Name.FileType] = 0;
-
-					magics[entry.Name.FileType]++;
-
-					// if (entry.Name.FileType == 0x22ECBE63)
-					// {
-					// 	var container2 = forge.GetContainer(entry.Uid);
-					// 	if (container2 is not ForgeAsset forgeAsset2) throw new InvalidDataException("Container is not asset");
-					//
-					// 	var assetStream2 = forgeAsset2.GetDataStream(forge);
-					// 	DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\BuildTable\\{entry.Uid}.bin", assetStream2.BaseStream);
-					// }
-
-					if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive) continue;
-
-					var container = forge.GetContainer(entry.Uid);
-					if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
-
-					var assetStream = forgeAsset.GetDataStream(forge);
-					var fa = FlatArchive.Read(assetStream);
-
-					foreach (var fae in fa.Entries)
-					{
-						if (!magics.ContainsKey(fae.Meta.Magic))
-							magics[fae.Meta.Magic] = 0;
-
-						magics[fae.Meta.Magic]++;
-
-						// if (fae.Meta.Magic == 0x348B28D6)
-						// 	DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\BuildRow\\{fae.Meta.Uid}.bin", fa.GetEntryStream(assetStream.BaseStream, fae.Meta.Uid).BaseStream);
-					}
-				}
+				using var br = new BinaryReader(File.Open(file, FileMode.Open));
+				var area = AreaMap.Read(br);
 			}
 
-			foreach (var (magic, count) in magics.OrderByDescending(arg => arg.Value))
-				if (!Enum.IsDefined(typeof(Magic), magic))
-					Console.WriteLine($"0x{magic:X8} - {count}");
-				else
-					Console.WriteLine($"0x{magic:X8} ({(Magic)magic}) - {count}");
+			// var magics = new Dictionary<ulong, int>();
+			//
+			// foreach (var filename in Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge"))
+			// {
+			// 	Console.WriteLine(filename);
+			//
+			// 	var forge = Forge.GetForge(filename);
+			//
+			// 	foreach (var entry in forge.Entries)
+			// 	{
+			// 		if (!magics.ContainsKey(entry.Name.FileType))
+			// 			magics[entry.Name.FileType] = 0;
+			//
+			// 		magics[entry.Name.FileType]++;
+			//
+			// 		// if (entry.Name.FileType == 0x22ECBE63)
+			// 		// {
+			// 		// 	var container2 = forge.GetContainer(entry.Uid);
+			// 		// 	if (container2 is not ForgeAsset forgeAsset2) throw new InvalidDataException("Container is not asset");
+			// 		//
+			// 		// 	var assetStream2 = forgeAsset2.GetDataStream(forge);
+			// 		// 	DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\BuildTable\\{entry.Uid}.bin", assetStream2.BaseStream);
+			// 		// }
+			//
+			// 		if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive) continue;
+			//
+			// 		var container = forge.GetContainer(entry.Uid);
+			// 		if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
+			//
+			// 		var assetStream = forgeAsset.GetDataStream(forge);
+			// 		var fa = FlatArchive.Read(assetStream);
+			//
+			// 		foreach (var fae in fa.Entries)
+			// 		{
+			// 			if (!magics.ContainsKey(fae.Meta.Magic))
+			// 				magics[fae.Meta.Magic] = 0;
+			//
+			// 			magics[fae.Meta.Magic]++;
+			//
+			// 			// if (fae.Meta.Magic == 0x348B28D6)
+			// 			// 	DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\BuildRow\\{fae.Meta.Uid}.bin", fa.GetEntryStream(assetStream.BaseStream, fae.Meta.Uid).BaseStream);
+			// 		}
+			// 	}
+			// }
+			//
+			// foreach (var (magic, count) in magics.OrderByDescending(arg => arg.Value))
+			// 	if (!Enum.IsDefined(typeof(Magic), magic))
+			// 		Console.WriteLine($"0x{magic:X8} - {count}");
+			// 	else
+			// 		Console.WriteLine($"0x{magic:X8} ({(Magic)magic}) - {count}");
 
 			// using var sr = new StreamReader("E:\\colby\\Desktop\\temp\\output.txt");
 			// using var sw = new StreamWriter("E:\\colby\\Desktop\\temp\\words.txt");
@@ -127,9 +125,12 @@ namespace Sandbox
 			// 	sw.WriteLine(line);
 			// }
 
-			// using var sr = new StreamReader("E:\\colby\\Desktop\\temp\\ac_names.txt");
-			// var words = sr.ReadToEnd().Split("\r\n").Select(UpperFirst).ToList();
-			// words.Add("");
+			// using var sr = new StreamReader("R:\\Siege Dumps\\IDA\\exe.txt");
+			// var words = sr.ReadToEnd()
+			// 	.Split("\r\n", StringSplitOptions.RemoveEmptyEntries)
+			// 	.Where(s => s.Length < 30)
+			// 	.Select(UpperFirst)
+			// 	.ToList();
 			//
 			// var results = new ConcurrentDictionary<uint, List<string>>();
 			//
@@ -139,30 +140,19 @@ namespace Sandbox
 			// Parallel.ForEach(words, wordA =>
 			// {
 			// 	var bufferBytes = new byte[256];
-			// 	foreach (var wordB in words)
-			// 	{
-			// 		foreach (var wordC in words)
-			// 		{
-			// 			var lineLength = wordA.Length + wordB.Length + wordC.Length;
+			// 	
+			// 	var lineLength = wordA.Length;
 			//
-			// 			for (var i = 0; i < wordA.Length; i++)
-			// 				bufferBytes[i] = (byte)wordA[i];
+			// 	for (var i = 0; i < wordA.Length; i++)
+			// 		bufferBytes[i] = (byte)wordA[i];
 			//
-			// 			for (var i = 0; i < wordB.Length; i++)
-			// 				bufferBytes[i + wordA.Length] = (byte)wordB[i];
+			// 	var crc = Crc32.CalculateHash(Crc32.DefaultSeed, bufferBytes, 0, lineLength);
+			// 	if (!UnknownMagics.Contains(crc)) return;
 			//
-			// 			for (var i = 0; i < wordC.Length; i++)
-			// 				bufferBytes[i + wordA.Length + wordB.Length] = (byte)wordC[i];
+			// 	if (!results.ContainsKey(crc))
+			// 		results[crc] = new List<string>();
 			//
-			// 			var crc = Crc32.CalculateHash(Crc32.DefaultSeed, bufferBytes, 0, lineLength);
-			// 			if (!UnknownMagics.Contains(crc)) continue;
-			//
-			// 			if (!results.ContainsKey(crc))
-			// 				results[crc] = new List<string>();
-			//
-			// 			results[crc].Add($"{wordA}{wordB}{wordC}");
-			// 		}
-			// 	}
+			// 	results[crc].Add($"{wordA}");
 			//
 			// 	Interlocked.Increment(ref completedWords);
 			// 	Console.WriteLine($"{completedWords / (float)numWords * 100:F2}% - {wordA}");

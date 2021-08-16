@@ -20,6 +20,7 @@ using RainbowForge.Core;
 using RainbowForge.Core.Container;
 using RainbowForge.Dump;
 using RainbowForge.Image;
+using RainbowForge.Info;
 using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
 using SkiaSharp;
@@ -31,7 +32,7 @@ namespace Prism
 	public class PrismForm : Form
 	{
 		private readonly ToolStripLabel _statusForgeInfo;
-		
+
 		private readonly ToolStripMenuItem _bOpenForge;
 		private readonly ToolStripMenuItem _bResetViewport;
 
@@ -380,19 +381,38 @@ namespace Prism
 				Width = 100,
 				AspectGetter = rowObject =>
 				{
-					ulong fileType = rowObject switch
+					(ulong type, ulong uid) fileType = rowObject switch
 					{
-						Entry e => e.Name.FileType,
-						FlatArchiveEntry fae => fae.Meta.Magic,
-						_ => 0
+						Entry e => (e.Name.FileType, e.Uid),
+						FlatArchiveEntry fae => (fae.Meta.Magic, fae.Meta.Uid),
+						_ => (0, 0)
 					};
 
 					return fileType;
 				},
 				AspectToStringConverter = value =>
 				{
-					var fileType = (ulong)value;
-					return Enum.IsDefined(typeof(Magic), fileType) ? ((Magic)fileType).ToString() : fileType.ToString("X");
+					var (type, uid) = (ValueTuple<ulong, ulong>)value;
+
+					if (Enum.IsDefined(typeof(Magic), type))
+					{
+						var m = (Magic)type;
+						if (m == Magic.Metadata)
+						{
+							var container = _openedForge.GetContainer(uid);
+							switch (container)
+							{
+								case Hash:
+									return $"[{nameof(Hash)}]";
+								case Descriptor:
+									return $"[{nameof(Descriptor)}]";
+							}
+						}
+
+						return m.ToString();
+					}
+
+					return type.ToString("X");
 				}
 			});
 
@@ -631,6 +651,25 @@ namespace Prism
 									new TreeListViewEntry("Var4", mc.Var4),
 									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet1), null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray()),
 									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet2), null, mc.TexUidMipSet2.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+								)
+							};
+							break;
+						}
+						case Magic.AreaMap:
+						{
+							var am = AreaMap.Read(stream);
+
+							entries = new List<TreeListViewEntry>
+							{
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
+								new(nameof(AreaMap), null,
+									new TreeListViewEntry(nameof(AreaMap.Areas), null,
+										am.Areas.Select(area => new TreeListViewEntry("Area", null,
+											new TreeListViewEntry("Magic", area.Magic),
+											new TreeListViewEntry("Name", area.Name),
+											new TreeListViewEntry("UIDs", null, area.Uids.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+										)).ToArray()
+									)
 								)
 							};
 							break;
