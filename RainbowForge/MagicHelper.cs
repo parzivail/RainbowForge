@@ -32,17 +32,12 @@ namespace RainbowForge
 				Magic.TextureGui1 => AssetType.Texture,
 				Magic.TextureGui2 => AssetType.Texture,
 				Magic.WemSound => AssetType.Sound,
-				Magic.BuildTable => AssetType.FlatArchive,
 				Magic.EntityBuilder => AssetType.FlatArchive,
 				Magic.WeaponData => AssetType.FlatArchive,
 				Magic.GameBootstrap => AssetType.FlatArchive,
-				Magic.LocalizationPackage => AssetType.FlatArchive,
 				Magic.FlatArchive6 => AssetType.FlatArchive,
 				Magic.World => AssetType.FlatArchive,
 				Magic.LoadUnit => AssetType.FlatArchive,
-				Magic.WorldMetaData => AssetType.FlatArchive,
-				Magic.GIStream => AssetType.FlatArchive,
-				Magic.CompiledMeshShapeDataObject => AssetType.FlatArchive,
 				Magic.FlatArchive12 => AssetType.FlatArchive,
 				_ => AssetType.Unknown
 			};

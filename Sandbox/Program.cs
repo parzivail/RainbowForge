@@ -6,7 +6,6 @@ using RainbowForge;
 using RainbowForge.Archive;
 using RainbowForge.Core;
 using RainbowForge.Core.Container;
-using RainbowForge.Dump;
 
 namespace Sandbox
 {
@@ -57,6 +56,12 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
+			// foreach (var file in Directory.GetFiles("R:\\Siege Dumps\\Unpacked", "*.bin"))
+			// {
+			// 	using var br = new BinaryReader(File.Open(file, FileMode.Open));
+			// 	AreaMap.Read(br);
+			// }
+
 			var magics = new Dictionary<ulong, int>();
 
 			foreach (var filename in Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge"))
@@ -71,6 +76,15 @@ namespace Sandbox
 						magics[entry.Name.FileType] = 0;
 
 					magics[entry.Name.FileType]++;
+
+					// if (entry.Name.FileType == 0x22ECBE63)
+					// {
+					// 	var container2 = forge.GetContainer(entry.Uid);
+					// 	if (container2 is not ForgeAsset forgeAsset2) throw new InvalidDataException("Container is not asset");
+					//
+					// 	var assetStream2 = forgeAsset2.GetDataStream(forge);
+					// 	DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\BuildTable\\{entry.Uid}.bin", assetStream2.BaseStream);
+					// }
 
 					if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive) continue;
 
@@ -87,12 +101,11 @@ namespace Sandbox
 
 						magics[fae.Meta.Magic]++;
 
-						if (fae.Meta.Magic == 0x74F7311D) DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\{fae.Meta.Uid}.bin", fa.GetEntryStream(assetStream.BaseStream, fae.Meta.Uid).BaseStream);
+						// if (fae.Meta.Magic == 0x348B28D6)
+						// 	DumpHelper.DumpBin($"R:\\Siege Dumps\\Unpacked\\BuildRow\\{fae.Meta.Uid}.bin", fa.GetEntryStream(assetStream.BaseStream, fae.Meta.Uid).BaseStream);
 					}
 				}
 			}
-
-			Console.Clear();
 
 			foreach (var (magic, count) in magics.OrderByDescending(arg => arg.Value))
 				if (!Enum.IsDefined(typeof(Magic), magic))

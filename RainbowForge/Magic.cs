@@ -42,7 +42,7 @@
 		BallJointCommonData = 0x460DD209,
 		LiteRagdoll = 0x891043D5,
 		BoxShape = 0x4EC68E98,
-		BuildRow = 0x348B28D6,
+		BuildRow = 0x348B28D6, // BuildRow in a BuildTable
 		FireFontDescriptor = 0x58E38D86,
 		MeshShape = 0xB22B3E61,
 		PostEffects = 0xC83B8907,
@@ -65,10 +65,34 @@
 		Gadget = 0xB1F352BC,
 		Weapon = 0x6E9FA2D0,
 		Charm = 0x40FCADEE,
-		Projectile = 0x73A641BD
+		Projectile = 0x73A641BD,
+		Animation = 0x0FA3067F,
+		AreaMap = 0x584879B2,
+		TheaterData = 0x84EC653F,
+		KinoExternalStateData = 0xB19D4FCD,
+		KinoReplaceSetData = 0x3F49D5C9,
+		KinoGraphData = 0x3527D1AE,
+		TheaterCinematic = 0x28435F00,
+		KinoMarkupDictionaryData = 0xBBA2898E,
+		KinoReplaceFamilyData = 0x28941138,
+		KinoReplaceTreeData = 0x2C1329D2,
+		DominoScriptDefinition = 0xE802B9DA,
+		CreditsData = 0x88AEAEB2,
+		KinoBootStrapData = 0x0549696C,
+		Universe = 0x98435A63,
+		KinoMarkupSystemData = 0xABD50170,
+		KinoSyncSystemData = 0x72FCB11D,
+		KinoTagSystemData = 0x92F31FA2,
+		GraphicsConfig = 0xB1420AD1,
+		FactionSettings = 0x5CB07EA0,
+		DebugSettings = 0x9B7A3615,
+		AnimationSettings = 0x174B8004,
+		KinoRuntimeData = 0x149E0A31,
+		KinoReplaceSystemData = 0x235C0560,
+
+		BodyPartTemplate = 0x02251ED8
 		// 0x6F74DDB4 - Shader?
 		// 0x8D1D966B - some kind of UID mapping container
-		// 0x0FA3067F - sequential/indexed data
 		// 0x4CAED6B4 - another UID mapping container
 	}
 

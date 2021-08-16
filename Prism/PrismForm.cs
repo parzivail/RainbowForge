@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using JeremyAnsel.Media.WavefrontObj;
@@ -29,6 +30,8 @@ namespace Prism
 {
 	public class PrismForm : Form
 	{
+		private readonly ToolStripLabel _statusForgeInfo;
+		
 		private readonly ToolStripMenuItem _bOpenForge;
 		private readonly ToolStripMenuItem _bResetViewport;
 
@@ -59,6 +62,29 @@ namespace Prism
 				UpdateAbility(null);
 
 				_assetList.SelectedIndex = 0;
+
+				var sb = new StringBuilder();
+
+				sb.Append($"{_openedForge.NumEntries:N0} entries");
+
+				if (_openedForge.NumEntries > 0)
+				{
+					sb.Append(" (");
+
+					var types = _openedForge.Entries
+						.GroupBy(entry => (Magic)entry.Name.FileType)
+						.OrderByDescending(entries => entries.Count())
+						.Select(entries => $"{entries.Count():N0} {(Enum.IsDefined(typeof(Magic), entries.Key) ? entries.Key : $"{(uint)entries.Key:X8}")}")
+						.ToList();
+					sb.Append(string.Join(", ", types.Take(5)));
+
+					if (types.Count > 5)
+						sb.Append(", ...");
+
+					sb.Append(')');
+				}
+
+				_statusForgeInfo.Text = sb.ToString();
 			}
 		}
 
@@ -129,6 +155,15 @@ namespace Prism
 								(_bResetViewport = new ToolStripMenuItem("&Reset 3D Viewport"))
 							}
 						}
+					}
+				});
+
+				Controls.Add(new StatusStrip
+				{
+					Dock = DockStyle.Bottom,
+					Items =
+					{
+						(_statusForgeInfo = new ToolStripLabel("Ready"))
 					}
 				});
 
