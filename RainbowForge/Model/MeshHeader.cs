@@ -4,7 +4,8 @@ namespace RainbowForge.Model
 {
 	public class MeshHeader
 	{
-		public FileMeta MetaHeader { get; }
+		public FileMetaData MetaData { get; }
+		
 		public uint Revision { get; }
 		public int MeshType { get; }
 		public uint NumVerts { get; }
@@ -22,11 +23,11 @@ namespace RainbowForge.Model
 		public uint UnknownBlock1Len { get; }
 		public uint FaceUnknownDataLen { get; }
 
-		public MeshHeader(FileMeta metaHeader, uint revision, int meshType, uint numVerts, uint vertLen, uint numLods, MeshObjectHeader[] objectHeaders, BoundingBox[] objectBoundingBoxes,
+		public MeshHeader(FileMetaData metaData, uint revision, int meshType, uint numVerts, uint vertLen, uint numLods, MeshObjectHeader[] objectHeaders, BoundingBox[] objectBoundingBoxes,
 			MeshObjectSkinMapping[] objectSkinMappings, long vertBlockOffset, long trisBlockStart, uint vertsDataLen, uint vertmapsDataLen, long extraDataStart, uint faceDataLen,
 			uint unknownBlock1Len, uint faceUnknownDataLen)
 		{
-			MetaHeader = metaHeader;
+			MetaData = metaData;
 			Revision = revision;
 			MeshType = meshType;
 			NumVerts = numVerts;
@@ -48,7 +49,7 @@ namespace RainbowForge.Model
 		public static MeshHeader Read(BinaryReader r)
 		{
 			// file header (0x5C - zeroes till verts)
-			var metaHeader = FileMeta.Read(r);
+			var metaHeader = FileMetaData.Read(r);
 
 			var secondMagic = r.ReadUInt32();
 			var var2 = r.ReadUInt32();

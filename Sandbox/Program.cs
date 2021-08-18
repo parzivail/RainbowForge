@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using RainbowForge.Info;
+using RainbowForge.Core;
 
 namespace Sandbox
 {
@@ -52,13 +52,40 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			var files = Directory.GetFiles("R:\\Siege Dumps\\Unpacked\\World", "*.bin");
+			var files = Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge");
+			// files = new[] { "R:\\Siege Dumps\\Y0\\datapc64_pvp05_plane.forge" };
+			// files = new[] { "R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_pvp05_plane.forge" };
+
+			var hist = new Dictionary<byte, int>();
+			for (var i = 0; i < 256; i++) hist[(byte)i] = 0;
 
 			foreach (var file in files)
 			{
-				using var br = new BinaryReader(File.Open(file, FileMode.Open));
-				var area = AreaMap.Read(br);
+				var forge = Forge.GetForge(file);
+				foreach (var entry in forge.Entries)
+				{
+					// var str = "";
+					// for (var i = 0; i < entry.Name.MetaLength; i++)
+					// {
+					// 	hist[entry.Name.Meta[i]]++;
+					// }
+
+					// var container = forge.GetContainer(entry.Uid);
+					// if (container is ForgeAsset f)
+					// {
+					// 	using var s = f.MetaBlock.GetDataStream(forge.Stream);
+					// 	Console.WriteLine(string.Join("", s.GetBuffer().Take(64).Select(b => $"{b:X2}")));
+					// }
+
+					// if (entry.Name.MetaLength == 19)
+					// Console.WriteLine(string.Join("", entry.Name.Meta.Take(entry.Name.MetaLength).Select(b => $"{b:X2}")));
+				}
 			}
+
+			// foreach (var (b, count) in hist.OrderByDescending(pair => pair.Value))
+			// {
+			// 	Console.WriteLine($"{b:X2}: {count}");
+			// }
 
 			// var magics = new Dictionary<ulong, int>();
 			//

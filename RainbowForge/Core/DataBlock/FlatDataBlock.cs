@@ -19,10 +19,7 @@ namespace RainbowForge.Core.DataBlock
 		{
 			var numMetaEntries = r.ReadByte();
 
-			// if (entry.Uid == 338550615387)
-			// 	;
-
-			// smallest numSomeData is 1, so the smallest
+			// smallest numMetaEntries is 1, so the smallest
 			// header length is 15
 			var metaLength = 12 * numMetaEntries + 3;
 			var meta = r.ReadBytes(metaLength);

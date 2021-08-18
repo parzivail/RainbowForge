@@ -9,7 +9,7 @@ namespace RainbowForge.Core
 		public uint Size { get; }
 		public long End { get; }
 
-		public NameEntry Name { get; set; }
+		public EntryMetaData MetaData { get; set; }
 
 		public Entry(ulong uid, long offset, uint size, long end)
 		{

@@ -204,9 +204,9 @@ namespace ForgeDiff
 				{
 					var arcEntry = arc.Entries[arcEntryIdx];
 
-					var archiveRef = new ArchiveReference(entry.Uid, arcEntry.Meta.Uid, arcEntryIdx);
+					var archiveRef = new ArchiveReference(entry.Uid, arcEntry.MetaData.Uid, arcEntryIdx);
 
-					if (arcEntry.Meta.Uid == needle)
+					if (arcEntry.MetaData.Uid == needle)
 					{
 						if (!deps.ContainsKey(archiveRef))
 							deps[archiveRef] = new List<UidReference>();

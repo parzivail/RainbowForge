@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using RainbowForge.Core.DataBlock;
 
@@ -7,7 +6,6 @@ namespace RainbowForge.Core.Container
 {
 	public class ForgeAsset : ForgeContainer
 	{
-		private static readonly Dictionary<ulong, int> _magics = new();
 		public IAssetBlock MetaBlock { get; }
 		public ulong AssetBlockMagic { get; }
 		public IAssetBlock AssetBlock { get; }
@@ -34,11 +32,6 @@ namespace RainbowForge.Core.Container
 				return new ForgeAsset(null, 0, blockA);
 
 			var assetBlockMagic = r.ReadUInt64(); // this might actually be 8 shorts and 16 0x00 bytes
-
-			if (!_magics.ContainsKey(assetBlockMagic))
-				_magics[assetBlockMagic] = 0;
-			else
-				_magics[assetBlockMagic]++;
 
 			var blockB = GetAssetBlock(r, entry);
 

@@ -29,7 +29,7 @@ namespace RainbowForge.Archive
 
 		public BinaryReader GetEntryStream(Stream archiveStream, ulong entryUid)
 		{
-			var entry = Entries.FirstOrDefault(entry => entry.Meta.Uid == entryUid);
+			var entry = Entries.FirstOrDefault(entry => entry.MetaData.Uid == entryUid);
 			if (entry == null)
 				return null;
 

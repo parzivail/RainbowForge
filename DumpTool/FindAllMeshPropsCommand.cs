@@ -35,7 +35,7 @@ namespace DumpTool
 
 		public static bool SearchFlatArchive(Forge forge, Entry entry, ulong uid)
 		{
-			if (MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.FlatArchive)
+			if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
 				return false;
 
 			var container = forge.GetContainer(entry.Uid);

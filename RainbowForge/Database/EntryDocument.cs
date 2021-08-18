@@ -13,8 +13,8 @@ namespace RainbowForge.Database
 			return new()
 			{
 				Uid = entry.Uid,
-				Timestamp = entry.Name.Timestamp,
-				FileType = entry.Name.FileType
+				Timestamp = entry.MetaData.Timestamp,
+				FileType = entry.MetaData.FileType
 			};
 		}
 	}

@@ -23,7 +23,7 @@ namespace RainbowForge.Dump
 
 			var assetStream = forgeAsset.GetDataStream(forge);
 
-			var magic = MagicHelper.GetFiletype(entry.Name.FileType);
+			var magic = MagicHelper.GetFiletype(entry.MetaData.FileType);
 			switch (magic)
 			{
 				case AssetType.Mesh:
@@ -65,10 +65,10 @@ namespace RainbowForge.Dump
 
 					foreach (var arcEntry in arc.Entries)
 					{
-						var name = $"idx{arcEntry.Index}_filetype{arcEntry.Meta.Magic}";
+						var name = $"idx{arcEntry.Index}_filetype{arcEntry.MetaData.FileType}";
 
-						if (Enum.IsDefined(typeof(Magic), (ulong) arcEntry.Meta.Magic))
-							name += $"_{(Magic) arcEntry.Meta.Magic}";
+						if (Enum.IsDefined(typeof(Magic), (ulong)arcEntry.MetaData.FileType))
+							name += $"_{(Magic)arcEntry.MetaData.FileType}";
 
 						DumpBin(arcDir, name, assetStream.BaseStream, arcEntry.PayloadOffset, arcEntry.PayloadLength);
 					}
@@ -77,10 +77,10 @@ namespace RainbowForge.Dump
 				}
 				default:
 				{
-					var name = $"id{entry.Uid}_filetype{entry.Name.FileType}";
+					var name = $"id{entry.Uid}_filetype{entry.MetaData.FileType}";
 
-					if (Enum.IsDefined(typeof(Magic), (ulong) entry.Name.FileType))
-						name += $"_{(Magic) entry.Name.FileType}";
+					if (Enum.IsDefined(typeof(Magic), (ulong)entry.MetaData.FileType))
+						name += $"_{(Magic)entry.MetaData.FileType}";
 
 					DumpBin(outputDirectory, name, assetStream.BaseStream);
 					break;
@@ -162,7 +162,7 @@ namespace RainbowForge.Dump
 				if (uid == 0)
 					return;
 
-				var arcEntry = arc.Entries.FirstOrDefault(archiveEntry => archiveEntry.Meta.Uid == uid);
+				var arcEntry = arc.Entries.FirstOrDefault(archiveEntry => archiveEntry.MetaData.Uid == uid);
 				if (arcEntry != null)
 					DumpNonContainerChildren(dir, assetStream, arc, arcEntry, unresolvedExterns);
 				else if (uid >> 24 == 0xF8)
@@ -172,15 +172,15 @@ namespace RainbowForge.Dump
 			}
 
 			assetStream.BaseStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
-			switch ((Magic) entry.Meta.Magic)
+			switch ((Magic)entry.MetaData.FileType)
 			{
 				case Magic.ShaderCodeModuleUserMaterial:
 				{
 					try
 					{
 						var shader = Shader.Read(assetStream);
-						var pathVert = Path.Combine(rootDir, $"{entry.Meta.Uid}_vert.hlsl");
-						var pathExtra = Path.Combine(rootDir, $"{entry.Meta.Uid}_extra.hlsl");
+						var pathVert = Path.Combine(rootDir, $"{entry.MetaData.Uid}_vert.hlsl");
+						var pathExtra = Path.Combine(rootDir, $"{entry.MetaData.Uid}_extra.hlsl");
 
 						Directory.CreateDirectory(rootDir);
 						File.WriteAllText(pathVert, shader.Vert);
@@ -197,27 +197,27 @@ namespace RainbowForge.Dump
 				{
 					var mat = Material.Read(assetStream);
 					foreach (var mipContainerReference in mat.BaseTextureMapSpecs)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Material.BaseTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(Material.BaseTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
 					foreach (var mipContainerReference in mat.SecondaryTextureMapSpecs)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Material.SecondaryTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(Material.SecondaryTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
 					foreach (var mipContainerReference in mat.TertiaryTextureMapSpecs)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Material.TertiaryTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(Material.TertiaryTextureMapSpecs)}"), mipContainerReference.TextureMapSpecUid);
 
 					break;
 				}
 				case Magic.TextureMapSpec:
 				{
 					var mipContainer = TextureMapSpec.Read(assetStream);
-					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Magic.TextureMapSpec)}"), mipContainer.TextureMapUid);
+					TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(Magic.TextureMapSpec)}"), mipContainer.TextureMapUid);
 					break;
 				}
 				case Magic.Mesh:
 				{
 					var meshProps = Mesh.Read(assetStream);
-					TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Magic.Mesh)}"), meshProps.CompiledMeshObjectUid);
+					TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(Magic.Mesh)}"), meshProps.CompiledMeshObjectUid);
 
 					foreach (var materialContainer in meshProps.Materials)
-						TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(Mesh.Materials)}"), materialContainer);
+						TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(Mesh.Materials)}"), materialContainer);
 					break;
 				}
 				case Magic.TextureMap:
@@ -243,19 +243,19 @@ namespace RainbowForge.Dump
 				case Magic.CompiledMeshShapeDataObject:
 				case Magic.FlatArchive12:
 				{
-					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1);
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.Var1);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
 					{
 						if (linkEntry.UidLinkNode1 != null)
 						{
 							var uid = linkEntry.UidLinkNode1.LinkedUid;
-							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(UidLinkEntry.UidLinkNode1)}"), uid);
+							TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(UidLinkEntry.UidLinkNode1)}"), uid);
 						}
 
 						if (linkEntry.UidLinkNode2 != null)
 						{
 							var uid = linkEntry.UidLinkNode2.LinkedUid;
-							TryRecurseChildren(Path.Combine(rootDir, $"{entry.Meta.Uid} {nameof(UidLinkEntry.UidLinkNode2)}"), uid);
+							TryRecurseChildren(Path.Combine(rootDir, $"{entry.MetaData.Uid} {nameof(UidLinkEntry.UidLinkNode2)}"), uid);
 						}
 					}
 
@@ -266,8 +266,8 @@ namespace RainbowForge.Dump
 
 		public static void SearchNonContainerChildren(BinaryReader assetStream, FlatArchive arc, FlatArchiveEntry entry, List<ulong> referencedExterns)
 		{
-			if (!referencedExterns.Contains(entry.Meta.Uid))
-				referencedExterns.Add(entry.Meta.Uid);
+			if (!referencedExterns.Contains(entry.MetaData.Uid))
+				referencedExterns.Add(entry.MetaData.Uid);
 
 			void TryRecurseChildren(ulong uid)
 			{
@@ -277,13 +277,13 @@ namespace RainbowForge.Dump
 				if (!referencedExterns.Contains(uid))
 					referencedExterns.Add(uid);
 
-				var arcEntry = arc.Entries.FirstOrDefault(archiveEntry => archiveEntry.Meta.Uid == uid);
+				var arcEntry = arc.Entries.FirstOrDefault(archiveEntry => archiveEntry.MetaData.Uid == uid);
 				if (arcEntry != null)
 					SearchNonContainerChildren(assetStream, arc, arcEntry, referencedExterns);
 			}
 
 			assetStream.BaseStream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
-			switch ((Magic) entry.Meta.Magic)
+			switch ((Magic)entry.MetaData.FileType)
 			{
 				case Magic.Material:
 				{
@@ -326,7 +326,7 @@ namespace RainbowForge.Dump
 				case Magic.EntityBuilder:
 				case Magic.WeaponData:
 				{
-					var linkContainer = UidLinkContainer.Read(assetStream, entry.Meta.Var1);
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.Var1);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
 					{
 						if (linkEntry.UidLinkNode1 != null)

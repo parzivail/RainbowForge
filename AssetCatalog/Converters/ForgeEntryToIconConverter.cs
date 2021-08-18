@@ -13,7 +13,7 @@ namespace AssetCatalog.Converters
 			if (value is not Entry forgeEntry)
 				return "\uE7BA";
 
-			var magic = MagicHelper.GetFiletype(forgeEntry.Name.FileType);
+			var magic = MagicHelper.GetFiletype(forgeEntry.MetaData.FileType);
 
 			switch (magic)
 			{

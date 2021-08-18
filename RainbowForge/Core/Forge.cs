@@ -36,51 +36,80 @@ namespace RainbowForge.Core
 
 			var magic = r.ReadBytes(formatId.Length);
 			if (!magic.SequenceEqual(formatId))
-				throw new InvalidDataException("Wrong format id");
+				throw new InvalidDataException("Input file not SCIMITAR archive");
 
 			var version = r.ReadUInt32();
 			var headerOffset = r.ReadUInt32();
+			
 			var x11 = r.ReadUInt32(); // [0x11] = 0
 			var x15 = r.ReadUInt32(); // [(0x15] = 0x10
 			var x19 = r.ReadUInt32(); // [0x19] = 0
 			var x1d = r.ReadByte(); // literally no correlation found to any data so far
 
 			var numEntries = r.ReadUInt32(); // files + hash entry + descriptor entry
-			var x22 = r.ReadUInt32(); // [0x22] = 2
-			var x26 = r.ReadUInt32(); // [0x26] = 0
-			var x2A = r.ReadUInt32(); // [0x2a] = 0
-			var x2E = r.ReadUInt32(); // [0x2e] = 0
-			var x32 = r.ReadInt32(); // [0x32] = -1
-			var x36 = r.ReadInt32(); // [0x36] = -1
+			var numDirectories = r.ReadUInt32(); // [0x22] = 2
+			var unk2 = r.ReadUInt32();
+			var unk3 = r.ReadUInt32();
+			if (version >= 27)
+			{
+				var unk3b = r.ReadUInt32();
+			}
 
-			var numPlus2 = r.ReadUInt32(); // num_entries+2 (what for?..)
-			var x3E = r.ReadUInt32(); // [0x3e] = 1
-			var x4A = r.ReadUInt32(); // [0x42] = 0x4a
-			var x46 = r.ReadUInt32(); // [0x46] = 0
+			var unk4 = r.ReadUInt32();
+			var unk5 = r.ReadUInt32();
 
-			var num2 = r.ReadUInt32(); // num_entries again
-			var x4E = r.ReadUInt32(); // [0x4e] = 2
-			var x52 = r.ReadUInt32(); // [0x52] = 0x7a
-			var x56 = r.ReadUInt32(); // [0x56] = 0
-			var x5A = r.ReadInt32(); // [0x5a] = -1
-			var x5E = r.ReadInt32(); // [0x5e] = -1
-			var x62 = r.ReadUInt32(); // [0x62] = 0
+			var maxEntriesPerTable = r.ReadUInt32();
+			var numTables = r.ReadUInt32();
 
-			var numPlus1 = r.ReadUInt32(); // [0x66] num_entries+1 (what for?..)
-			var namesOffset = r.ReadUInt64(); // [0x6a]
-			var lostfound = r.ReadUInt64(); // [0x72]
+			var firstTablePosition = r.ReadUInt64();
 
-			var entries = new Entry[numEntries];
-			for (var i = 0; i < numEntries; i++)
-				entries[i] = Entry.Read(r);
+			var totalEntries = new List<Entry>();
 
-			r.BaseStream.Seek((long) namesOffset, SeekOrigin.Begin);
-			for (var i = 0; i < numEntries; i++)
-				entries[i].Name = NameEntry.Read(r);
+			r.BaseStream.Seek((long)firstTablePosition, SeekOrigin.Begin);
+			for (var i = 0; i < numTables; i++)
+			{
+				var numTEntries = r.ReadInt32();
+				var numTDirectories = r.ReadInt32();
+				var firstEntryOffset = r.ReadInt64();
+				var nextTableOffset = r.ReadInt64();
+				var startIndex = r.ReadInt32();
+				var endIndex = r.ReadInt32();
+				var metaTableOffset = r.ReadInt64();
+				var directoryOffset = r.ReadInt64();
 
-			// TODO: LOSTFOUND
+				r.BaseStream.Seek(firstEntryOffset, SeekOrigin.Begin);
+				var entries = new Entry[numTEntries];
+				for (var j = 0; j < numTEntries; j++)
+					entries[j] = Entry.Read(r);
 
-			return new Forge(version, headerOffset, numEntries, entries, r);
+				r.BaseStream.Seek(metaTableOffset, SeekOrigin.Begin);
+				for (var j = 0; j < numTEntries; j++)
+					entries[j].MetaData = EntryMetaData.Read(r);
+
+				totalEntries.AddRange(entries);
+
+				// TODO: directories
+				// r.BaseStream.Seek(directoryOffset, SeekOrigin.Begin);
+				// for (var j = 0; j < numTDirectories; j++)
+				// {
+				// 	var numFiles = r.ReadInt32();
+				// 	var unk2a = r.ReadInt32();
+				// 	var unk3a = r.ReadInt32();
+				// 	var unk4a = r.ReadInt32();
+				// 	var unk5a = r.ReadInt32();
+				// 	var name = r.ReadBytes(128);
+				// 	var unk6 = r.ReadInt32();
+				// 	var unk7 = r.ReadInt32();
+				// 	var unk8 = r.ReadInt32();
+				// 	var unk9 = r.ReadInt32();
+				// }
+
+				if (nextTableOffset != -1)
+					r.BaseStream.Seek(nextTableOffset, SeekOrigin.Begin);
+			}
+
+			// TODO: organize Forge into tables instead of one big entry list
+			return new Forge(version, headerOffset, numEntries, totalEntries.ToArray(), r);
 		}
 
 		public static Forge GetForge(string filename)
@@ -115,7 +144,7 @@ namespace RainbowForge.Core
 			Stream.BaseStream.Seek(start, SeekOrigin.Begin);
 
 			var containerMagic = Stream.ReadUInt32();
-			var magic = (ContainerMagic) containerMagic;
+			var magic = (ContainerMagic)containerMagic;
 
 			switch (magic)
 			{

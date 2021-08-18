@@ -17,7 +17,7 @@ namespace DumpTool
 
 			foreach (var forgeEntry in forge.Entries)
 			{
-				var magic = MagicHelper.GetFiletype(forgeEntry.Name.FileType);
+				var magic = MagicHelper.GetFiletype(forgeEntry.MetaData.FileType);
 				Console.WriteLine($"{forgeEntry.Uid}: {magic}");
 			}
 		}

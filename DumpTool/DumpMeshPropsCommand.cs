@@ -51,7 +51,7 @@ namespace DumpTool
 			var assetStream = forgeAsset.GetDataStream(forge);
 			var arc = FlatArchive.Read(assetStream);
 
-			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.Mesh, archiveEntry.Meta.Magic)))
+			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.Mesh, archiveEntry.MetaData.FileType)))
 			{
 				Console.Error.WriteLine("No MeshProperties containers found");
 				return;
@@ -61,7 +61,7 @@ namespace DumpTool
 			{
 				var unresolvedExterns = new List<KeyValuePair<string, ulong>>();
 
-				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"{(Magic) meshProp.Meta.Magic}_{meshProp.Meta.Uid}");
+				var outputDir = Path.Combine(rootOutputDir, $"model_flatarchive_id{entry.Uid}", $"{(Magic)meshProp.MetaData.FileType}_{meshProp.MetaData.Uid}");
 
 				try
 				{

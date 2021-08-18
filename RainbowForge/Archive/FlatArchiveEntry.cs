@@ -4,14 +4,14 @@ namespace RainbowForge.Archive
 {
 	public class FlatArchiveEntry
 	{
-		public FileMeta Meta { get; }
+		public FileMetaData MetaData { get; }
 		public int Index { get; }
 		public long PayloadOffset { get; }
 		public int PayloadLength { get; }
 
-		private FlatArchiveEntry(FileMeta meta, int index, long payloadOffset, int payloadLength)
+		private FlatArchiveEntry(FileMetaData metaData, int index, long payloadOffset, int payloadLength)
 		{
-			Meta = meta;
+			MetaData = metaData;
 			Index = index;
 			PayloadOffset = payloadOffset;
 			PayloadLength = payloadLength;
@@ -19,7 +19,7 @@ namespace RainbowForge.Archive
 
 		public static FlatArchiveEntry Read(BinaryReader r, int index)
 		{
-			var meta = FileMeta.Read(r);
+			var meta = FileMetaData.Read(r);
 
 			var length = meta.Var1 - 8; // length - int64(uid)
 

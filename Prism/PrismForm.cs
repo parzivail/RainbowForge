@@ -73,7 +73,7 @@ namespace Prism
 					sb.Append(" (");
 
 					var types = _openedForge.Entries
-						.GroupBy(entry => (Magic)entry.Name.FileType)
+						.GroupBy(entry => (Magic)entry.MetaData.FileType)
 						.OrderByDescending(entries => entries.Count())
 						.Select(entries => $"{entries.Count():N0} {(Enum.IsDefined(typeof(Magic), entries.Key) ? entries.Key : $"{(uint)entries.Key:X8}")}")
 						.ToList();
@@ -314,19 +314,19 @@ namespace Prism
 
 					return container switch
 					{
-						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.Name.FileType, forgeAsset.GetDataStream(_openedForge)),
-						_ => new AssetStream(entry.Uid, entry.Name.FileType, _openedForge.GetEntryStream(entry))
+						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.MetaData.FileType, forgeAsset.GetDataStream(_openedForge)),
+						_ => new AssetStream(entry.Uid, entry.MetaData.FileType, _openedForge.GetEntryStream(entry))
 					};
 				}
 				case FlatArchiveEntry flatArchiveEntry:
 				{
-					var container = _openedForge.GetContainer(_flatArchiveEntryMap[flatArchiveEntry.Meta.Uid]);
+					var container = _openedForge.GetContainer(_flatArchiveEntryMap[flatArchiveEntry.MetaData.Uid]);
 					if (container is not ForgeAsset forgeAsset)
 						return null;
 
 					using var assetStream = forgeAsset.GetDataStream(_openedForge);
 					var arc = FlatArchive.Read(assetStream);
-					return new AssetStream(flatArchiveEntry.Meta.Uid, flatArchiveEntry.Meta.Magic, arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.Meta.Uid));
+					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid));
 				}
 			}
 
@@ -383,8 +383,8 @@ namespace Prism
 				{
 					(ulong type, ulong uid) fileType = rowObject switch
 					{
-						Entry e => (e.Name.FileType, e.Uid),
-						FlatArchiveEntry fae => (fae.Meta.Magic, fae.Meta.Uid),
+						Entry e => (e.MetaData.FileType, e.Uid),
+						FlatArchiveEntry fae => (fae.MetaData.FileType, fae.MetaData.Uid),
 						_ => (0, 0)
 					};
 
@@ -441,19 +441,20 @@ namespace Prism
 					return rowObject switch
 					{
 						Entry e => e.Uid,
-						FlatArchiveEntry fae => fae.Meta.Uid,
+						FlatArchiveEntry fae => fae.MetaData.Uid,
 						_ => null
 					};
-				}
+				},
+				AspectToStringConverter = value => $"{value:X16}"
 			});
 
 			_assetList.SelectedIndexChanged += OnAssetListOnSelectionChanged;
 
-			_assetList.CanExpandGetter = model => { return model is Entry e && MagicHelper.GetFiletype(e.Name.FileType) == AssetType.FlatArchive; };
+			_assetList.CanExpandGetter = model => { return model is Entry e && MagicHelper.GetFiletype(e.MetaData.FileType) == AssetType.FlatArchive; };
 
 			_assetList.ChildrenGetter = model =>
 			{
-				if (model is not Entry e || MagicHelper.GetFiletype(e.Name.FileType) != AssetType.FlatArchive)
+				if (model is not Entry e || MagicHelper.GetFiletype(e.MetaData.FileType) != AssetType.FlatArchive)
 					return null;
 
 				var container = _openedForge.GetContainer(e.Uid);
@@ -462,7 +463,7 @@ namespace Prism
 				var assetStream = forgeAsset.GetDataStream(_openedForge);
 				var fa = FlatArchive.Read(assetStream);
 
-				foreach (var entry in fa.Entries) _flatArchiveEntryMap[entry.Meta.Uid] = e.Uid;
+				foreach (var entry in fa.Entries) _flatArchiveEntryMap[entry.MetaData.Uid] = e.Uid;
 
 				return fa.Entries;
 			};
@@ -602,8 +603,8 @@ namespace Prism
 								new(nameof(Mesh), null,
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
-									new TreeListViewEntry("Mesh UID", mp.CompiledMeshObjectUid),
-									new TreeListViewEntry(nameof(Mesh.Materials), null, mp.Materials.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+									new TreeListViewEntry("Mesh UID", $"{mp.CompiledMeshObjectUid:X16}"),
+									new TreeListViewEntry(nameof(Mesh.Materials), null, mp.Materials.Select(arg => new TreeListViewEntry("UID", $"{arg:X16}")).ToArray())
 								)
 							};
 							break;
@@ -631,8 +632,8 @@ namespace Prism
 							{
 								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
 								new(nameof(TextureMapSpec), null,
-									new TreeListViewEntry(nameof(TextureMapSpec.TextureMapUid), mc.TextureMapUid),
-									new TreeListViewEntry("TextureType", mc.TextureType)
+									new TreeListViewEntry(nameof(TextureMapSpec.TextureMapUid), $"{mc.TextureMapUid:X16}"),
+									new TreeListViewEntry("TextureType", $"{mc.TextureType:X8}")
 								)
 							};
 							break;
@@ -649,8 +650,8 @@ namespace Prism
 									new TreeListViewEntry("Var2", mc.Var2),
 									new TreeListViewEntry("Var3", mc.Var3),
 									new TreeListViewEntry("Var4", mc.Var4),
-									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet1), null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", arg)).ToArray()),
-									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet2), null, mc.TexUidMipSet2.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet1), null, mc.TexUidMipSet1.Select(arg => new TreeListViewEntry("UID", $"{arg:X16}")).ToArray()),
+									new TreeListViewEntry(nameof(TextureMap.TexUidMipSet2), null, mc.TexUidMipSet2.Select(arg => new TreeListViewEntry("UID", $"{arg:X16}")).ToArray())
 								)
 							};
 							break;
@@ -665,9 +666,9 @@ namespace Prism
 								new(nameof(AreaMap), null,
 									new TreeListViewEntry(nameof(AreaMap.Areas), null,
 										am.Areas.Select(area => new TreeListViewEntry("Area", null,
-											new TreeListViewEntry("Magic", area.Magic),
+											new TreeListViewEntry("Magic", $"{area.Magic:X8}"),
 											new TreeListViewEntry("Name", area.Name),
-											new TreeListViewEntry("UIDs", null, area.Uids.Select(arg => new TreeListViewEntry("UID", arg)).ToArray())
+											new TreeListViewEntry("UIDs", null, area.Uids.Select(arg => new TreeListViewEntry("UID", $"{arg:X16}")).ToArray())
 										)).ToArray()
 									)
 								)
@@ -708,16 +709,16 @@ namespace Prism
 		{
 			return new TreeListViewEntry("MipContainerReference", null,
 				new TreeListViewEntry("Var1", mcr.Var1),
-				new TreeListViewEntry("MipTarget", mcr.MipTarget),
-				new TreeListViewEntry("MipContainerUid", mcr.TextureMapSpecUid)
+				new TreeListViewEntry("MipTarget", $"{mcr.MipTarget:X8}"),
+				new TreeListViewEntry("MipContainerUid", $"{mcr.TextureMapSpecUid:X16}")
 			);
 		}
 
 		private static TreeListViewEntry GetMetadataInfoEntry(ulong uid, ulong fileType)
 		{
 			return new TreeListViewEntry("Metadata", null,
-				new TreeListViewEntry("UID", uid),
-				new TreeListViewEntry("FileType", uid.ToString("X")),
+				new TreeListViewEntry("UID", $"{uid:X16}"),
+				new TreeListViewEntry("FileType", $"{fileType:X8}"),
 				new TreeListViewEntry("Magic", (Magic)fileType),
 				new TreeListViewEntry("AssetType", MagicHelper.GetFiletype(fileType))
 			);

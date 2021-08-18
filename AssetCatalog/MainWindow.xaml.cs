@@ -114,7 +114,7 @@ namespace AssetCatalog
 		private void OnDumpMeshprops_Click(object sender, RoutedEventArgs e)
 		{
 			var entry = ForgeCatalog.Instance.SelectedEntry;
-			if (entry == null || MagicHelper.GetFiletype(entry.Name.FileType) != AssetType.Mesh)
+			if (entry == null || MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.Mesh)
 				return;
 
 			// heavily WIP
@@ -149,7 +149,7 @@ namespace AssetCatalog
 			var entry = ForgeCatalog.Instance.SelectedEntry;
 			if (entry != null && _loadedMeshUid != entry.Uid)
 			{
-				var filetype = MagicHelper.GetFiletype(entry.Name.FileType);
+				var filetype = MagicHelper.GetFiletype(entry.MetaData.FileType);
 
 				var isMesh = filetype == AssetType.Mesh;
 				DumpMeshPropsButton.IsEnabled = isMesh;

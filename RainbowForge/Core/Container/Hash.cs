@@ -30,7 +30,8 @@ namespace RainbowForge.Core.Container
 			if (continueFlag == 0)
 				return new Hash(hash1, hash2);
 
-			var name = Encoding.UTF8.GetString(r.ReadBytes(0x40)); // [0x18]
+			var nameBytes = r.ReadBytes(0x40);
+			var name = Encoding.UTF8.GetString(nameBytes); // [0x18]
 			var x58 = r.ReadUInt64(); // [0x58]
 			var x60 = r.ReadUInt64(); // [0x60]
 

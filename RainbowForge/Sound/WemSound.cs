@@ -5,14 +5,14 @@ namespace RainbowForge.Sound
 {
 	public class WemSound
 	{
-		public FileMeta Meta { get; }
+		public FileMetaData MetaData { get; }
 		public byte[] Meta2 { get; }
 		public long PayloadOffset { get; }
 		public int PayloadLength { get; }
 
-		private WemSound(FileMeta meta, byte[] meta2, long payloadOffset, int payloadLength)
+		private WemSound(FileMetaData metaData, byte[] meta2, long payloadOffset, int payloadLength)
 		{
-			Meta = meta;
+			MetaData = metaData;
 			Meta2 = meta2;
 			PayloadOffset = payloadOffset;
 			PayloadLength = payloadLength;
@@ -23,7 +23,7 @@ namespace RainbowForge.Sound
 
 		public static WemSound Read(BinaryReader r)
 		{
-			var fmeta = FileMeta.Read(r);
+			var fmeta = FileMetaData.Read(r);
 
 			var secondMagic = r.ReadUInt32();
 			var var2 = r.ReadUInt32();

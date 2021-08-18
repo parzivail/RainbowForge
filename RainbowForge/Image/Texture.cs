@@ -6,7 +6,7 @@ namespace RainbowForge.Image
 {
 	public class Texture
 	{
-		public FileMeta FileMeta { get; }
+		public FileMetaData MetaData { get; }
 		public long DataStart { get; }
 		public long DdsStart { get; }
 		public uint TexFormat { get; }
@@ -19,9 +19,10 @@ namespace RainbowForge.Image
 		public int Width { get; }
 		public int Height { get; }
 
-		private Texture(FileMeta fileMeta, long dataStart, long ddsStart, uint texFormat, uint texType, uint containerId, ushort numBlocks, long texsize, uint chan, uint mips, int width, int height)
+		private Texture(FileMetaData metaData, long dataStart, long ddsStart, uint texFormat, uint texType, uint containerId, ushort numBlocks, long texsize, uint chan, uint mips, int width,
+			int height)
 		{
-			FileMeta = fileMeta;
+			MetaData = metaData;
 			DataStart = dataStart;
 			DdsStart = ddsStart;
 			TexFormat = texFormat;
@@ -37,7 +38,7 @@ namespace RainbowForge.Image
 
 		public static Texture Read(BinaryReader r)
 		{
-			var header = FileMeta.Read(r);
+			var header = FileMetaData.Read(r);
 
 			var secondMagic = r.ReadUInt32();
 			var var2 = r.ReadUInt32();

@@ -25,7 +25,7 @@ namespace DumpTool
 			{
 				var entry = forge.GetContainer(args.Uid);
 				var metaEntry = forge.Entries.First(entry1 => entry1.Uid == args.Uid);
-				var magic = MagicHelper.GetFiletype(metaEntry.Name.FileType);
+				var magic = MagicHelper.GetFiletype(metaEntry.MetaData.FileType);
 
 				Console.WriteLine($"UID: {metaEntry.Uid}");
 				Console.WriteLine($"Offset: 0x{metaEntry.Offset:X}");
@@ -34,8 +34,8 @@ namespace DumpTool
 				Console.WriteLine("Name Table:");
 
 				Console.WriteLine($"\tFile Magic: {magic}");
-				DateTime date = DateTimeOffset.FromUnixTimeSeconds(metaEntry.Name.Timestamp).DateTime;
-				Console.WriteLine($"\tTimestamp: {date} (epoch: {metaEntry.Name.Timestamp})");
+				var date = DateTimeOffset.FromUnixTimeSeconds(metaEntry.MetaData.Timestamp).DateTime;
+				Console.WriteLine($"\tTimestamp: {date} (epoch: {metaEntry.MetaData.Timestamp})");
 
 				switch (entry)
 				{
