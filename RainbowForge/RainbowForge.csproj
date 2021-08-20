@@ -5,15 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
-      <PackageReference Include="Pfim" Version="0.10.1" />
-      <PackageReference Include="Zstandard.Net" Version="1.1.7" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="System.Drawing.Common, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-        <HintPath>..\AssetCatalog\bin\Release\net5.0-windows10.0.18362.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll</HintPath>
-      </Reference>
+        <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19"/>
+        <PackageReference Include="Pfim" Version="0.10.1"/>
+        <PackageReference Include="Zstandard.Net" Version="1.1.7"/>
+        <PackageReference Include="System.Drawing.Common" Version="6.0.0-preview.7.21377.19"/>
     </ItemGroup>
 
 </Project>
