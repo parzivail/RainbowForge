@@ -12,6 +12,9 @@ namespace DumpTool
 	[Verb("find", HelpText = "Find the forge file(s) that contain the given UID")]
 	public class FindCommand
 	{
+		[Option('d', "deep", Default = false, Required = false)]
+		public bool DeepSearch { get; set; }
+		
 		[Value(0, HelpText = "The directory of forge files to search")]
 		public string SearchDirectory { get; set; }
 
@@ -31,14 +34,17 @@ namespace DumpTool
 					if (entry.Uid == args.Uid)
 						Console.WriteLine(file);
 
-					var container = forge.GetContainer(entry.Uid);
-					if (container is not ForgeAsset forgeAsset) return;
+					if (args.DeepSearch)
+					{
+						var container = forge.GetContainer(entry.Uid);
+						if (container is not ForgeAsset forgeAsset) continue;
 
-					var assetStream = forgeAsset.GetDataStream(forge);
-					var arc = FlatArchive.Read(assetStream);
+						var assetStream = forgeAsset.GetDataStream(forge);
+						var arc = FlatArchive.Read(assetStream);
 
-					if (arc.Entries.Any(archiveEntry => archiveEntry.MetaData.Uid == args.Uid))
-						Console.WriteLine($"{file} -> within flat archive {entry.Uid}");
+						if (arc.Entries.Any(archiveEntry => archiveEntry.MetaData.Uid == args.Uid))
+							Console.WriteLine($"{file} -> within flat archive {entry.Uid}");
+					}
 				}
 			}
 		}

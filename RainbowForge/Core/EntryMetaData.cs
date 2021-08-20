@@ -10,8 +10,9 @@ namespace RainbowForge.Core
 		public int PrevEntryIdx { get; }
 		public int NextEntryIdx { get; }
 		public uint FileType { get; }
+		public byte[] ExtraData { get; }
 
-		public EntryMetaData(byte[] name, int nameLength, uint timestamp, int prevEntryIdx, int nextEntryIdx, uint fileType)
+		public EntryMetaData(byte[] name, int nameLength, uint timestamp, int prevEntryIdx, int nextEntryIdx, uint fileType, byte[] extraData)
 		{
 			Name = name;
 			NameLength = nameLength;
@@ -19,6 +20,7 @@ namespace RainbowForge.Core
 			PrevEntryIdx = prevEntryIdx;
 			NextEntryIdx = nextEntryIdx;
 			FileType = fileType;
+			ExtraData = extraData;
 		}
 
 		public static EntryMetaData Read(BinaryReader r)
@@ -36,9 +38,9 @@ namespace RainbowForge.Core
 			var x124 = r.ReadUInt64(); // [0x124] 0
 			var fileType = r.ReadUInt32(); // [0x12c]
 			var x130 = r.ReadUInt32(); // [0x130] 0
-			var x134 = r.ReadBytes(12); // [0x134] looks like compressed data
+			var extraData = r.ReadBytes(12); // [0x134] looks like compressed data
 
-			return new EntryMetaData(name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType);
+			return new EntryMetaData(name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, extraData);
 		}
 	}
 }
