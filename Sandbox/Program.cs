@@ -1,5 +1,6 @@
 ﻿using System;
 using RainbowForge.Core;
+using RainbowForge.Core.Container;
 
 namespace Sandbox
 {
@@ -37,6 +38,31 @@ namespace Sandbox
 		private static void Main(string[] args)
 		{
 			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_merged_bnk_mesh.forge");
+
+			for (var i = 1; i < newForge.Entries.Length; i++)
+			{
+				if (newForge.Entries[i].Uid == 3040)
+				{
+					var container = newForge.GetContainer(newForge.Entries[i].Uid);
+					if (container is Hash h)
+					{
+						Console.WriteLine($"FILENAME_ENCODING_BASE_KEY = {EntryMetaData.FILENAME_ENCODING_BASE_KEY:X16}");
+						Console.WriteLine($"FILENAME_ENCODING_KEY_STEP = {EntryMetaData.FILENAME_ENCODING_KEY_STEP:X16}");
+
+						Console.WriteLine($"STEP1 = {EntryMetaData.FILENAME_ENCODING_BASE_KEY + EntryMetaData.FILENAME_ENCODING_KEY_STEP:X16}");
+
+						Console.WriteLine($"{h.Hash1:X16}");
+						Console.WriteLine($"{h.Hash2:X16}");
+						Console.WriteLine($"{h.Hash1 ^ h.Hash2:X16}");
+						break;
+					}
+				}
+
+				Console.WriteLine(newForge.Entries[i].MetaData.FileName);
+
+				if (i > 20)
+					break;
+			}
 
 			Console.WriteLine("Done.");
 		}

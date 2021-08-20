@@ -6,7 +6,10 @@ namespace RainbowForge.Core
 {
 	public class EntryMetaData
 	{
-		public string Name { get; }
+		public const ulong FILENAME_ENCODING_BASE_KEY = 0x1ED9B7211A22C944;
+		public const ulong FILENAME_ENCODING_KEY_STEP = 0x357267C76FFB9EB2;
+
+		public string FileName { get; }
 		public uint Timestamp { get; }
 		public int PrevEntryIdx { get; }
 		public int NextEntryIdx { get; }
@@ -17,9 +20,9 @@ namespace RainbowForge.Core
 		public ulong Unk3 { get; }
 		public uint Unk4 { get; }
 
-		public EntryMetaData(string name, uint timestamp, int prevEntryIdx, int nextEntryIdx, uint fileType, byte[] extraData, uint unk1, uint unk2, ulong unk3, uint unk4)
+		public EntryMetaData(string fileName, uint timestamp, int prevEntryIdx, int nextEntryIdx, uint fileType, byte[] extraData, uint unk1, uint unk2, ulong unk3, uint unk4)
 		{
-			Name = name;
+			FileName = fileName;
 			Timestamp = timestamp;
 			PrevEntryIdx = prevEntryIdx;
 			NextEntryIdx = nextEntryIdx;
@@ -31,7 +34,7 @@ namespace RainbowForge.Core
 			Unk4 = unk4;
 		}
 
-		public static EntryMetaData Read(BinaryReader r, Entry entry)
+		public static EntryMetaData Read(BinaryReader r, ulong uid, ulong offset)
 		{
 			var x00 = r.ReadUInt32(); // [0x00] 0
 			var x04 = r.ReadUInt32(); // [0x04] 4
@@ -48,53 +51,29 @@ namespace RainbowForge.Core
 			var x130 = r.ReadUInt32(); // [0x130] 0
 			var extraData = r.ReadBytes(12); // [0x134] looks like compressed data
 
-			var nameStr = DecodeName(name, nameLength, entry.Uid, (ulong)entry.Offset);
+			var nameStr = DecodeName(name[..nameLength], uid, offset);
 
 			return new EntryMetaData(nameStr, timestamp, prevEntryIdx, nextEntryIdx, fileType, extraData, x00, x04, x08, x10);
 		}
 
-		private static string DecodeName(byte[] name, byte nameLength, ulong uid, ulong dataOffset)
+		private static string DecodeName(byte[] name, ulong uid, ulong dataOffset)
 		{
-			const ulong baseKey = 0x1ED9B7211A22C944;
-			const ulong keyStep = 0x357267C76FFB9EB2;
+			var key = FILENAME_ENCODING_BASE_KEY + uid + dataOffset;
 
-			var key = baseKey + uid + dataOffset;
+			var blocks = (name.Length + 8) / 8;
 
-			var decoded = "";
-
-			using var ms = new BinaryReader(new MemoryStream(name));
-			var blocks = (nameLength + 8) / 8;
-
+			var output = new ulong[blocks];
+			Buffer.BlockCopy(name, 0, output, 0, name.Length);
+			
 			for (var i = 0; i < blocks; i++)
 			{
-				key += keyStep;
-
-				ulong block = 0;
-
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-				block <<= 8;
-				block |= ms.ReadByte();
-
-				block ^= key;
-
-				decoded += Encoding.ASCII.GetString(BitConverter.GetBytes(block));
+				key += FILENAME_ENCODING_KEY_STEP;
+				output[i] ^= key;
 			}
 
-			Console.WriteLine(decoded);
+			Buffer.BlockCopy(output, 0, name, 0, name.Length);
 
-			return decoded;
+			return Encoding.ASCII.GetString(name);
 		}
 	}
 }
