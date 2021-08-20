@@ -84,7 +84,7 @@ namespace RainbowForge.Core
 
 				r.BaseStream.Seek(metaTableOffset, SeekOrigin.Begin);
 				for (var j = 0; j < numTEntries; j++)
-					entries[j].MetaData = EntryMetaData.Read(r);
+					entries[j].MetaData = EntryMetaData.Read(r, entries[i]);
 
 				totalEntries.AddRange(entries);
 
