@@ -100,8 +100,20 @@
 		GadgetData = 0xB6AA66C5,
 		ReinforcementGadgetData = 0xB93410FB,
 		BodyPartTemplate = 0x02251ED8,
+		LocalizationComponent = 0x8DC233A0,
+		R6GMGameMode = 0xC56C24BF, //gamemodes
+		GMPhase = 0x195883E9, //gamemode parameters
+		TagValue = 0x96EADACB, //more gamemode parameters
+		Character = 0x118B3297, //operators
+		CharacterSet = 0xB11FC381, //elite sets
+		CharacterHeadgear = 0xF080B73C,
+		CharacterUniform = 0x74DF1F46,
+		WeaponSet = 0xAF5106DC,
+		GadgetSkin = 0x1920FDB8,
+		WeaponSkin = 0x02302D3D,
+		WeaponAttachmentSkin = 0xF827AF5A,
+		WeaponAttachmentSkinSet = 0x33E7DDEF
 
-		LocalizationComponent = 0x8DC233A0
 		// 0x6F74DDB4 - Shader?
 		// 0x8D1D966B - some kind of UID mapping container
 		// 0x4CAED6B4 - another UID mapping container
