@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using RainbowForge.Core;
-using RainbowForge.Core.Container;
 
 namespace Sandbox
 {
@@ -37,34 +40,63 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_merged_bnk_mesh.forge");
+			var oldForge = Forge.GetForge("R:\\Siege Dumps\\Y0\\datapc64_merged_playgo_bnk_textures2.forge");
+			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_merged_playgo_bnk_textures2.forge");
 
-			for (var i = 1; i < newForge.Entries.Length; i++)
+			using var sw = new StreamWriter("out.txt");
+			for (var i = 0; i < newForge.Entries.Length; i++)
 			{
-				if (newForge.Entries[i].Uid == 3040)
-				{
-					var container = newForge.GetContainer(newForge.Entries[i].Uid);
-					if (container is Hash h)
-					{
-						Console.WriteLine($"FILENAME_ENCODING_BASE_KEY = {EntryMetaData.FILENAME_ENCODING_BASE_KEY:X16}");
-						Console.WriteLine($"FILENAME_ENCODING_KEY_STEP = {EntryMetaData.FILENAME_ENCODING_KEY_STEP:X16}");
+				var newEntry = newForge.Entries[i];
+				var oldEntry = oldForge.Entries.FirstOrDefault(entry => entry.Uid == newEntry.Uid);
 
-						Console.WriteLine($"STEP1 = {EntryMetaData.FILENAME_ENCODING_BASE_KEY + EntryMetaData.FILENAME_ENCODING_KEY_STEP:X16}");
+				if (oldEntry == null)
+					continue;
 
-						Console.WriteLine($"{h.Hash1:X16}");
-						Console.WriteLine($"{h.Hash2:X16}");
-						Console.WriteLine($"{h.Hash1 ^ h.Hash2:X16}");
-						break;
-					}
-				}
+				sw.WriteLine(
+					$"Y0 - UID: 0x{oldEntry.Uid:X16}, Offset: 0x{oldEntry.Offset:X16}, FileType: 0x{oldEntry.MetaData.FileType:X8}, Timestamp: 0x{oldEntry.MetaData.Timestamp:X8}, Name: [{Encoding.ASCII.GetString(oldEntry.MetaData.Name.Skip(24).TakeWhile(b => b != 0).ToArray())}]");
+				sw.WriteLine(
+					$"Y6 - UID: 0x{newEntry.Uid:X16}, Offset: 0x{newEntry.Offset:X16}, FileType: 0x{newEntry.MetaData.FileType:X8}, Timestamp: 0x{newEntry.MetaData.Timestamp:X8}, Name: [{string.Join(' ', newEntry.MetaData.Name.Take(newEntry.MetaData.NameLength).Select(b => $"{b:X2}"))}]");
 
-				Console.WriteLine(newForge.Entries[i].MetaData.FileName);
-
-				if (i > 20)
-					break;
+				sw.WriteLine();
 			}
 
+			// for (var i = 0; i < newForge.Entries.Length; i++)
+			// {
+			// 	var entry = newForge.Entries[i];
+			// 	Console.WriteLine(entry.MetaData.FileName);
+			// 	
+			// 	if (i > 5)
+			// 		break;
+			// }
+
+			// var nameBytes = new byte[] { 76, 150, 47, 188, 141, 156, 45, 205, 201, 249, 122, 39, 216, 61 };
+			// var outputBytes = Encoding.ASCII.GetBytes("GlobalMetaFile");
+			//
+			// long i = 0;
+			// Parallel.For(0x35726700_00000000, 0x357267FF_FFFFFFFF + 1, l =>
+			// {
+			// 	if (Interlocked.Increment(ref i) % 0x0_10000000 == 0)
+			// 		Console.WriteLine($"{i:X16}");
+			//
+			// 	var name = EntryMetaData.DecodeName(nameBytes, 0, 0, 0, (ulong)l);
+			// 	if (ByteArrayCompare(name, outputBytes))
+			// 	{
+			// 		Console.WriteLine($"!! {l:X16}");
+			// 		Environment.Exit(0);
+			// 	}
+			// });
+
 			Console.WriteLine("Done.");
+		}
+
+		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+		private static extern int memcmp(byte[] b1, byte[] b2, long count);
+
+		private static bool ByteArrayCompare(byte[] b1, byte[] b2)
+		{
+			// Validate buffers are the same length.
+			// This also ensures that the count does not exceed the length of either buffer.  
+			return b1.Length == b2.Length && memcmp(b1, b2, b1.Length) == 0;
 		}
 	}
 

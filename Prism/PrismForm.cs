@@ -102,7 +102,7 @@ namespace Prism
 				Controls.Add(_splitContainer = new MinimalSplitContainer
 				{
 					Dock = DockStyle.Fill,
-					SplitterDistance = 350,
+					SplitterDistance = 450,
 					Panel1 =
 					{
 						Controls =
@@ -376,6 +376,21 @@ namespace Prism
 
 		private void SetupAssetList()
 		{
+			_assetList.Columns.Add(new OLVColumn("Filename", null)
+			{
+				FillsFreeSpace = true,
+				MinimumWidth = 100,
+				AspectGetter = rowObject =>
+				{
+					return rowObject switch
+					{
+						Entry e => e.MetaData.FileName,
+						FlatArchiveEntry fae => "[Archive Entry]",
+						_ => ""
+					};
+				}
+			});
+			
 			_assetList.Columns.Add(new OLVColumn("Type", null)
 			{
 				Width = 100,
@@ -435,7 +450,7 @@ namespace Prism
 
 			_assetList.Columns.Add(new OLVColumn("UID", null)
 			{
-				FillsFreeSpace = true,
+				Width = 210,
 				AspectGetter = rowObject =>
 				{
 					return rowObject switch

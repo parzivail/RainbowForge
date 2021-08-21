@@ -6,10 +6,12 @@ namespace RainbowForge.Core
 {
 	public class EntryMetaData
 	{
-		public const ulong FILENAME_ENCODING_BASE_KEY = 0x1ED9B7211A22C944;
-		public const ulong FILENAME_ENCODING_KEY_STEP = 0x357267C76FFB9EB2;
+		public const ulong FILENAME_ENCODING_BASE_KEY = 0x1ED9B720_6E379B49;
+		public const ulong FILENAME_ENCODING_KEY_STEP = 0x357267C7_6FFB9EB2;
 
 		public string FileName { get; }
+		public byte[] Name { get; }
+		public byte NameLength { get; }
 		public uint Timestamp { get; }
 		public int PrevEntryIdx { get; }
 		public int NextEntryIdx { get; }
@@ -20,9 +22,12 @@ namespace RainbowForge.Core
 		public ulong Unk3 { get; }
 		public uint Unk4 { get; }
 
-		public EntryMetaData(string fileName, uint timestamp, int prevEntryIdx, int nextEntryIdx, uint fileType, byte[] extraData, uint unk1, uint unk2, ulong unk3, uint unk4)
+		public EntryMetaData(string fileName, byte[] name, byte nameLength, uint timestamp, int prevEntryIdx, int nextEntryIdx, uint fileType, byte[] extraData, uint unk1, uint unk2, ulong unk3,
+			uint unk4)
 		{
 			FileName = fileName;
+			Name = name;
+			NameLength = nameLength;
 			Timestamp = timestamp;
 			PrevEntryIdx = prevEntryIdx;
 			NextEntryIdx = nextEntryIdx;
@@ -51,14 +56,14 @@ namespace RainbowForge.Core
 			var x130 = r.ReadUInt32(); // [0x130] 0
 			var extraData = r.ReadBytes(12); // [0x134] looks like compressed data
 
-			var nameStr = DecodeName(name[..nameLength], uid, offset);
+			var nameBytes = DecodeName(name[..nameLength], fileType, uid, offset);
 
-			return new EntryMetaData(nameStr, timestamp, prevEntryIdx, nextEntryIdx, fileType, extraData, x00, x04, x08, x10);
+			return new EntryMetaData(Encoding.ASCII.GetString(nameBytes), name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, extraData, x00, x04, x08, x10);
 		}
 
-		private static string DecodeName(byte[] name, ulong uid, ulong dataOffset)
+		public static byte[] DecodeName(byte[] name, uint fileType, ulong uid, ulong dataOffset, ulong keyStep = FILENAME_ENCODING_KEY_STEP)
 		{
-			var key = FILENAME_ENCODING_BASE_KEY + uid + dataOffset;
+			var key = FILENAME_ENCODING_BASE_KEY + uid + dataOffset + fileType;
 
 			var blocks = (name.Length + 8) / 8;
 
@@ -67,13 +72,13 @@ namespace RainbowForge.Core
 			
 			for (var i = 0; i < blocks; i++)
 			{
-				key += FILENAME_ENCODING_KEY_STEP;
+				key += keyStep;
 				output[i] ^= key;
 			}
 
 			Buffer.BlockCopy(output, 0, name, 0, name.Length);
 
-			return Encoding.ASCII.GetString(name);
+			return name;
 		}
 	}
 }
