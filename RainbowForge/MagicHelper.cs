@@ -35,7 +35,7 @@ namespace RainbowForge
 				Magic.EntityBuilder => AssetType.FlatArchive,
 				Magic.WeaponData => AssetType.FlatArchive,
 				Magic.GameBootstrap => AssetType.FlatArchive,
-				Magic.FlatArchive6 => AssetType.FlatArchive,
+				Magic.PlatformManager => AssetType.FlatArchive,
 				Magic.World => AssetType.FlatArchive,
 				Magic.LoadUnit => AssetType.FlatArchive,
 				Magic.FlatArchive12 => AssetType.FlatArchive,

@@ -326,7 +326,7 @@ namespace Prism
 
 					using var assetStream = forgeAsset.GetDataStream(_openedForge);
 					var arc = FlatArchive.Read(assetStream);
-					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, "[Archive Entry]",
+					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, flatArchiveEntry.MetaData.FileName,
 						arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid));
 				}
 			}
@@ -385,7 +385,7 @@ namespace Prism
 					return rowObject switch
 					{
 						Entry e => e.MetaData.FileName,
-						FlatArchiveEntry fae => "[Archive Entry]",
+						FlatArchiveEntry fae => fae.MetaData.FileName,
 						_ => ""
 					};
 				}

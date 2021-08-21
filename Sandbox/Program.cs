@@ -1,9 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
+using RainbowForge;
+using RainbowForge.Archive;
 using RainbowForge.Core;
+using RainbowForge.Core.Container;
 
 namespace Sandbox
 {
@@ -40,63 +39,30 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			var oldForge = Forge.GetForge("R:\\Siege Dumps\\Y0\\datapc64_merged_playgo_bnk_textures2.forge");
-			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_merged_playgo_bnk_textures2.forge");
+			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge");
 
-			using var sw = new StreamWriter("out.txt");
-			for (var i = 0; i < newForge.Entries.Length; i++)
+			foreach (var entry in newForge.Entries)
 			{
-				var newEntry = newForge.Entries[i];
-				var oldEntry = oldForge.Entries.FirstOrDefault(entry => entry.Uid == newEntry.Uid);
-
-				if (oldEntry == null)
+				if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
 					continue;
 
-				sw.WriteLine(
-					$"Y0 - UID: 0x{oldEntry.Uid:X16}, Offset: 0x{oldEntry.Offset:X16}, FileType: 0x{oldEntry.MetaData.FileType:X8}, Timestamp: 0x{oldEntry.MetaData.Timestamp:X8}, Name: [{Encoding.ASCII.GetString(oldEntry.MetaData.Name.Skip(24).TakeWhile(b => b != 0).ToArray())}]");
-				sw.WriteLine(
-					$"Y6 - UID: 0x{newEntry.Uid:X16}, Offset: 0x{newEntry.Offset:X16}, FileType: 0x{newEntry.MetaData.FileType:X8}, Timestamp: 0x{newEntry.MetaData.Timestamp:X8}, Name: [{string.Join(' ', newEntry.MetaData.Name.Take(newEntry.MetaData.NameLength).Select(b => $"{b:X2}"))}]");
+				var container = newForge.GetContainer(entry.Uid);
+				if (container is not ForgeAsset fa)
+					continue;
 
-				sw.WriteLine();
+				Console.WriteLine($">>> {entry.MetaData.FileName}");
+
+				var arc = FlatArchive.Read(fa.GetDataStream(newForge));
 			}
 
-			// for (var i = 0; i < newForge.Entries.Length; i++)
-			// {
-			// 	var entry = newForge.Entries[i];
-			// 	Console.WriteLine(entry.MetaData.FileName);
-			// 	
-			// 	if (i > 5)
-			// 		break;
-			// }
-
-			// var nameBytes = new byte[] { 76, 150, 47, 188, 141, 156, 45, 205, 201, 249, 122, 39, 216, 61 };
-			// var outputBytes = Encoding.ASCII.GetBytes("GlobalMetaFile");
+			// var encoded = new ulong[] { 0x5A1C70FE01297209, 0x4D4E82DBAAC7C4DE, 0xB9C4DC3B164D74B3 };
 			//
-			// long i = 0;
-			// Parallel.For(0x35726700_00000000, 0x357267FF_FFFFFFFF + 1, l =>
-			// {
-			// 	if (Interlocked.Increment(ref i) % 0x0_10000000 == 0)
-			// 		Console.WriteLine($"{i:X16}");
+			// // correct = "AccuracyData_SMG_MP5FMLI"
+			// var decoded = new ulong[] { 0x4163637572616379, 0x446174615f534d47, 0x5f4d5035464d4c49 };
 			//
-			// 	var name = EntryMetaData.DecodeName(nameBytes, 0, 0, 0, (ulong)l);
-			// 	if (ByteArrayCompare(name, outputBytes))
-			// 	{
-			// 		Console.WriteLine($"!! {l:X16}");
-			// 		Environment.Exit(0);
-			// 	}
-			// });
-
+			// Console.WriteLine($"{encoded[1] ^ decoded[1]:X16}");
+			
 			Console.WriteLine("Done.");
-		}
-
-		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-		private static extern int memcmp(byte[] b1, byte[] b2, long count);
-
-		private static bool ByteArrayCompare(byte[] b1, byte[] b2)
-		{
-			// Validate buffers are the same length.
-			// This also ensures that the count does not exceed the length of either buffer.  
-			return b1.Length == b2.Length && memcmp(b1, b2, b1.Length) == 0;
 		}
 	}
 

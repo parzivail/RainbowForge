@@ -235,7 +235,7 @@ namespace RainbowForge.Dump
 				case Magic.WeaponData:
 				case Magic.GameBootstrap:
 				case Magic.LocalizationPackage:
-				case Magic.FlatArchive6:
+				case Magic.PlatformManager:
 				case Magic.World:
 				case Magic.LoadUnit:
 				case Magic.WorldMetaData:

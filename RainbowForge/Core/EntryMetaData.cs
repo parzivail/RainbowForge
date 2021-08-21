@@ -1,13 +1,12 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace RainbowForge.Core
 {
 	public class EntryMetaData
 	{
-		private const ulong FILENAME_ENCODING_BASE_KEY = 0x72EE89256E379B49;
 		private const ulong FILENAME_ENCODING_KEY_STEP = 0x357267C76FFB9EB2;
+		private const ulong FILENAME_ENCODING_BASE_KEY = 0x72EE89256E379B49 + FILENAME_ENCODING_KEY_STEP;
 
 		public string FileName { get; }
 		public byte[] Name { get; }
@@ -56,29 +55,9 @@ namespace RainbowForge.Core
 			var x130 = r.ReadUInt32(); // [0x130] 0
 			var extraData = r.ReadBytes(12); // [0x134] looks like compressed data
 
-			var nameBytes = DecodeName(name[..nameLength], fileType, uid, offset);
+			var nameBytes = NameEncoding.DecodeName(name[..nameLength], fileType, uid, offset, NameEncoding.FILENAME_ENCODING_ENTRY_KEY_STEP);
 
 			return new EntryMetaData(Encoding.ASCII.GetString(nameBytes), name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, extraData, x00, x04, x08, x10);
-		}
-
-		public static byte[] DecodeName(byte[] name, uint fileType, ulong uid, ulong dataOffset, ulong keyStep = FILENAME_ENCODING_KEY_STEP)
-		{
-			var key = FILENAME_ENCODING_BASE_KEY + uid + dataOffset + fileType + ((ulong)fileType << 32);
-
-			var blocks = (name.Length + 8) / 8;
-
-			var output = new ulong[blocks];
-			Buffer.BlockCopy(name, 0, output, 0, name.Length);
-			
-			for (var i = 0; i < blocks; i++)
-			{
-				key += keyStep;
-				output[i] ^= key;
-			}
-
-			Buffer.BlockCopy(output, 0, name, 0, name.Length);
-
-			return name;
 		}
 	}
 }

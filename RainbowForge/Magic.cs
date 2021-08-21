@@ -20,7 +20,7 @@
 		WeaponData = 0xADBAB640,
 		GameBootstrap = 0xE5A83560,
 		LocalizationPackage = 0x6E3C9C6F,
-		FlatArchive6 = 0xAE88DE65,
+		PlatformManager = 0xAE88DE65,
 		World = 0xFBB63E47,
 		LoadUnit = 0x943945C4,
 		WorldMetaData = 0x3E237DA3,
@@ -89,8 +89,19 @@
 		AnimationSettings = 0x174B8004,
 		KinoRuntimeData = 0x149E0A31,
 		KinoReplaceSystemData = 0x235C0560,
+		MultiLodSetup = 0xAEC77F9A,
+		BulletPenetrationSettings = 0xFB75DFB2,
+		ShaderTemplate = 0x6F74DDB4,
+		DamageData = 0x314AECEE,
+		WeaponSoundData = 0xBF95D157,
+		DestructionMaterial = 0x6A7D34A9,
+		ArmorData = 0x7DC13543,
+		ProjectileData = 0xA2D01604,
+		GadgetData = 0xB6AA66C5,
+		ReinforcementGadgetData = 0xB93410FB,
+		BodyPartTemplate = 0x02251ED8,
 
-		BodyPartTemplate = 0x02251ED8
+		LocalizationComponent = 0x8DC233A0
 		// 0x6F74DDB4 - Shader?
 		// 0x8D1D966B - some kind of UID mapping container
 		// 0x4CAED6B4 - another UID mapping container
