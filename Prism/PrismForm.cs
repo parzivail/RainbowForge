@@ -378,8 +378,7 @@ namespace Prism
 		{
 			_assetList.Columns.Add(new OLVColumn("Filename", null)
 			{
-				FillsFreeSpace = true,
-				MinimumWidth = 100,
+				Width = 100,
 				AspectGetter = rowObject =>
 				{
 					return rowObject switch
