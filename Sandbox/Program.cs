@@ -1,8 +1,4 @@
 ﻿using System;
-using RainbowForge;
-using RainbowForge.Archive;
-using RainbowForge.Core;
-using RainbowForge.Core.Container;
 
 namespace Sandbox
 {
@@ -39,21 +35,21 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge");
-
-			foreach (var entry in newForge.Entries)
-			{
-				if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
-					continue;
-
-				var container = newForge.GetContainer(entry.Uid);
-				if (container is not ForgeAsset fa)
-					continue;
-
-				Console.WriteLine($">>> {entry.MetaData.FileName}");
-
-				var arc = FlatArchive.Read(fa.GetDataStream(newForge));
-			}
+			// var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge");
+			//
+			// foreach (var entry in newForge.Entries)
+			// {
+			// 	if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
+			// 		continue;
+			//
+			// 	var container = newForge.GetContainer(entry.Uid);
+			// 	if (container is not ForgeAsset fa)
+			// 		continue;
+			//
+			// 	Console.WriteLine($">>> {entry.MetaData.FileName}");
+			//
+			// 	var arc = FlatArchive.Read(fa.GetDataStream(newForge));
+			// }
 
 			// var encoded = new ulong[] { 0x5A1C70FE01297209, 0x4D4E82DBAAC7C4DE, 0xB9C4DC3B164D74B3 };
 			//
