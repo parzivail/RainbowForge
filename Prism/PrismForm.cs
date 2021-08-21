@@ -314,8 +314,8 @@ namespace Prism
 
 					return container switch
 					{
-						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.MetaData.FileType, forgeAsset.GetDataStream(_openedForge)),
-						_ => new AssetStream(entry.Uid, entry.MetaData.FileType, _openedForge.GetEntryStream(entry))
+						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, forgeAsset.GetDataStream(_openedForge)),
+						_ => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, _openedForge.GetEntryStream(entry))
 					};
 				}
 				case FlatArchiveEntry flatArchiveEntry:
@@ -326,7 +326,8 @@ namespace Prism
 
 					using var assetStream = forgeAsset.GetDataStream(_openedForge);
 					var arc = FlatArchive.Read(assetStream);
-					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid));
+					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, "[Archive Entry]",
+						arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid));
 				}
 			}
 
@@ -613,7 +614,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(Mesh), null,
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
@@ -629,7 +630,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(Material), null,
 									new TreeListViewEntry(nameof(Material.BaseTextureMapSpecs), null, mc.BaseTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray()),
 									new TreeListViewEntry(nameof(Material.SecondaryTextureMapSpecs), null, mc.SecondaryTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray()),
@@ -644,7 +645,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(TextureMapSpec), null,
 									new TreeListViewEntry(nameof(TextureMapSpec.TextureMapUid), $"{mc.TextureMapUid:X16}"),
 									new TreeListViewEntry("TextureType", $"{mc.TextureType:X8}")
@@ -658,7 +659,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(TextureMap), null,
 									new TreeListViewEntry("Var1", mc.Var1),
 									new TreeListViewEntry("Var2", mc.Var2),
@@ -676,7 +677,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic),
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(AreaMap), null,
 									new TreeListViewEntry(nameof(AreaMap.Areas), null,
 										am.Areas.Select(area => new TreeListViewEntry("Area", null,
@@ -693,7 +694,7 @@ namespace Prism
 						{
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic)
+								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename)
 							};
 							break;
 						}
@@ -728,9 +729,10 @@ namespace Prism
 			);
 		}
 
-		private static TreeListViewEntry GetMetadataInfoEntry(ulong uid, ulong fileType)
+		private static TreeListViewEntry GetMetadataInfoEntry(ulong uid, ulong fileType, string filename)
 		{
 			return new TreeListViewEntry("Metadata", null,
+				new TreeListViewEntry("Filename", filename),
 				new TreeListViewEntry("UID", $"{uid:X16}"),
 				new TreeListViewEntry("FileType", $"{fileType:X8}"),
 				new TreeListViewEntry("Magic", (Magic)fileType),
@@ -745,7 +747,7 @@ namespace Prism
 		}
 	}
 
-	internal record AssetStream(ulong Uid, ulong Magic, BinaryReader Stream);
+	internal record AssetStream(ulong Uid, ulong Magic, string Filename, BinaryReader Stream);
 
 	internal record TreeListViewEntry(string Key, object Value, params TreeListViewEntry[] Children);
 }

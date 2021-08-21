@@ -6,8 +6,8 @@ namespace RainbowForge.Core
 {
 	public class EntryMetaData
 	{
-		public const ulong FILENAME_ENCODING_BASE_KEY = 0x1ED9B720_6E379B49;
-		public const ulong FILENAME_ENCODING_KEY_STEP = 0x357267C7_6FFB9EB2;
+		private const ulong FILENAME_ENCODING_BASE_KEY = 0x72EE89256E379B49;
+		private const ulong FILENAME_ENCODING_KEY_STEP = 0x357267C76FFB9EB2;
 
 		public string FileName { get; }
 		public byte[] Name { get; }
@@ -63,7 +63,7 @@ namespace RainbowForge.Core
 
 		public static byte[] DecodeName(byte[] name, uint fileType, ulong uid, ulong dataOffset, ulong keyStep = FILENAME_ENCODING_KEY_STEP)
 		{
-			var key = FILENAME_ENCODING_BASE_KEY + uid + dataOffset + fileType;
+			var key = FILENAME_ENCODING_BASE_KEY + uid + dataOffset + fileType + ((ulong)fileType << 32);
 
 			var blocks = (name.Length + 8) / 8;
 
