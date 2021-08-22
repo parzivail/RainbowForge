@@ -556,14 +556,14 @@ namespace Prism
 		private static bool DoesEntryMatchFilter(object entry, string filter)
 		{
 			if (string.IsNullOrWhiteSpace(filter))
-				return false;
+				return true;
 
 			var meta = GetAssetMetaData(entry);
 
 			if (ulong.TryParse(filter, NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
 				return true;
 
-			return meta.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase);
+			return meta.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase) || (((Magic)meta.Magic).ToString().Contains(filter, StringComparison.OrdinalIgnoreCase));
 		}
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
