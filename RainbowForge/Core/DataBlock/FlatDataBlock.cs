@@ -27,10 +27,10 @@ namespace RainbowForge.Core.DataBlock
 			var dataStart = r.BaseStream.Position;
 			r.BaseStream.Seek(entry.End, SeekOrigin.Begin);
 
-			return new FlatDataBlock(meta, dataStart, (int) (entry.End - dataStart));
+			return new FlatDataBlock(meta, dataStart, (int)(entry.End - dataStart));
 		}
 
-		public MemoryStream GetDataStream(BinaryReader r)
+		public Stream GetDataStream(BinaryReader r)
 		{
 			var ms = new MemoryStream();
 			r.BaseStream.Seek(Offset, SeekOrigin.Begin);

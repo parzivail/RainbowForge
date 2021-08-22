@@ -249,14 +249,14 @@ namespace Prism
 		private void DumpSelectionAsBin(string fileName)
 		{
 			var streamData = GetAssetStream(_assetList.SelectedObject);
-			using var stream = streamData.Stream;
+			using var stream = streamData.StreamProvider.Invoke();
 			DumpHelper.DumpBin(fileName, stream.BaseStream);
 		}
 
 		private void DumpSelectionAsObj(string fileName)
 		{
 			var streamData = GetAssetStream(_assetList.SelectedObject);
-			using var stream = streamData.Stream;
+			using var stream = streamData.StreamProvider.Invoke();
 
 			var header = MeshHeader.Read(stream);
 
@@ -305,7 +305,7 @@ namespace Prism
 		private void DumpSelectionAsDds(string fileName)
 		{
 			var streamData = GetAssetStream(_assetList.SelectedObject);
-			using var stream = streamData.Stream;
+			using var stream = streamData.StreamProvider.Invoke();
 
 			var texture = Texture.Read(stream);
 			var surface = texture.ReadSurfaceBytes(stream);
@@ -324,8 +324,8 @@ namespace Prism
 
 					return container switch
 					{
-						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, forgeAsset.GetDataStream(_openedForge)),
-						_ => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, _openedForge.GetEntryStream(entry))
+						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, () => forgeAsset.GetDataStream(_openedForge)),
+						_ => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, () => _openedForge.GetEntryStream(entry))
 					};
 				}
 				case FlatArchiveEntry flatArchiveEntry:
@@ -334,10 +334,13 @@ namespace Prism
 					if (container is not ForgeAsset forgeAsset)
 						return null;
 
-					using var assetStream = forgeAsset.GetDataStream(_openedForge);
-					var arc = FlatArchive.Read(assetStream);
 					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, flatArchiveEntry.MetaData.FileName,
-						arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid));
+						() =>
+						{
+							using var assetStream = forgeAsset.GetDataStream(_openedForge);
+							var arc = FlatArchive.Read(assetStream);
+							return arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid);
+						});
 				}
 			}
 
@@ -400,7 +403,7 @@ namespace Prism
 					};
 				}
 			});
-			
+
 			_assetList.Columns.Add(new OLVColumn("Type", null)
 			{
 				Width = 100,
@@ -585,11 +588,11 @@ namespace Prism
 
 		private void PreviewAsset(AssetStream assetStream)
 		{
-			using var stream = assetStream.Stream;
 			switch (MagicHelper.GetFiletype(assetStream.Magic))
 			{
 				case AssetType.Mesh:
 				{
+					using var stream = assetStream.StreamProvider.Invoke();
 					var header = MeshHeader.Read(stream);
 					var mesh = CompiledMeshObject.Read(stream, header);
 
@@ -608,6 +611,7 @@ namespace Prism
 				}
 				case AssetType.Texture:
 				{
+					using var stream = assetStream.StreamProvider.Invoke();
 					var texture = Texture.Read(stream);
 					using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
@@ -675,6 +679,7 @@ namespace Prism
 					{
 						case Magic.Mesh:
 						{
+							using var stream = assetStream.StreamProvider.Invoke();
 							var mp = Mesh.Read(stream);
 
 							entries = new List<TreeListViewEntry>
@@ -691,6 +696,7 @@ namespace Prism
 						}
 						case Magic.Material:
 						{
+							using var stream = assetStream.StreamProvider.Invoke();
 							var mc = Material.Read(stream);
 
 							entries = new List<TreeListViewEntry>
@@ -706,6 +712,7 @@ namespace Prism
 						}
 						case Magic.TextureMapSpec:
 						{
+							using var stream = assetStream.StreamProvider.Invoke();
 							var mc = TextureMapSpec.Read(stream);
 
 							entries = new List<TreeListViewEntry>
@@ -720,6 +727,7 @@ namespace Prism
 						}
 						case Magic.TextureMap:
 						{
+							using var stream = assetStream.StreamProvider.Invoke();
 							var mc = TextureMap.Read(stream);
 
 							entries = new List<TreeListViewEntry>
@@ -738,6 +746,7 @@ namespace Prism
 						}
 						case Magic.R6AIWorldComponent:
 						{
+							using var stream = assetStream.StreamProvider.Invoke();
 							var am = R6AIWorldComponent.Read(stream);
 
 							entries = new List<TreeListViewEntry>

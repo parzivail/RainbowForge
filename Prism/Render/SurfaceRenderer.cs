@@ -69,7 +69,8 @@ namespace Prism.Render
 				}
 
 			ContentTransformation = SKMatrix.Identity
-				.PreConcat(SKMatrix.CreateTranslation((_imageControl.Width - bitmap.Width) / 2f, (_imageControl.Height - bitmap.Height) / 2f));
+				.PreConcat(SKMatrix.CreateTranslation((_imageControl.Width - bitmap.Width) / 2f, (_imageControl.Height + bitmap.Height) / 2f))
+				.PreConcat(SKMatrix.CreateScale(1, -1));
 
 			_imageControl.Invalidate();
 		}

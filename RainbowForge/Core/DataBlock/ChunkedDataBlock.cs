@@ -19,7 +19,7 @@ namespace RainbowForge.Core.DataBlock
 			UnpackedLength = unpackedLength;
 		}
 
-		public MemoryStream GetDataStream(BinaryReader r)
+		public Stream GetDataStream(BinaryReader r)
 		{
 			var ms = new MemoryStream();
 
@@ -33,11 +33,11 @@ namespace RainbowForge.Core.DataBlock
 					// TODO: make sure this reads exactly {chunk.SerializedLength} bytes -- it should,
 					// but reading {chunk.DataLength} bytes from a decompression stream is
 					// a weird way to do it
-					dctx.CopyStream(ms, (int) chunk.DataLength);
+					dctx.CopyStream(ms, (int)chunk.DataLength);
 				}
 				else
 				{
-					r.BaseStream.CopyStream(ms, (int) chunk.SerializedLength);
+					r.BaseStream.CopyStream(ms, (int)chunk.SerializedLength);
 				}
 			}
 

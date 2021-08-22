@@ -7,6 +7,6 @@ namespace RainbowForge.Core.DataBlock
 	/// </summary>
 	public interface IAssetBlock
 	{
-		public MemoryStream GetDataStream(BinaryReader r);
+		public Stream GetDataStream(BinaryReader r);
 	}
 }
