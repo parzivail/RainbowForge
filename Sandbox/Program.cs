@@ -1,4 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using RainbowForge;
+using RainbowForge.Archive;
+using RainbowForge.Core;
+using RainbowForge.Core.Container;
 
 namespace Sandbox
 {
@@ -35,30 +41,64 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			// var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge");
-			//
-			// foreach (var entry in newForge.Entries)
-			// {
-			// 	if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
-			// 		continue;
-			//
-			// 	var container = newForge.GetContainer(entry.Uid);
-			// 	if (container is not ForgeAsset fa)
-			// 		continue;
-			//
-			// 	Console.WriteLine($">>> {entry.MetaData.FileName}");
-			//
-			// 	var arc = FlatArchive.Read(fa.GetDataStream(newForge));
-			// }
+			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge");
 
-			// var encoded = new ulong[] { 0x5A1C70FE01297209, 0x4D4E82DBAAC7C4DE, 0xB9C4DC3B164D74B3 };
-			//
-			// // correct = "AccuracyData_SMG_MP5FMLI"
-			// var decoded = new ulong[] { 0x4163637572616379, 0x446174615f534d47, 0x5f4d5035464d4c49 };
-			//
-			// Console.WriteLine($"{encoded[1] ^ decoded[1]:X16}");
-			
+			foreach (var entry in newForge.Entries)
+			{
+				TestMagic(entry.MetaData.FileName, entry.MetaData.FileType);
+
+				if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
+					continue;
+
+				var container = newForge.GetContainer(entry.Uid);
+				if (container is not ForgeAsset fa)
+					continue;
+
+				var arc = FlatArchive.Read(fa.GetDataStream(newForge));
+
+				foreach (var arcEntry in arc.Entries) TestMagic(arcEntry.MetaData.FileName, arcEntry.MetaData.FileType);
+			}
+
 			Console.WriteLine("Done.");
+		}
+
+		private static readonly Dictionary<uint, HashSet<string>> FoundMagics = new();
+
+		private static void TestMagic(string name, uint fileType)
+		{
+			if (Enum.IsDefined(typeof(Magic), (ulong)fileType))
+				return;
+
+			var substrings = GetAllSubstrings(name);
+
+			foreach (var substr in substrings)
+			{
+				var computedCrc = Crc32.Compute(Encoding.ASCII.GetBytes(substr));
+				if (computedCrc == fileType)
+				{
+					if (!FoundMagics.ContainsKey(fileType))
+						FoundMagics[fileType] = new HashSet<string>();
+
+					if (!FoundMagics[fileType].Contains(substr))
+					{
+						FoundMagics[fileType].Add(substr);
+						Console.WriteLine($"{substr} = 0x{fileType:X8},");
+					}
+				}
+			}
+		}
+
+		private static string[] GetAllSubstrings(string s)
+		{
+			var n = s.Length;
+			var strings = new string[n * (n + 1) / 2];
+			var strIdx = 0;
+
+			for (var i = 0; i < s.Length; i++)
+				for (var j = i; j < s.Length; j++)
+					strings[strIdx++] = s.Substring(i, j - i + 1);
+
+			return strings;
 		}
 	}
 

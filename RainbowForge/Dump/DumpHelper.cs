@@ -241,7 +241,7 @@ namespace RainbowForge.Dump
 				case Magic.WorldMetaData:
 				case Magic.GIStream:
 				case Magic.CompiledMeshShapeDataObject:
-				case Magic.FlatArchive12:
+				case Magic.CompiledSoundBank:
 				{
 					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.Var1);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)

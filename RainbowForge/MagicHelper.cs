@@ -38,7 +38,7 @@ namespace RainbowForge
 				Magic.PlatformManager => AssetType.FlatArchive,
 				Magic.World => AssetType.FlatArchive,
 				Magic.LoadUnit => AssetType.FlatArchive,
-				Magic.FlatArchive12 => AssetType.FlatArchive,
+				Magic.CompiledSoundBank => AssetType.FlatArchive,
 				_ => AssetType.Unknown
 			};
 		}
