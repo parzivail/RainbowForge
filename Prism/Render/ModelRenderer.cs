@@ -8,7 +8,7 @@ using Prism.Render.Shader;
 using Prism.Resources;
 using RainbowForge;
 using RainbowForge.Model;
-
+using System.Diagnostics;
 namespace Prism.Render
 {
 	public class ModelRenderer
@@ -98,6 +98,28 @@ namespace Prism.Render
 
 			if (_screenVao == -1)
 			{
+
+				GL.Enable(EnableCap.Texture2D);
+
+				var textureTest = GL.GenTexture(); 
+				var bmp = new Bitmap(ResourceHelper.getResourcePath("reflectionvenicematcap.png"));
+				bmp.LoadGlTexture(textureTest, TextureTarget.Texture2D);
+
+				var checkerUV = GL.GenTexture();
+				var bmpChecker = new Bitmap(@ResourceHelper.getResourcePath("checker.jpg"));
+				bmpChecker.LoadGlTexture(checkerUV, TextureTarget.Texture2D);
+
+				var radianceTex = GL.GenTexture();
+				var bmp2 = new Bitmap(@ResourceHelper.getResourcePath("radiancevenicematcap.png"));
+				bmp2.LoadGlTexture(radianceTex, TextureTarget.Texture2D);
+
+				GL.ActiveTexture(TextureUnit.Texture2);
+				GL.BindTexture(TextureTarget.Texture2D, textureTest);
+				GL.ActiveTexture(TextureUnit.Texture4);
+				GL.BindTexture(TextureTarget.Texture2D, checkerUV);
+				GL.ActiveTexture(TextureUnit.Texture3);
+				GL.BindTexture(TextureTarget.Texture2D, radianceTex); 
+
 				CreateScreenVao();
 				_viewFbo = new Framebuffer(8, _renderContext.DefaultFramebuffer);
 
@@ -106,8 +128,13 @@ namespace Prism.Render
 				_shaderScreen.Uniforms.SetValue("samplesScene", _viewFbo.Samples);
 
 				_shaderModel = new ShaderProgram(ResourceHelper.ReadResource("model.frag"), ResourceHelper.ReadResource("model.vert"));
-				_shaderModel.Uniforms.SetValue("texModel", 1);
+				_shaderModel.Uniforms.SetValue("radianceTex", 3);
+				_shaderModel.Uniforms.SetValue("texModel", 2);
+				_shaderModel.Uniforms.SetValue("checkerTex", 4);
+				_shaderModel.Uniforms.SetValue("pos", _camera.Position);
+				_shaderModel.Uniforms.SetValue("colorIn", new Vector3(0.23f, 0.511f, 0.81f));
 				_shaderModel.Uniforms.SetValue("lightPos", new Vector3(0.6f, -1, 0.8f));
+				_shaderModel.Uniforms.SetValue("lightColor", new Vector3(1f, 1f, 1f));
 
 				_textureId = GL.GenTexture();
 			}
@@ -420,7 +447,7 @@ namespace Prism.Render
 			if (bmp == null)
 				return;
 
-			bmp.LoadGlTexture(_textureId);
+			bmp.LoadGlTexture(_textureId, TextureTarget.Texture2D);
 
 			_renderContext.MarkDirty();
 		}
