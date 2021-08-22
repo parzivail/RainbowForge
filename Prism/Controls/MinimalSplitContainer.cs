@@ -26,6 +26,9 @@ namespace Prism.Controls
 				if (value > Width - MinWidth2)
 					value = Width - MinWidth2;
 
+				if (_splitterDistance == value)
+					return;
+
 				_splitterDistance = value;
 
 				UpdateContainerSizes();
