@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -68,7 +69,7 @@ namespace Prism
 							(_searchTextBox = new TextBox
 							{
 								Dock = DockStyle.Top,
-								PlaceholderText = "Search term (i.e. keyword, ?type, #uid)"
+								PlaceholderText = "Search groups (i.e. keyword, ?type, #uid, seperated by commas)"
 							})
 					}
 				}
@@ -390,18 +391,26 @@ namespace Prism
 
 		private static bool DoesEntryMatchFilter(object entry, string filter)
 		{
-			if (string.IsNullOrWhiteSpace(filter))
-				return true;
+			string[] SearchGroups = filter.Split(',');
+			List<bool> GroupMatches = new List<bool>();
 
 			var meta = GetAssetMetaData(entry);
 
-			if (filter.Contains("#") && ulong.TryParse(filter.Substring(filter.LastIndexOf('#') + 1), NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
-				return true;
+			for (var i = 0; i < SearchGroups.Length; i++)
+            {
+				if (string.IsNullOrWhiteSpace(SearchGroups[i]))
+                {	GroupMatches.Add(true); continue;	}
 
-			if (filter.Contains("?"))
-				return (((Magic)meta.Magic).ToString().Contains(filter.Substring(filter.LastIndexOf('?') + 1), StringComparison.OrdinalIgnoreCase));
+				if (SearchGroups[i].StartsWith('#') && ulong.TryParse(SearchGroups[i].Substring(1), NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
+                {	GroupMatches.Add(true); continue;	}
 
-			return meta.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase);
+				if (SearchGroups[i].StartsWith('?'))
+                {	GroupMatches.Add(((Magic)meta.Magic).ToString().Contains(SearchGroups[i].Substring(1), StringComparison.OrdinalIgnoreCase)); continue; }
+
+				GroupMatches.Add(meta.Filename.Contains(SearchGroups[i], StringComparison.OrdinalIgnoreCase));
+			}
+
+			return GroupMatches.TrueForAll(x => x == true);
 		}
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
