@@ -65,10 +65,11 @@ namespace Prism
 							UseHyperlinks = false,
 							UseHotControls = false
 						}),
-						(_searchTextBox = new TextBox
-						{
-							Dock = DockStyle.Top
-						})
+							(_searchTextBox = new TextBox
+							{
+								Dock = DockStyle.Top,
+								PlaceholderText = "Search term (i.e. keyword, ?type, #uid)"
+							})
 					}
 				}
 			});
@@ -394,10 +395,13 @@ namespace Prism
 
 			var meta = GetAssetMetaData(entry);
 
-			if (ulong.TryParse(filter, NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
+			if (filter.Contains("#") && ulong.TryParse(filter.Substring(filter.LastIndexOf('#') + 1), NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
 				return true;
 
-			return meta.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase) || (((Magic)meta.Magic).ToString().Contains(filter, StringComparison.OrdinalIgnoreCase));
+			if (filter.Contains("?"))
+				return (((Magic)meta.Magic).ToString().Contains(filter.Substring(filter.LastIndexOf('?') + 1), StringComparison.OrdinalIgnoreCase));
+
+			return meta.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase);
 		}
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
