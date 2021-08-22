@@ -482,6 +482,50 @@ namespace Prism
 
 				return fa.Entries;
 			};
+
+			_assetList.CellRightClick += (sender, args) =>
+			{
+				string name;
+				ulong uid;
+				uint fileType;
+
+				var tlv = (TreeListView)sender;
+				switch (tlv.SelectedObject)
+				{
+					case Entry e:
+						name = e.MetaData.FileName;
+						uid = e.Uid;
+						fileType = e.MetaData.FileType;
+						break;
+					case FlatArchiveEntry fae:
+						name = fae.MetaData.FileName;
+						uid = fae.MetaData.Uid;
+						fileType = fae.MetaData.FileType;
+						break;
+					default:
+						return;
+				}
+
+				var bCopyName = new ToolStripMenuItem("&Copy Name");
+				bCopyName.Click += (o, eventArgs) => Clipboard.SetText(name);
+
+				var bCopyUid = new ToolStripMenuItem("&Copy UID");
+				bCopyUid.Click += (o, eventArgs) => Clipboard.SetText($"0x{uid:X16}");
+
+				var bCopyFiletype = new ToolStripMenuItem("&Copy Filetype");
+				bCopyFiletype.Click += (o, eventArgs) => Clipboard.SetText($"0x{fileType:X8}");
+
+				args.MenuStrip = new ContextMenuStrip
+				{
+					Location = Cursor.Position,
+					Items =
+					{
+						bCopyName,
+						bCopyUid,
+						bCopyFiletype
+					}
+				};
+			};
 		}
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
@@ -671,15 +715,15 @@ namespace Prism
 							};
 							break;
 						}
-						case Magic.AreaMap:
+						case Magic.R6AIWorldComponent:
 						{
-							var am = AreaMap.Read(stream);
+							var am = R6AIWorldComponent.Read(stream);
 
 							entries = new List<TreeListViewEntry>
 							{
 								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
-								new(nameof(AreaMap), null,
-									new TreeListViewEntry(nameof(AreaMap.Areas), null,
+								new(nameof(R6AIWorldComponent), null,
+									new TreeListViewEntry(nameof(R6AIWorldComponent.Areas), null,
 										am.Areas.Select(area => new TreeListViewEntry("Area", null,
 											new TreeListViewEntry("Magic", $"{area.Magic:X8}"),
 											new TreeListViewEntry("Name", area.Name),
@@ -746,8 +790,4 @@ namespace Prism
 			Text = $"Prism - {filename}";
 		}
 	}
-
-	internal record AssetStream(ulong Uid, ulong Magic, string Filename, BinaryReader Stream);
-
-	internal record TreeListViewEntry(string Key, object Value, params TreeListViewEntry[] Children);
 }

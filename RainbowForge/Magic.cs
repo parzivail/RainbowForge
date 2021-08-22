@@ -67,7 +67,7 @@
 		Charm = 0x40FCADEE,
 		Projectile = 0x73A641BD,
 		Animation = 0x0FA3067F,
-		AreaMap = 0x584879B2,
+		R6AIWorldComponent = 0x584879B2,
 		TheaterData = 0x84EC653F,
 		KinoExternalStateData = 0xB19D4FCD,
 		KinoReplaceSetData = 0x3F49D5C9,
@@ -510,8 +510,6 @@
 		DotEffectBarbedWire = 0x1CFAAAAF,
 		PhoenixSceneData = 0xEC3826FF,
 		PhoenixFont = 0xA6EA7232
-
-		// 0x8D1D966B - some kind of UID mapping container
 	}
 
 	public enum ContainerMagic : uint

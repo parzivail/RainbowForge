@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using RainbowForge;
 using RainbowForge.Archive;
 using RainbowForge.Core;
@@ -20,7 +22,7 @@ namespace Sandbox
 
 				foreach (var entry in newForge.Entries)
 				{
-					TestMagic(sw, entry.MetaData.FileType);
+					TestMagic(entry.MetaData.FileType);
 
 					if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
 						continue;
@@ -31,15 +33,27 @@ namespace Sandbox
 
 					var arc = FlatArchive.Read(fa.GetDataStream(newForge));
 
-					foreach (var arcEntry in arc.Entries) TestMagic(sw, arcEntry.MetaData.FileType);
+					foreach (var arcEntry in arc.Entries) TestMagic(arcEntry.MetaData.FileType);
 				}
 			}
-			
+
+			foreach (var (magic, count) in MagicTable.OrderByDescending(pair => pair.Value))
+				if (Enum.IsDefined(typeof(Magic), (ulong)magic))
+					sw.WriteLine($"0x{magic:X8} ({(Magic)magic}) - {count}");
+				else
+					sw.WriteLine($"0x{magic:X8} - {count}");
+
 			Console.WriteLine("Done.");
 		}
 
-		private static void TestMagic(StreamWriter sw, uint fileType)
+		private static readonly Dictionary<uint, int> MagicTable = new();
+
+		private static void TestMagic(uint fileType)
 		{
+			if (!MagicTable.ContainsKey(fileType))
+				MagicTable[fileType] = 0;
+
+			MagicTable[fileType]++;
 		}
 	}
 }

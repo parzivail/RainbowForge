@@ -3,27 +3,27 @@ using System.Text;
 
 namespace RainbowForge.Info
 {
-	public record Area(uint Magic, string Name, ulong[] Uids);
-	
-	public class AreaMap
-	{
-		public Area[] Areas { get; }
+	public record NamedWorldComponent(uint Magic, string Name, ulong[] Uids);
 
-		private AreaMap(Area[] areas)
+	public class R6AIWorldComponent
+	{
+		public NamedWorldComponent[] Areas { get; }
+
+		private R6AIWorldComponent(NamedWorldComponent[] areas)
 		{
 			Areas = areas;
 		}
 
-		public static AreaMap Read(BinaryReader r)
+		public static R6AIWorldComponent Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.AreaMap, magic);
+			MagicHelper.AssertEquals(Magic.R6AIWorldComponent, magic);
 
 			var data = r.ReadBytes(34);
 
 			var numAreas = r.ReadInt32();
 
-			var areas = new Area[numAreas];
+			var areas = new NamedWorldComponent[numAreas];
 
 			for (var i = 0; i < numAreas; i++)
 			{
@@ -44,12 +44,12 @@ namespace RainbowForge.Info
 
 				var data4 = r.ReadBytes(17);
 
-				areas[i] = new Area(entryMagic, entry, uids);
+				areas[i] = new NamedWorldComponent(entryMagic, entry, uids);
 			}
 
 			// TODO: there's more data at the end of this file, possibly UIDs?
 
-			return new AreaMap(areas);
+			return new R6AIWorldComponent(areas);
 		}
 	}
 }
