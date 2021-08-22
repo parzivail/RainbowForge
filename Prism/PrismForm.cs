@@ -465,6 +465,8 @@ namespace Prism
 
 			_assetList.SelectedIndexChanged += OnAssetListOnSelectionChanged;
 
+			_assetList.CellRightClick += OnCellRightClick;
+
 			_assetList.CanExpandGetter = model => { return model is Entry e && MagicHelper.GetFiletype(e.MetaData.FileType) == AssetType.FlatArchive; };
 
 			_assetList.ChildrenGetter = model =>
@@ -495,6 +497,27 @@ namespace Prism
 
 				UpdateAbility(stream);
 			}
+		}
+
+		private void toolStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+		{
+			Clipboard.SetText(e.ClickedItem.Text);
+		}
+
+		private void OnCellRightClick(object sender, EventArgs args)
+		{
+			var selectedEntry = GetAssetStream(_assetList.SelectedObject);
+
+			if (selectedEntry == null)
+				return;
+
+			ToolStripDropDown toolStrip = new();
+			toolStrip.Items.Add(selectedEntry.Uid.ToString());
+			toolStrip.Items.Add(selectedEntry.Uid.ToString("X16"));
+			toolStrip.Items.Add(selectedEntry.Filename);
+			toolStrip.Show(Cursor.Position);
+
+			toolStrip.ItemClicked += toolStrip_ItemClicked;
 		}
 
 		private void UpdateAbility(AssetStream assetStream)
