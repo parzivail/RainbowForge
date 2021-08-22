@@ -45,6 +45,7 @@ namespace Prism
 		private readonly GLControl _glControl;
 		private readonly SKControl _imageControl;
 		private readonly TreeListView _infoControl;
+		private readonly TextBox _errorInfoControl;
 
 		private ModelRenderer _renderer3d;
 		private SurfaceRenderer _renderer2d;
@@ -185,6 +186,15 @@ namespace Prism
 					View = View.Details,
 					ShowGroups = false,
 					FullRowSelect = true
+				};
+
+				_errorInfoControl = new TextBox
+				{
+					Multiline = true,
+					Dock = DockStyle.Fill,
+					ReadOnly = true,
+					BackColor = Color.White,
+					ForeColor = Color.Red
 				};
 
 				SetPreviewPanel(new Label
@@ -535,7 +545,18 @@ namespace Prism
 			{
 				var stream = GetAssetStream(selectedEntry);
 				if (stream != null)
-					PreviewAsset(stream);
+					try
+					{
+						PreviewAsset(stream);
+					}
+					catch (Exception e)
+					{
+						OnUiThread(() =>
+						{
+							_errorInfoControl.Text = e.ToString();
+							SetPreviewPanel(_errorInfoControl);
+						});
+					}
 
 				UpdateAbility(stream);
 			}
