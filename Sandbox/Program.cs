@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using RainbowForge;
 using RainbowForge.Archive;
@@ -41,22 +42,28 @@ namespace Sandbox
 
 		private static void Main(string[] args)
 		{
-			var newForge = Forge.GetForge("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge");
-
-			foreach (var entry in newForge.Entries)
+			using var sw = new StreamWriter("out.txt");
+			foreach (var forgeFilename in Directory.GetFiles("R:\\Siege Dumps\\Y6S1 v15500403", "*.forge"))
 			{
-				TestMagic(entry.MetaData.FileName, entry.MetaData.FileType);
+				Console.WriteLine(forgeFilename);
 
-				if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
-					continue;
+				var newForge = Forge.GetForge(forgeFilename);
 
-				var container = newForge.GetContainer(entry.Uid);
-				if (container is not ForgeAsset fa)
-					continue;
+				foreach (var entry in newForge.Entries)
+				{
+					TestMagic(sw, entry.MetaData.FileName, entry.MetaData.FileType);
 
-				var arc = FlatArchive.Read(fa.GetDataStream(newForge));
+					if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
+						continue;
 
-				foreach (var arcEntry in arc.Entries) TestMagic(arcEntry.MetaData.FileName, arcEntry.MetaData.FileType);
+					var container = newForge.GetContainer(entry.Uid);
+					if (container is not ForgeAsset fa)
+						continue;
+
+					var arc = FlatArchive.Read(fa.GetDataStream(newForge));
+
+					foreach (var arcEntry in arc.Entries) TestMagic(sw, arcEntry.MetaData.FileName, arcEntry.MetaData.FileType);
+				}
 			}
 
 			Console.WriteLine("Done.");
@@ -64,7 +71,7 @@ namespace Sandbox
 
 		private static readonly Dictionary<uint, HashSet<string>> FoundMagics = new();
 
-		private static void TestMagic(string name, uint fileType)
+		private static void TestMagic(StreamWriter sw, string name, uint fileType)
 		{
 			if (Enum.IsDefined(typeof(Magic), (ulong)fileType))
 				return;
@@ -73,7 +80,7 @@ namespace Sandbox
 
 			foreach (var substr in substrings)
 			{
-				var computedCrc = Crc32.Compute(Encoding.ASCII.GetBytes(substr));
+				var computedCrc = Crc32.Compute(Encoding.ASCII.GetBytes(substr + "Component"));
 				if (computedCrc == fileType)
 				{
 					if (!FoundMagics.ContainsKey(fileType))
@@ -82,7 +89,7 @@ namespace Sandbox
 					if (!FoundMagics[fileType].Contains(substr))
 					{
 						FoundMagics[fileType].Add(substr);
-						Console.WriteLine($"{substr} = 0x{fileType:X8},");
+						sw.WriteLine($"{substr}Component = 0x{fileType:X8},");
 					}
 				}
 			}
