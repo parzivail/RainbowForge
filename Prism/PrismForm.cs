@@ -21,6 +21,7 @@ using RainbowForge.Core.Container;
 using RainbowForge.Dump;
 using RainbowForge.Image;
 using RainbowForge.Info;
+using RainbowForge.Link;
 using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
 using SkiaSharp;
@@ -324,8 +325,9 @@ namespace Prism
 
 					return container switch
 					{
-						ForgeAsset forgeAsset => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, () => forgeAsset.GetDataStream(_openedForge)),
-						_ => new AssetStream(entry.Uid, entry.MetaData.FileType, entry.MetaData.FileName, () => _openedForge.GetEntryStream(entry))
+						ForgeAsset forgeAsset => new AssetStream(AssetStreamType.ForgeEntry, entry.Uid, entry.MetaData.FileType, 0, entry.MetaData.FileName,
+							() => forgeAsset.GetDataStream(_openedForge)),
+						_ => new AssetStream(AssetStreamType.ForgeEntry, entry.Uid, entry.MetaData.FileType, 0, entry.MetaData.FileName, () => _openedForge.GetEntryStream(entry))
 					};
 				}
 				case FlatArchiveEntry flatArchiveEntry:
@@ -334,7 +336,8 @@ namespace Prism
 					if (container is not ForgeAsset forgeAsset)
 						return null;
 
-					return new AssetStream(flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, flatArchiveEntry.MetaData.FileName,
+					return new AssetStream(AssetStreamType.ArchiveEntry, flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, flatArchiveEntry.MetaData.ContainerType,
+						flatArchiveEntry.MetaData.FileName,
 						() =>
 						{
 							using var assetStream = forgeAsset.GetDataStream(_openedForge);
@@ -671,6 +674,30 @@ namespace Prism
 
 					break;
 				}
+				case AssetType.FlatArchive when assetStream.StreamType == AssetStreamType.ArchiveEntry:
+				{
+					// First entry in a flat archive is a UidLinkContainer
+
+					using var stream = assetStream.StreamProvider.Invoke();
+					var container = UidLinkContainer.Read(stream, assetStream.ContainerType);
+
+					var entries = new List<TreeListViewEntry>
+					{
+						CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+						new(nameof(UidLinkContainer), null,
+							new TreeListViewEntry(nameof(UidLinkContainer.UidLinkEntries), null, container.UidLinkEntries.Select(CreateUidLinkEntryNode).ToArray())
+						)
+					};
+
+					OnUiThread(() =>
+					{
+						_infoControl.SetObjects(entries);
+						_infoControl.ExpandAll();
+						SetPreviewPanel(_infoControl);
+					});
+
+					break;
+				}
 				default:
 				{
 					List<TreeListViewEntry> entries;
@@ -684,7 +711,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(Mesh), null,
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
@@ -694,6 +721,19 @@ namespace Prism
 							};
 							break;
 						}
+						case Magic.ShaderCodeModuleUserMaterial:
+						case Magic.ShaderCodeModulePostPro:
+						{
+							using var stream = assetStream.StreamProvider.Invoke();
+							var mp = Shader.Read(stream);
+
+							entries = new List<TreeListViewEntry>
+							{
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+							};
+
+							break;
+						}
 						case Magic.Material:
 						{
 							using var stream = assetStream.StreamProvider.Invoke();
@@ -701,11 +741,11 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(Material), null,
-									new TreeListViewEntry(nameof(Material.BaseTextureMapSpecs), null, mc.BaseTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray()),
-									new TreeListViewEntry(nameof(Material.SecondaryTextureMapSpecs), null, mc.SecondaryTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray()),
-									new TreeListViewEntry(nameof(Material.TertiaryTextureMapSpecs), null, mc.TertiaryTextureMapSpecs.Select(CreateMipContainerReferenceEntry).ToArray())
+									new TreeListViewEntry(nameof(Material.BaseTextureMapSpecs), null, mc.BaseTextureMapSpecs.Select(CreateMipContainerReferenceNode).ToArray()),
+									new TreeListViewEntry(nameof(Material.SecondaryTextureMapSpecs), null, mc.SecondaryTextureMapSpecs.Select(CreateMipContainerReferenceNode).ToArray()),
+									new TreeListViewEntry(nameof(Material.TertiaryTextureMapSpecs), null, mc.TertiaryTextureMapSpecs.Select(CreateMipContainerReferenceNode).ToArray())
 								)
 							};
 							break;
@@ -717,7 +757,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(TextureMapSpec), null,
 									new TreeListViewEntry(nameof(TextureMapSpec.TextureMapUid), $"{mc.TextureMapUid:X16}"),
 									new TreeListViewEntry("TextureType", $"{mc.TextureType:X8}")
@@ -732,7 +772,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(TextureMap), null,
 									new TreeListViewEntry("Var1", mc.Var1),
 									new TreeListViewEntry("Var2", mc.Var2),
@@ -751,11 +791,10 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
 								new(nameof(R6AIWorldComponent), null,
-									new TreeListViewEntry(nameof(R6AIWorldComponent.Areas), null,
-										am.Areas.Select(area => new TreeListViewEntry("Area", null,
-											new TreeListViewEntry("Magic", $"{area.Magic:X8}"),
+									new TreeListViewEntry(nameof(R6AIWorldComponent.Rooms), null,
+										am.Rooms.Select(area => new TreeListViewEntry("Area", null,
 											new TreeListViewEntry("Name", area.Name),
 											new TreeListViewEntry("UIDs", null, area.Uids.Select(arg => new TreeListViewEntry("UID", $"{arg:X16}")).ToArray())
 										)).ToArray()
@@ -768,7 +807,7 @@ namespace Prism
 						{
 							entries = new List<TreeListViewEntry>
 							{
-								GetMetadataInfoEntry(assetStream.Uid, assetStream.Magic, assetStream.Filename)
+								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename)
 							};
 							break;
 						}
@@ -794,7 +833,14 @@ namespace Prism
 				BeginInvoke(action);
 		}
 
-		private TreeListViewEntry CreateMipContainerReferenceEntry(MipContainerReference mcr)
+		private TreeListViewEntry CreateUidLinkEntryNode(UidLinkEntry ule)
+		{
+			var node1 = new TreeListViewEntry(nameof(UidLinkEntry.UidLinkNode1), ule.UidLinkNode1 == null ? "null" : $"{ule.UidLinkNode1.LinkedUid:X16}");
+			var node2 = new TreeListViewEntry(nameof(UidLinkEntry.UidLinkNode2), ule.UidLinkNode2 == null ? "null" : $"{ule.UidLinkNode2.LinkedUid:X16}");
+			return new TreeListViewEntry(nameof(UidLinkNode), null, node1, node2);
+		}
+
+		private TreeListViewEntry CreateMipContainerReferenceNode(TextureSelector mcr)
 		{
 			return new TreeListViewEntry("MipContainerReference", null,
 				new TreeListViewEntry("Var1", mcr.Var1),
@@ -803,7 +849,7 @@ namespace Prism
 			);
 		}
 
-		private static TreeListViewEntry GetMetadataInfoEntry(ulong uid, ulong fileType, string filename)
+		private static TreeListViewEntry CreateMetadataInfoNode(ulong uid, ulong fileType, string filename)
 		{
 			return new TreeListViewEntry("Metadata", null,
 				new TreeListViewEntry("Filename", filename),
@@ -819,5 +865,11 @@ namespace Prism
 			OpenedForge = Forge.GetForge(filename);
 			Text = $"Prism - {filename}";
 		}
+	}
+
+	internal enum AssetStreamType
+	{
+		ForgeEntry,
+		ArchiveEntry
 	}
 }

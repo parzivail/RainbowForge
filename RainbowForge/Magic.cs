@@ -16,6 +16,10 @@
 		TextureGui2 = 0x05A61FAD,
 		WemSound = 0x427411A3,
 		BuildTable = 0x22ECBE63,
+		BuildColumn = 0x36839608,
+		RowSelection = 0x8e716439,
+		RowSelector = 0xf5bd7b8a,
+		LocalizedString = 0x5fc9ce4d,
 		EntityBuilder = 0x971A842E,
 		WeaponData = 0xADBAB640,
 		GameBootstrap = 0xE5A83560,
@@ -68,6 +72,7 @@
 		Projectile = 0x73A641BD,
 		Animation = 0x0FA3067F,
 		R6AIWorldComponent = 0x584879B2,
+		R6AIRoom = 0xdb9c79f2,
 		TheaterData = 0x84EC653F,
 		KinoExternalStateData = 0xB19D4FCD,
 		KinoReplaceSetData = 0x3F49D5C9,
@@ -509,7 +514,17 @@
 		DynamicSubMesh = 0xA4729FC9,
 		DotEffectBarbedWire = 0x1CFAAAAF,
 		PhoenixSceneData = 0xEC3826FF,
-		PhoenixFont = 0xA6EA7232
+		PhoenixFont = 0xA6EA7232,
+		KinoReplaceIdentifier = 0xd9606976,
+		OverrideDefinition = 0x49fcd7bf,
+		GraphicObject = 0xec6ac357,
+		SpaceManager = 0xa527a3cb,
+		UVTransform = 0xc52e2125,
+		DetailMapDescriptor = 0x7799a6d5,
+		TextureSelector = 0x7d08460d,
+		R6ActionFilter = 0xc6382399,
+		MeshBone = 0x9ef0e7a1,
+		ShaderCodeVariable = 0x1bcb6f77,
 	}
 
 	public enum ContainerMagic : uint

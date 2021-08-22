@@ -229,21 +229,13 @@ namespace RainbowForge.Dump
 						unresolvedExterns.Add(new KeyValuePair<string, ulong>(rootDir, uid));
 					break;
 				}
-				// The root entry is a UidLinkContainer
-				case Magic.BuildTable:
-				case Magic.EntityBuilder:
-				case Magic.WeaponData:
-				case Magic.GameBootstrap:
-				case Magic.LocalizationPackage:
-				case Magic.PlatformManager:
-				case Magic.World:
-				case Magic.LoadUnit:
-				case Magic.WorldMetaData:
-				case Magic.GIStream:
-				case Magic.CompiledMeshShapeDataObject:
-				case Magic.CompiledSoundBank:
+				default:
 				{
-					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.Var1);
+					// The root entry of archives is a UidLinkContainer
+					if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
+						break;
+
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.ContainerType);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
 					{
 						if (linkEntry.UidLinkNode1 != null)
@@ -321,12 +313,13 @@ namespace RainbowForge.Dump
 						referencedExterns.Add(uid);
 					break;
 				}
-				// The root entry is a UidLinkContainer
-				case Magic.BuildTable:
-				case Magic.EntityBuilder:
-				case Magic.WeaponData:
+				default:
 				{
-					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.Var1);
+					// The root entry of archives is a UidLinkContainer
+					if (MagicHelper.GetFiletype(entry.MetaData.FileType) != AssetType.FlatArchive)
+						break;
+
+					var linkContainer = UidLinkContainer.Read(assetStream, entry.MetaData.ContainerType);
 					foreach (var linkEntry in linkContainer.UidLinkEntries)
 					{
 						if (linkEntry.UidLinkNode1 != null)

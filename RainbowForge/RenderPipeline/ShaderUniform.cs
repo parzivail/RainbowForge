@@ -29,7 +29,7 @@ namespace RainbowForge.RenderPipeline
 
 			var internalUid = r.ReadUInt64();
 
-			var uniformType = (UniformType) r.ReadUInt32();
+			var uniformType = (UniformType)r.ReadUInt32();
 
 			var nameLength = r.ReadInt32();
 			var name = Encoding.UTF8.GetString(r.ReadBytes(nameLength));
@@ -45,10 +45,10 @@ namespace RainbowForge.RenderPipeline
 
 			var extraDataLength = uniformType switch
 			{
-				UniformType.Float => 8,
-				UniformType.Texture => 12,
-				UniformType.Vector3F => 20,
-				_ => throw new NotSupportedException()
+				UniformType.ShaderCodeVariableFloat => 8,
+				UniformType.ShaderCodeVariableTexture => 12,
+				UniformType.ShaderCodeVariableColor => 20,
+				_ => throw new NotSupportedException($"Unsupported shader uniform type: {uniformType}")
 			};
 
 			var extraData = r.ReadBytes(extraDataLength);

@@ -13,7 +13,7 @@ namespace RainbowForge
 
 		public static bool Equals(Magic magic, ulong value)
 		{
-			return (Magic) value == magic;
+			return (Magic)value == magic;
 		}
 
 		public static AssetType GetFiletype(ulong magic)
@@ -21,7 +21,7 @@ namespace RainbowForge
 			if (!Enum.IsDefined(typeof(Magic), magic))
 				return AssetType.Unknown;
 
-			return (Magic) magic switch
+			return (Magic)magic switch
 			{
 				Magic.CompiledMeshObject => AssetType.Mesh,
 				Magic.CompiledLowResolutionTextureMap => AssetType.Texture,
@@ -39,6 +39,10 @@ namespace RainbowForge
 				Magic.World => AssetType.FlatArchive,
 				Magic.LoadUnit => AssetType.FlatArchive,
 				Magic.CompiledSoundBank => AssetType.FlatArchive,
+				Magic.BuildTable => AssetType.FlatArchive,
+				Magic.CompiledMeshShapeDataObject => AssetType.FlatArchive,
+				Magic.GIStream => AssetType.FlatArchive,
+				Magic.WorldMetaData => AssetType.FlatArchive,
 				_ => AssetType.Unknown
 			};
 		}

@@ -7,7 +7,7 @@ namespace RainbowForge.RenderPipeline
 		public uint Var1 { get; }
 		public ulong InternalUid { get; }
 		public byte[] Data { get; }
-		public MeshProperty[] Props { get; }
+		public MeshBone[] Props { get; }
 		public uint Magic2 { get; }
 		public uint Var2 { get; }
 		public ulong CompiledMeshObjectUid { get; }
@@ -15,7 +15,7 @@ namespace RainbowForge.RenderPipeline
 		public ulong InternalUid2 { get; }
 		public byte[] Data2 { get; }
 
-		private Mesh(uint var1, ulong internalUid, byte[] data, MeshProperty[] props, uint magic2, uint var2, ulong compiledMeshObjectUid, ulong[] materials, ulong internalUid2, byte[] data2)
+		private Mesh(uint var1, ulong internalUid, byte[] data, MeshBone[] props, uint magic2, uint var2, ulong compiledMeshObjectUid, ulong[] materials, ulong internalUid2, byte[] data2)
 		{
 			Var1 = var1;
 			InternalUid = internalUid;
@@ -41,9 +41,9 @@ namespace RainbowForge.RenderPipeline
 			var data = r.ReadBytes(32);
 
 			var numProperties = r.ReadUInt32();
-			var props = new MeshProperty[numProperties];
+			var props = new MeshBone[numProperties];
 			for (var i = 0; i < props.Length; i++)
-				props[i] = MeshProperty.Read(r);
+				props[i] = MeshBone.Read(r);
 
 			var magic2 = r.ReadUInt32();
 			var var2 = r.ReadUInt32();
@@ -62,25 +62,24 @@ namespace RainbowForge.RenderPipeline
 		}
 	}
 
-	public class MeshProperty
+	public class MeshBone
 	{
-		public uint Magic { get; }
 		public byte[] Data { get; }
 
-		private MeshProperty(uint magic, byte[] data)
+		private MeshBone(byte[] data)
 		{
-			Magic = magic;
 			Data = data;
 		}
 
-		public static MeshProperty Read(BinaryReader r)
+		public static MeshBone Read(BinaryReader r)
 		{
 			var padding = r.ReadBytes(8); // padding?
 			var magic = r.ReadUInt32();
+			MagicHelper.AssertEquals(Magic.MeshBone, magic);
 
 			var data = r.ReadBytes(68);
 
-			return new MeshProperty(magic, data);
+			return new MeshBone(data);
 		}
 	}
 }

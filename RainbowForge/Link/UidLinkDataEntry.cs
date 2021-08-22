@@ -7,22 +7,22 @@ namespace RainbowForge.Link
 	public class UidLinkDataEntry
 	{
 		public ulong InternalUid { get; }
-		public uint Magic { get; }
+		public Magic EntryMagic { get; }
 
-		protected UidLinkDataEntry(ulong internalUid, uint magic)
+		protected UidLinkDataEntry(ulong internalUid, Magic entryMagic)
 		{
 			InternalUid = internalUid;
-			Magic = magic;
+			EntryMagic = entryMagic;
 		}
 
 		public static UidLinkDataEntry Read(BinaryReader r, bool hasDoubles, bool hasLargeEntries)
 		{
 			var internalUid = r.ReadUInt64();
-			var magic = r.ReadUInt32();
+			var magic = (Magic)r.ReadUInt32();
 
 			switch (magic)
 			{
-				case 0x36839608:
+				case Magic.BuildColumn:
 				{
 					var data = r.ReadBytes(20);
 					var numSubcontainers = r.ReadUInt32();
@@ -35,19 +35,19 @@ namespace RainbowForge.Link
 
 					var footerData = r.ReadBytes(18);
 
-					var footerMagic = r.ReadUInt32();
+					var footerMagic = (Magic)r.ReadUInt32();
 
 					var footerEntryLength = footerMagic switch
 					{
-						0xD9606976 => 8,
-						0x49FCD7BF => 8,
-						0xEC6AC357 => 16,
-						0x24AECB7C => 16,
-						0x22ECBE63 => 16,
-						0xE640B4DA => 16,
-						0x85C817C3 => 16,
+						Magic.KinoReplaceIdentifier => 8,
+						Magic.OverrideDefinition => 8,
+						Magic.GraphicObject => 16,
+						Magic.Skeleton => 16,
+						Magic.BuildTable => 16,
+						Magic.FacialPoseGroup => 16,
+						Magic.Material => 16,
 						0 => 24,
-						_ => throw new NotSupportedException()
+						_ => throw new NotSupportedException($"Unsupported footer entry magic: {footerMagic} (0x{(uint)footerMagic:X8})")
 					};
 
 					var footerEntry = r.ReadBytes(footerEntryLength);
@@ -60,22 +60,22 @@ namespace RainbowForge.Link
 
 					return new EntryTypeA(internalUid, magic, data, footerData, footerMagic, footerEntry);
 				}
-				case 0x8E716439:
+				case Magic.RowSelection:
 				{
 					var data = r.ReadBytes(30);
 					return new EntryTypeB(internalUid, magic, data);
 				}
-				case 0xD9606976:
+				case Magic.KinoReplaceIdentifier:
 				{
 					var data = r.ReadBytes(28);
 					return new EntryTypeB(internalUid, magic, data);
 				}
-				case 0x49FCD7BF:
+				case Magic.OverrideDefinition:
 				{
 					var data = r.ReadBytes(16);
 					return new EntryTypeB(internalUid, magic, data);
 				}
-				case 0x348B28D6:
+				case Magic.BuildRow:
 				{
 					var numEntries = r.ReadUInt32();
 					var data = r.ReadBytes(8);
@@ -89,7 +89,7 @@ namespace RainbowForge.Link
 					return new EntryTypeC(internalUid, magic, data, entries, data2);
 				}
 				default:
-					throw new NotSupportedException();
+					throw new NotSupportedException($"Unsupported magic: {magic} (0x{(uint)magic:X8})");
 			}
 		}
 
@@ -99,7 +99,7 @@ namespace RainbowForge.Link
 			public ulong[] Uids { get; }
 			public byte[] Data2 { get; }
 
-			public EntryTypeC(ulong internalUid, uint magic, byte[] data, ulong[] uids, byte[] data2) : base(internalUid, magic)
+			public EntryTypeC(ulong internalUid, Magic entryMagic, byte[] data, ulong[] uids, byte[] data2) : base(internalUid, entryMagic)
 			{
 				Data = data;
 				Uids = uids;
@@ -111,7 +111,7 @@ namespace RainbowForge.Link
 		{
 			public byte[] Data { get; }
 
-			public EntryTypeB(ulong internalUid, uint magic, byte[] data) : base(internalUid, magic)
+			public EntryTypeB(ulong internalUid, Magic entryMagic, byte[] data) : base(internalUid, entryMagic)
 			{
 				Data = data;
 			}
@@ -121,10 +121,10 @@ namespace RainbowForge.Link
 		{
 			public byte[] Data { get; }
 			public byte[] FooterData { get; }
-			public uint FooterMagic { get; }
+			public Magic FooterMagic { get; }
 			public byte[] FooterEntry { get; }
 
-			public EntryTypeA(ulong internalUid, uint magic, byte[] data, byte[] footerData, uint footerMagic, byte[] footerEntry) : base(internalUid, magic)
+			public EntryTypeA(ulong internalUid, Magic entryMagic, byte[] data, byte[] footerData, Magic footerMagic, byte[] footerEntry) : base(internalUid, entryMagic)
 			{
 				Data = data;
 				FooterData = footerData;
@@ -138,7 +138,8 @@ namespace RainbowForge.Link
 			public UidLinkDataEntry ExtraEntry { get; }
 
 			/// <inheritdoc />
-			public EntryTypeAB(ulong internalUid, uint magic, byte[] data, byte[] footerData, uint footerMagic, byte[] footerEntry, UidLinkDataEntry extraEntry) : base(internalUid, magic, data,
+			public EntryTypeAB(ulong internalUid, Magic entryMagic, byte[] data, byte[] footerData, Magic footerMagic, byte[] footerEntry, UidLinkDataEntry extraEntry) : base(internalUid, entryMagic,
+				data,
 				footerData,
 				footerMagic, footerEntry)
 			{

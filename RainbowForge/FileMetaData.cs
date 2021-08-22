@@ -8,15 +8,15 @@ namespace RainbowForge
 	{
 		public string FileName { get; }
 		public byte[] EncodedMeta { get; }
-		public uint Var1 { get; }
+		public uint ContainerType { get; }
 		public uint FileType { get; }
 		public ulong Uid { get; }
 
-		private FileMetaData(string fileName, byte[] encodedMeta, uint var1, uint fileType, ulong uid)
+		private FileMetaData(string fileName, byte[] encodedMeta, uint containerType, uint fileType, ulong uid)
 		{
 			FileName = fileName;
 			EncodedMeta = encodedMeta;
-			Var1 = var1;
+			ContainerType = containerType;
 			FileType = fileType;
 			Uid = uid;
 		}

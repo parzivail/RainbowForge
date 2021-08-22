@@ -5,16 +5,16 @@ namespace RainbowForge.Link
 {
 	public class UidLinkContainer
 	{
-		public uint Magic { get; }
+		public Magic ContainerMagic { get; }
 		public ulong InternalUid { get; }
 		public byte[] Data1 { get; }
 		public UidLinkDataEntry[] DataEntries { get; }
 		public UidLinkDataEntry[] DataEntries2 { get; }
 		public UidLinkEntry[] UidLinkEntries { get; }
 
-		private UidLinkContainer(uint magic, ulong internalUid, byte[] data1, UidLinkDataEntry[] dataEntries, UidLinkDataEntry[] dataEntries2, UidLinkEntry[] uidLinkEntries)
+		private UidLinkContainer(Magic magic, ulong internalUid, byte[] data1, UidLinkDataEntry[] dataEntries, UidLinkDataEntry[] dataEntries2, UidLinkEntry[] uidLinkEntries)
 		{
-			Magic = magic;
+			ContainerMagic = magic;
 			InternalUid = internalUid;
 			Data1 = data1;
 			DataEntries = dataEntries;
@@ -25,24 +25,26 @@ namespace RainbowForge.Link
 		public static UidLinkContainer Read(BinaryReader r, uint containerType)
 		{
 			// TODO: flags?
-			var hasDoubles = containerType == 342 ||
-			                 containerType == 862 ||
-			                 containerType == 1122 ||
-			                 containerType == 1832 ||
-			                 containerType == 1902 ||
-			                 containerType == 2682;
+			var hasDoubles = containerType == 0x156 ||
+			                 containerType == 0x35E ||
+			                 containerType == 0x462 ||
+			                 containerType == 0x728 ||
+			                 containerType == 0x76E ||
+			                 containerType == 0xA7A;
 
 			var hasLargeEntries = containerType == 1236;
 
-			var magic = r.ReadUInt32();
+			var magic = (Magic)r.ReadUInt32();
 
 			var internalUid = r.ReadUInt64();
-			var magic2 = r.ReadUInt32();
+			var magic2 = (Magic)r.ReadUInt32();
 
 			var headerBytes = magic2 switch
 			{
-				0xF5BD7B8A => 8,
-				_ => throw new NotSupportedException()
+				Magic.SpaceManager => 0,
+				Magic.RowSelector => 8,
+				Magic.LocalizedString => 9,
+				_ => throw new NotSupportedException($"Unknown header magic {magic2} (0x{(uint)magic2:X8})")
 			};
 
 			var data1 = r.ReadBytes(headerBytes);

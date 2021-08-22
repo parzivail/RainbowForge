@@ -21,7 +21,7 @@ namespace RainbowForge.Archive
 		{
 			var meta = FileMetaData.Read(r);
 
-			var length = meta.Var1 - 8; // length - int64(uid)
+			var length = meta.ContainerType - 8; // length - int64(uid)
 
 			var payloadOffset = r.BaseStream.Position;
 
@@ -30,7 +30,7 @@ namespace RainbowForge.Archive
 
 			r.BaseStream.Seek(length, SeekOrigin.Current);
 
-			return new FlatArchiveEntry(meta, index, payloadOffset, (int) length);
+			return new FlatArchiveEntry(meta, index, payloadOffset, (int)length);
 		}
 	}
 }
