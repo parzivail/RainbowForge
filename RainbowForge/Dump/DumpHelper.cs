@@ -126,7 +126,7 @@ namespace RainbowForge.Dump
 				{
 					var objFace = new ObjFace
 					{
-						ObjectName = $"object{objId}"
+						ObjectName = $"{name}_object{objId}"
 					};
 
 					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
