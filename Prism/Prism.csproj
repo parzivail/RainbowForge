@@ -13,31 +13,49 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="ObjectListView.Official" Version="2.9.2-alpha2"/>
-        <PackageReference Include="OpenTK.GLControl" Version="3.1.0"/>
-        <PackageReference Include="SkiaSharp" Version="2.88.0-preview.120"/>
-        <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="2.88.0-preview.120"/>
-        <PackageReference Include="System.Drawing.Common" Version="6.0.0-preview.7.21377.19"/>
+        <PackageReference Include="ObjectListView.Official" Version="2.9.2-alpha2" />
+        <PackageReference Include="OpenTK.GLControl" Version="3.1.0" />
+        <PackageReference Include="SkiaSharp" Version="2.88.0-preview.120" />
+        <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="2.88.0-preview.120" />
+        <PackageReference Include="System.Drawing.Common" Version="6.0.0-preview.7.21377.19" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\RainbowForge\RainbowForge.csproj"/>
+        <ProjectReference Include="..\RainbowForge\RainbowForge.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Resources\model.frag"/>
-        <EmbeddedResource Include="Resources\model.frag"/>
-        <None Remove="Resources\model.vert"/>
+        <None Remove="Resources\checker.jpg" />
+        <None Remove="Resources\model.frag" />
+        <None Remove="Resources\radiancevenicematcap.png" />
+        <None Remove="Resources\reflectionvenicematcap.png" />
+        <None Remove="Resources\venice_sunset_2k.png" />
+        <EmbeddedResource Include="Resources\checker.jpg">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Resources\model.frag">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Resources\model.vert" />
         <EmbeddedResource Include="Resources\model.vert">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
-        <None Remove="Resources\screen.frag"/>
+        <None Remove="Resources\screen.frag" />
+        <EmbeddedResource Include="Resources\radiancevenicematcap.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Resources\reflectionvenicematcap.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
         <EmbeddedResource Include="Resources\screen.frag">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
-        <None Remove="Resources\screen.vert"/>
+        <None Remove="Resources\screen.vert" />
         <EmbeddedResource Include="Resources\screen.vert">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Resources\venice_sunset_2k.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
     </ItemGroup>
 
