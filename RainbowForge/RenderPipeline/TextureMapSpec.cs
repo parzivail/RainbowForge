@@ -18,7 +18,7 @@ namespace RainbowForge.RenderPipeline
 		public static TextureMapSpec Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.TextureMapSpec, magic);
+			// MagicHelper.AssertEquals(Magic.TextureMapSpec, magic);
 
 			var mipUid = r.ReadUInt64();
 			var textureType = r.ReadUInt32();

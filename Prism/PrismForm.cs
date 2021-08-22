@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using JeremyAnsel.Media.WavefrontObj;
@@ -41,7 +43,9 @@ namespace Prism
 		private readonly ToolStripMenuItem _bDumpAsDds;
 		private readonly ToolStripMenuItem _bDumpAsObj;
 
+		private readonly TextBox _searchTextBox;
 		private readonly TreeListView _assetList;
+
 		private readonly MinimalSplitContainer _splitContainer;
 		private readonly GLControl _glControl;
 		private readonly SKControl _imageControl;
@@ -114,7 +118,15 @@ namespace Prism
 								Dock = DockStyle.Fill,
 								View = View.Details,
 								ShowGroups = false,
-								FullRowSelect = true
+								FullRowSelect = true,
+								UseFiltering = true,
+								UseHotItem = false,
+								UseHyperlinks = false,
+								UseHotControls = false
+							}),
+							(_searchTextBox = new TextBox
+							{
+								Dock = DockStyle.Top
 							})
 						}
 					}
@@ -315,6 +327,16 @@ namespace Prism
 			DumpHelper.DumpBin(fileName, ddsStream);
 		}
 
+		private static AssetMetaData GetAssetMetaData(object o)
+		{
+			return o switch
+			{
+				Entry e => new AssetMetaData(e.Uid, e.MetaData.FileType, 0, e.MetaData.FileName),
+				FlatArchiveEntry fae => new AssetMetaData(fae.MetaData.Uid, fae.MetaData.FileType, fae.MetaData.ContainerType, fae.MetaData.FileName),
+				_ => null
+			};
+		}
+
 		private AssetStream GetAssetStream(object o)
 		{
 			switch (o)
@@ -325,9 +347,8 @@ namespace Prism
 
 					return container switch
 					{
-						ForgeAsset forgeAsset => new AssetStream(AssetStreamType.ForgeEntry, entry.Uid, entry.MetaData.FileType, 0, entry.MetaData.FileName,
-							() => forgeAsset.GetDataStream(_openedForge)),
-						_ => new AssetStream(AssetStreamType.ForgeEntry, entry.Uid, entry.MetaData.FileType, 0, entry.MetaData.FileName, () => _openedForge.GetEntryStream(entry))
+						ForgeAsset forgeAsset => new AssetStream(AssetStreamType.ForgeEntry, GetAssetMetaData(entry), () => forgeAsset.GetDataStream(_openedForge)),
+						_ => new AssetStream(AssetStreamType.ForgeEntry, GetAssetMetaData(entry), () => _openedForge.GetEntryStream(entry))
 					};
 				}
 				case FlatArchiveEntry flatArchiveEntry:
@@ -336,8 +357,7 @@ namespace Prism
 					if (container is not ForgeAsset forgeAsset)
 						return null;
 
-					return new AssetStream(AssetStreamType.ArchiveEntry, flatArchiveEntry.MetaData.Uid, flatArchiveEntry.MetaData.FileType, flatArchiveEntry.MetaData.ContainerType,
-						flatArchiveEntry.MetaData.FileName,
+					return new AssetStream(AssetStreamType.ArchiveEntry, GetAssetMetaData(flatArchiveEntry),
 						() =>
 						{
 							using var assetStream = forgeAsset.GetDataStream(_openedForge);
@@ -501,35 +521,17 @@ namespace Prism
 
 			_assetList.CellRightClick += (sender, args) =>
 			{
-				string name;
-				ulong uid;
-				uint fileType;
-
 				var tlv = (TreeListView)sender;
-				switch (tlv.SelectedObject)
-				{
-					case Entry e:
-						name = e.MetaData.FileName;
-						uid = e.Uid;
-						fileType = e.MetaData.FileType;
-						break;
-					case FlatArchiveEntry fae:
-						name = fae.MetaData.FileName;
-						uid = fae.MetaData.Uid;
-						fileType = fae.MetaData.FileType;
-						break;
-					default:
-						return;
-				}
+				var meta = GetAssetMetaData(tlv.SelectedObject);
 
 				var bCopyName = new ToolStripMenuItem("&Copy Name");
-				bCopyName.Click += (o, eventArgs) => Clipboard.SetText(name);
+				bCopyName.Click += (o, eventArgs) => Clipboard.SetText(meta.Filename);
 
 				var bCopyUid = new ToolStripMenuItem("&Copy UID");
-				bCopyUid.Click += (o, eventArgs) => Clipboard.SetText($"0x{uid:X16}");
+				bCopyUid.Click += (o, eventArgs) => Clipboard.SetText($"0x{meta.Uid:X16}");
 
 				var bCopyFiletype = new ToolStripMenuItem("&Copy Filetype");
-				bCopyFiletype.Click += (o, eventArgs) => Clipboard.SetText($"0x{fileType:X8}");
+				bCopyFiletype.Click += (o, eventArgs) => Clipboard.SetText($"0x{meta.Magic:X8}");
 
 				args.MenuStrip = new ContextMenuStrip
 				{
@@ -542,6 +544,26 @@ namespace Prism
 					}
 				};
 			};
+
+			_searchTextBox.TextChanged += (sender, args) =>
+			{
+				var filterStr = _searchTextBox.Text;
+				_assetList.SelectedIndex = -1;
+				_assetList.ModelFilter = new ModelFilter(o => DoesEntryMatchFilter(o, filterStr));
+			};
+		}
+
+		private static bool DoesEntryMatchFilter(object entry, string filter)
+		{
+			if (string.IsNullOrWhiteSpace(filter))
+				return false;
+
+			var meta = GetAssetMetaData(entry);
+
+			if (ulong.TryParse(filter, NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
+				return true;
+
+			return meta.Filename.Contains(filter, StringComparison.OrdinalIgnoreCase);
 		}
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
@@ -580,8 +602,8 @@ namespace Prism
 			}
 			else
 			{
-				type = MagicHelper.GetFiletype(assetStream.Magic);
-				magic = (Magic)assetStream.Magic;
+				type = MagicHelper.GetFiletype(assetStream.MetaData.Magic);
+				magic = (Magic)assetStream.MetaData.Magic;
 			}
 
 			_bDumpAsBin.Enabled = assetStream != null;
@@ -591,7 +613,7 @@ namespace Prism
 
 		private void PreviewAsset(AssetStream assetStream)
 		{
-			switch (MagicHelper.GetFiletype(assetStream.Magic))
+			switch (MagicHelper.GetFiletype(assetStream.MetaData.Magic))
 			{
 				case AssetType.Mesh:
 				{
@@ -679,11 +701,11 @@ namespace Prism
 					// First entry in a flat archive is a UidLinkContainer
 
 					using var stream = assetStream.StreamProvider.Invoke();
-					var container = UidLinkContainer.Read(stream, assetStream.ContainerType);
+					var container = UidLinkContainer.Read(stream, assetStream.MetaData.ContainerType);
 
 					var entries = new List<TreeListViewEntry>
 					{
-						CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+						CreateMetadataInfoNode(assetStream),
 						new(nameof(UidLinkContainer), null,
 							new TreeListViewEntry(nameof(UidLinkContainer.UidLinkEntries), null, container.UidLinkEntries.Select(CreateUidLinkEntryNode).ToArray())
 						)
@@ -702,7 +724,7 @@ namespace Prism
 				{
 					List<TreeListViewEntry> entries;
 
-					switch ((Magic)assetStream.Magic)
+					switch ((Magic)assetStream.MetaData.Magic)
 					{
 						case Magic.Mesh:
 						{
@@ -711,7 +733,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream),
 								new(nameof(Mesh), null,
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
@@ -729,7 +751,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream),
 							};
 
 							break;
@@ -741,7 +763,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream),
 								new(nameof(Material), null,
 									new TreeListViewEntry(nameof(Material.BaseTextureMapSpecs), null, mc.BaseTextureMapSpecs.Select(CreateMipContainerReferenceNode).ToArray()),
 									new TreeListViewEntry(nameof(Material.SecondaryTextureMapSpecs), null, mc.SecondaryTextureMapSpecs.Select(CreateMipContainerReferenceNode).ToArray()),
@@ -757,7 +779,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream),
 								new(nameof(TextureMapSpec), null,
 									new TreeListViewEntry(nameof(TextureMapSpec.TextureMapUid), $"{mc.TextureMapUid:X16}"),
 									new TreeListViewEntry("TextureType", $"{mc.TextureType:X8}")
@@ -772,7 +794,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream),
 								new(nameof(TextureMap), null,
 									new TreeListViewEntry("Var1", mc.Var1),
 									new TreeListViewEntry("Var2", mc.Var2),
@@ -791,7 +813,7 @@ namespace Prism
 
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename),
+								CreateMetadataInfoNode(assetStream),
 								new(nameof(R6AIWorldComponent), null,
 									new TreeListViewEntry(nameof(R6AIWorldComponent.Rooms), null,
 										am.Rooms.Select(area => new TreeListViewEntry("Area", null,
@@ -807,7 +829,7 @@ namespace Prism
 						{
 							entries = new List<TreeListViewEntry>
 							{
-								CreateMetadataInfoNode(assetStream.Uid, assetStream.Magic, assetStream.Filename)
+								CreateMetadataInfoNode(assetStream),
 							};
 							break;
 						}
@@ -849,14 +871,14 @@ namespace Prism
 			);
 		}
 
-		private static TreeListViewEntry CreateMetadataInfoNode(ulong uid, ulong fileType, string filename)
+		private static TreeListViewEntry CreateMetadataInfoNode(AssetStream stream)
 		{
 			return new TreeListViewEntry("Metadata", null,
-				new TreeListViewEntry("Filename", filename),
-				new TreeListViewEntry("UID", $"{uid:X16}"),
-				new TreeListViewEntry("FileType", $"{fileType:X8}"),
-				new TreeListViewEntry("Magic", (Magic)fileType),
-				new TreeListViewEntry("AssetType", MagicHelper.GetFiletype(fileType))
+				new TreeListViewEntry("Filename", stream.MetaData.Filename),
+				new TreeListViewEntry("UID", $"{stream.MetaData.Uid:X16}"),
+				new TreeListViewEntry("FileType", $"{stream.MetaData.Magic:X8}"),
+				new TreeListViewEntry("Magic", (Magic)stream.MetaData.Magic),
+				new TreeListViewEntry("AssetType", MagicHelper.GetFiletype(stream.MetaData.Magic))
 			);
 		}
 
