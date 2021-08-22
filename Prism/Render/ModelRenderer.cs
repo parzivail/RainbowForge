@@ -34,6 +34,11 @@ namespace Prism.Render
 		private int _zoom = 1;
 
 		private CompiledMeshObject _compiledMeshObject;
+		
+		public static Vector3 hexToBase(Vector3 input)
+        {
+			return new Vector3(input.X/255, input.Y / 255, input.Z / 255);
+        }
 
 		public ModelRenderer(IRenderContext renderContext)
 		{
@@ -101,7 +106,7 @@ namespace Prism.Render
 
 				GL.Enable(EnableCap.Texture2D);
 
-				var textureTest = GL.GenTexture(); 
+				var textureTest = GL.GenTexture();
 				var bmp = new Bitmap(ResourceHelper.getResourcePath("reflectionvenicematcap.png"));
 				bmp.LoadGlTexture(textureTest, TextureTarget.Texture2D);
 
@@ -118,7 +123,7 @@ namespace Prism.Render
 				GL.ActiveTexture(TextureUnit.Texture4);
 				GL.BindTexture(TextureTarget.Texture2D, checkerUV);
 				GL.ActiveTexture(TextureUnit.Texture3);
-				GL.BindTexture(TextureTarget.Texture2D, radianceTex); 
+				GL.BindTexture(TextureTarget.Texture2D, radianceTex);
 
 				CreateScreenVao();
 				_viewFbo = new Framebuffer(8, _renderContext.DefaultFramebuffer);
@@ -132,7 +137,7 @@ namespace Prism.Render
 				_shaderModel.Uniforms.SetValue("texModel", 2);
 				_shaderModel.Uniforms.SetValue("checkerTex", 4);
 				_shaderModel.Uniforms.SetValue("pos", _camera.Position);
-				_shaderModel.Uniforms.SetValue("colorIn", new Vector3(0.23f, 0.511f, 0.81f));
+				_shaderModel.Uniforms.SetValue("colorIn", hexToBase(new Vector3(112, 188, 255)));
 				_shaderModel.Uniforms.SetValue("lightPos", new Vector3(0.6f, -1, 0.8f));
 				_shaderModel.Uniforms.SetValue("lightColor", new Vector3(1f, 1f, 1f));
 
@@ -155,11 +160,11 @@ namespace Prism.Render
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
 			var rotation = Matrix4.CreateRotationY(MathHelper.DegreesToRadians(-_rotation.Y))
-			               * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-_rotation.X));
+						   * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-_rotation.X));
 
 			var view = rotation
-			           * Matrix4.CreateScale((float)Math.Pow(10, _zoom / 10f) * Vector3.One)
-			           * Matrix4.CreateTranslation(_translation.X, _translation.Y, -10);
+					   * Matrix4.CreateScale((float)Math.Pow(10, _zoom / 10f) * Vector3.One)
+					   * Matrix4.CreateTranslation(_translation.X, _translation.Y, -10);
 
 			var modelspace = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-90));
 

@@ -47,6 +47,3 @@ void main()
     //color = samp;
     
 }
-
-
-
