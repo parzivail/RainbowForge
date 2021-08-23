@@ -28,7 +28,7 @@ namespace Prism
 			Description("Make exported PNGs vertically flipped, which transforms normal maps from DirectX texture coordinate space to the texture coordinate space of exported models."),
 			DefaultValue(true)
 		]
-		public bool FlipPngSpace { get; set; } = false;
+		public bool FlipPngSpace { get; set; } = true;
 
 		[
 			Category("PNG Export"),
