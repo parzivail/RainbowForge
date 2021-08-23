@@ -24,11 +24,19 @@ namespace Prism
 
 		[
 			Category("PNG Export"),
-			DisplayName("Flip blue (Z) channel"),
-			Description("Make exported PNGs have the blue (Z) channel flipped, which transforms normal maps from DirectX normal space to OpenGL normal space."),
+			DisplayName("Horizontally flip entire image"),
+			Description("Make exported PNGs vertically flipped, which transforms normal maps from DirectX texture coordinate space to the texture coordinate space of exported models."),
+			DefaultValue(true)
+		]
+		public bool FlipPngSpace { get; set; } = false;
+
+		[
+			Category("PNG Export"),
+			DisplayName("Flip green (Y) channel"),
+			Description("Make exported PNGs have the green (Y) channel flipped, which transforms normal maps from DirectX normal space to OpenGL normal space."),
 			DefaultValue(false)
 		]
-		public bool FlipPngBlueChannel { get; set; } = false;
+		public bool FlipPngGreenChannel { get; set; } = false;
 
 		public void Save(string filename)
 		{

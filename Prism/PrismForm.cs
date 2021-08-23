@@ -148,7 +148,10 @@ namespace Prism
 			using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 			using var bmp = image.CreateBitmap();
 
-			if (_settings.FlipPngBlueChannel)
+			if (_settings.FlipPngSpace)
+				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+			if (_settings.FlipPngGreenChannel)
 			{
 				var bits = bmp.LockBits(new Rectangle(Point.Empty, bmp.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
 				var pointer = bits.Scan0;
@@ -158,7 +161,7 @@ namespace Prism
 
 				for (var i = 0; i < pixels.Length; i += 4)
 				{
-					pixels[i + 0] = (byte)(255 - pixels[i + 0]); // Flip blue (in BGRA) channel
+					pixels[i + 1] = (byte)(255 - pixels[i + 1]); // Flip green (in BGRA) channel
 				}
 
 				Marshal.Copy(pixels, 0, pointer, size);
