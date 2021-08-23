@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -68,17 +68,17 @@ namespace Prism
 			}
 		}
 
-		private void DumpSelectionAsBin(object o)
+		private void DumpSelectionAsBin(string outputDir, object o)
 		{
-			var streamData = GetAssetStream(o);
-			using var stream = streamData.StreamProvider.Invoke();
-			DumpHelper.DumpBin(Path.Combine(_exportDialogPath.SelectedPath, streamData.MetaData.Filename + ".bin"), stream.BaseStream);
+			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
+			using var stream = streamProvider.Invoke();
+			DumpHelper.DumpBin(Path.Combine(outputDir, assetMetaData.Filename + ".bin"), stream.BaseStream);
 		}
 
-		private void DumpSelectionAsObj(object o)
+		private void DumpSelectionAsObj(string outputDir, object o)
 		{
-			var streamData = GetAssetStream(o);
-			using var stream = streamData.StreamProvider.Invoke();
+			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
+			using var stream = streamProvider.Invoke();
 
 			var header = MeshHeader.Read(stream);
 
@@ -97,7 +97,7 @@ namespace Prism
 				{
 					var objFace = new ObjFace
 					{
-						ObjectName = $"{streamData.MetaData.Filename + (_bDumpLods.Checked ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
+						ObjectName = $"{assetMetaData.Filename + (_bDumpLods.Checked ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
 					};
 
 					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
@@ -123,19 +123,19 @@ namespace Prism
 			foreach (var v in container.TexCoords)
 				obj.TextureVertices.Add(new ObjVector3(v.X, v.Y));
 
-			obj.WriteTo(Path.Combine(_exportDialogPath.SelectedPath, streamData.MetaData.Filename + ".obj"));
+			obj.WriteTo(Path.Combine(outputDir, assetMetaData.Filename + ".obj"));
 		}
 
-		private void DumpSelectionAsDds(object o)
+		private void DumpSelectionAsDds(string outputDir, object o)
 		{
-			var streamData = GetAssetStream(o);
-			using var stream = streamData.StreamProvider.Invoke();
+			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
+			using var stream = streamProvider.Invoke();
 
 			var texture = Texture.Read(stream);
 			var surface = texture.ReadSurfaceBytes(stream);
 			using var ddsStream = DdsHelper.GetDdsStream(texture, surface);
 
-			DumpHelper.DumpBin(Path.Combine(_exportDialogPath.SelectedPath, streamData.MetaData.Filename + ".dds"), ddsStream);
+			DumpHelper.DumpBin(Path.Combine(outputDir, assetMetaData.Filename + ".dds"), ddsStream);
 		}
 
 		private static AssetMetaData GetAssetMetaData(object o)

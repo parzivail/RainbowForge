@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
@@ -27,11 +28,16 @@ namespace Prism
 		private readonly ToolStripMenuItem _bResetViewport;
 		private readonly ToolStripMenuItem _bExportPath;
 
-		private readonly ToolStripMenuItem _bDumpAsBin;
-		private readonly ToolStripMenuItem _bDumpAsDds;
-		private readonly ToolStripMenuItem _bDumpAsObj;
+		private readonly ToolStripMenuItem _bDumpAsBinHeader;
+		private readonly ToolStripMenuItem _bDumpAsBinQuick;
 		private readonly ToolStripMenuItem _bDumpAsBinAs;
+
+		private readonly ToolStripMenuItem _bDumpAsDdsHeader;
+		private readonly ToolStripMenuItem _bDumpAsDdsQuick;
 		private readonly ToolStripMenuItem _bDumpAsDdsAs;
+
+		private readonly ToolStripMenuItem _bDumpAsObjHeader;
+		private readonly ToolStripMenuItem _bDumpAsObjQuick;
 		private readonly ToolStripMenuItem _bDumpAsObjAs;
 
 		private readonly TextBox _searchTextBox;
@@ -43,7 +49,7 @@ namespace Prism
 		private readonly TreeListView _infoControl;
 		private readonly TextBox _errorInfoControl;
 
-		private FolderBrowserDialog _exportDialogPath;
+		private string _quickExportPath = "Quick Exports";
 		private ToolStripMenuItem _bDumpLods;
 
 		public PrismForm()
@@ -53,8 +59,6 @@ namespace Prism
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
 			Text = "Prism";
-
-			SetConfig();
 
 			Controls.Add(_splitContainer = new MinimalSplitContainer
 			{
@@ -75,11 +79,11 @@ namespace Prism
 							UseHyperlinks = false,
 							UseHotControls = false
 						}),
-							(_searchTextBox = new TextBox
-							{
-								Dock = DockStyle.Top,
-								PlaceholderText = "Search groups (i.e. keyword, ?type, #uid, seperated by commas)"
-							})
+						(_searchTextBox = new TextBox
+						{
+							Dock = DockStyle.Top,
+							PlaceholderText = "Search groups (i.e. keyword, ?type, #uid, seperated by commas)"
+						})
 					}
 				}
 			});
@@ -107,14 +111,32 @@ namespace Prism
 						Text = "&Export",
 						DropDownItems =
 						{
-							(_bDumpAsBin = new ToolStripMenuItem("&.bin | Quick Export")),
-							(_bDumpAsBinAs = new ToolStripMenuItem("&.bin | Export as...")),
+							(_bDumpAsBinHeader = new ToolStripMenuItem("&Binary File")
+							{
+								DropDownItems =
+								{
+									(_bDumpAsBinQuick = new ToolStripMenuItem("&Quick Export")),
+									(_bDumpAsBinAs = new ToolStripMenuItem("&Export as...")),
+								}
+							}),
 							new ToolStripSeparator(),
-							(_bDumpAsDds = new ToolStripMenuItem("&.dds | Quick Export")),
-							(_bDumpAsDdsAs = new ToolStripMenuItem("&.dds | Export as...")),
+							(_bDumpAsDdsHeader = new ToolStripMenuItem("&DirectDraw Surface")
+							{
+								DropDownItems =
+								{
+									(_bDumpAsDdsQuick = new ToolStripMenuItem("&.dds | Quick Export")),
+									(_bDumpAsDdsAs = new ToolStripMenuItem("&.dds | Export as...")),
+								}
+							}),
 							new ToolStripSeparator(),
-							(_bDumpAsObj = new ToolStripMenuItem("&.obj | Quick Export")),
-							(_bDumpAsObjAs = new ToolStripMenuItem("&.obj | Export as..."))
+							(_bDumpAsObjHeader = new ToolStripMenuItem("&Wavefront OBJ")
+							{
+								DropDownItems =
+								{
+									(_bDumpAsObjQuick = new ToolStripMenuItem("&.obj | Quick Export")),
+									(_bDumpAsObjAs = new ToolStripMenuItem("&.obj | Export as..."))
+								}
+							})
 						}
 					},
 					new ToolStripDropDownButton
@@ -199,15 +221,24 @@ namespace Prism
 
 			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
 
-			_bDumpAsBin.Click += CreateDumpEventHandler(DumpSelectionAsBin);
-			_bDumpAsDds.Click += CreateDumpEventHandler(DumpSelectionAsDds);
-			_bDumpAsObj.Click += CreateDumpEventHandler(DumpSelectionAsObj);
+			_bDumpAsBinQuick.Click += CreateDumpEventHandler(DumpSelectionAsBin);
+			_bDumpAsDdsQuick.Click += CreateDumpEventHandler(DumpSelectionAsDds);
+			_bDumpAsObjQuick.Click += CreateDumpEventHandler(DumpSelectionAsObj);
 
 			_bDumpAsBinAs.Click += CreateDumpEventHandler(DumpSelectionAsBin, true);
 			_bDumpAsDdsAs.Click += CreateDumpEventHandler(DumpSelectionAsDds, true);
 			_bDumpAsObjAs.Click += CreateDumpEventHandler(DumpSelectionAsObj, true);
 
-			_bExportPath.Click += (sender, args) => _exportDialogPath.ShowDialog();
+			_bExportPath.Click += (sender, args) =>
+			{
+				var folderBrowserDialog = new FolderBrowserDialog();
+				if (folderBrowserDialog.ShowDialog() != DialogResult.OK)
+					return;
+
+				// TODO: load this from a config file
+				_quickExportPath = folderBrowserDialog.SelectedPath;
+			};
+
 			_bDumpLods.Click += (sender, args) => _bDumpLods.Checked = !_bDumpLods.Checked;
 
 			SetupRenderer();
@@ -216,27 +247,26 @@ namespace Prism
 			UpdateAbility(null);
 		}
 
-		private void SetConfig() // TODO: save to file
-		{
-			_exportDialogPath = new FolderBrowserDialog
-			{
-				SelectedPath = "_export"
-			};
-		}
-
-		private EventHandler CreateDumpEventHandler(Action<object> action, bool saveAs = false)
+		private EventHandler CreateDumpEventHandler(Action<string, object> action, bool saveAs = false)
 		{
 			return (_, _) =>
 			{
+				var outputPath = _quickExportPath;
+
 				if (saveAs)
-					_exportDialogPath.ShowDialog();
-
-				var outputDir = Path.Combine(Environment.CurrentDirectory, _exportDialogPath.SelectedPath);
-				Directory.CreateDirectory(outputDir);
-
-				foreach (var SelectedObject in _assetList.SelectedObjects)
 				{
-					action(SelectedObject);
+					var folderBrowserDialog = new FolderBrowserDialog();
+					if (folderBrowserDialog.ShowDialog() != DialogResult.OK)
+						return;
+
+					outputPath = folderBrowserDialog.SelectedPath;
+				}
+
+				Directory.CreateDirectory(outputPath);
+
+				foreach (var selectedObject in _assetList.SelectedObjects)
+				{
+					action(outputPath, selectedObject);
 				}
 			};
 		}
@@ -429,26 +459,36 @@ namespace Prism
 
 		private static bool DoesEntryMatchFilter(object entry, string filter)
 		{
-			string[] SearchGroups = filter.Split(',');
-			List<bool> GroupMatches = new List<bool>();
+			var searchGroups = filter.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+			var groupMatches = new List<bool>();
 
 			var meta = GetAssetMetaData(entry);
 
-			for (var i = 0; i < SearchGroups.Length; i++)
-            {
-				if (string.IsNullOrWhiteSpace(SearchGroups[i]))
-                {	GroupMatches.Add(true); continue;	}
+			foreach (var t in searchGroups)
+			{
+				if (string.IsNullOrWhiteSpace(t))
+				{
+					groupMatches.Add(true);
+					continue;
+				}
 
-				if (SearchGroups[i].StartsWith('#') && ulong.TryParse(SearchGroups[i].Substring(1), NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) && filterUid == meta.Uid)
-                {	GroupMatches.Add(true); continue;	}
+				if (t.StartsWith('#') && ulong.TryParse(t[1..], NumberStyles.HexNumber, Thread.CurrentThread.CurrentCulture, out var filterUid) &&
+				    filterUid == meta.Uid)
+				{
+					groupMatches.Add(true);
+					continue;
+				}
 
-				if (SearchGroups[i].StartsWith('?'))
-                {	GroupMatches.Add(((Magic)meta.Magic).ToString().Contains(SearchGroups[i].Substring(1), StringComparison.OrdinalIgnoreCase)); continue; }
+				if (t.StartsWith('?'))
+				{
+					groupMatches.Add(((Magic)meta.Magic).ToString().Contains(t[1..], StringComparison.OrdinalIgnoreCase));
+					continue;
+				}
 
-				GroupMatches.Add(meta.Filename.Contains(SearchGroups[i], StringComparison.OrdinalIgnoreCase));
+				groupMatches.Add(meta.Filename.Contains(t, StringComparison.OrdinalIgnoreCase));
 			}
 
-			return GroupMatches.TrueForAll(x => x == true);
+			return groupMatches.All(x => x);
 		}
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
@@ -492,9 +532,9 @@ namespace Prism
 				magic = (Magic)assetStream.MetaData.Magic;
 			}
 
-			_bDumpAsBin.Enabled = _bDumpAsBinAs.Enabled = assetStream != null;
-			_bDumpAsDds.Enabled = _bDumpAsDdsAs.Enabled = type == AssetType.Texture;
-			_bDumpAsObj.Enabled = _bDumpAsObjAs.Enabled = type == AssetType.Mesh;
+			_bDumpAsBinHeader.Enabled = assetStream != null;
+			_bDumpAsDdsHeader.Enabled = type == AssetType.Texture;
+			_bDumpAsObjHeader.Enabled = type == AssetType.Mesh;
 		}
 
 		private void OnUiThread(Action action)
