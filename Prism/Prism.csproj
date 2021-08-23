@@ -30,9 +30,6 @@
         <None Remove="Resources\radiancevenicematcap.png" />
         <None Remove="Resources\reflectionvenicematcap.png" />
         <None Remove="Resources\venice_sunset_2k.png" />
-        <EmbeddedResource Include="Resources\checker.jpg">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
         <EmbeddedResource Include="Resources\model.frag">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
@@ -50,13 +47,15 @@
         <EmbeddedResource Include="Resources\screen.frag">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
-        <None Remove="Resources\screen.vert" />
+        <None Remove="Resources\screen.vert"/>
         <EmbeddedResource Include="Resources\screen.vert">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
         <EmbeddedResource Include="Resources\venice_sunset_2k.png">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
+        <None Remove="Resources\uv_debug.png"/>
+        <EmbeddedResource Include="Resources\uv_debug.png"/>
     </ItemGroup>
 
 </Project>

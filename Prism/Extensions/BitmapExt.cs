@@ -7,23 +7,23 @@ namespace Prism.Extensions
 {
 	public static class BitmapExt
 	{
-		public static void LoadGlTexture(this Bitmap bitmap, int texId, TextureTarget texTarget)
+		public static void LoadGlTexture(this Bitmap bitmap, int texId, TextureTarget target)
 		{
 			GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
 
-			GL.BindTexture(texTarget, texId);
+			GL.BindTexture(target, texId);
 
 			var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
 				ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
-			GL.TexImage2D(texTarget, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+			GL.TexImage2D(target, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
 				OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
 			bitmap.UnlockBits(data);
 
-			GL.TexParameter(texTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-			GL.TexParameter(texTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-			GL.TexParameter(texTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-			GL.TexParameter(texTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+			GL.TexParameter(target, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+			GL.TexParameter(target, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+			GL.TexParameter(target, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+			GL.TexParameter(target, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 		}
 	}
 }

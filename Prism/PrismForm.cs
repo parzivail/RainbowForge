@@ -85,16 +85,18 @@ namespace Prism
 
 			var obj = new ObjFile();
 
+			var numObjects = compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods;
+
 			for (var objId = 0; objId < compiledMeshObject.Objects.Count; objId++)
 			{
-				var lod = objId / compiledMeshObject.MeshHeader.NumLods;
+				var lod = objId / numObjects;
 
 				var o = compiledMeshObject.Objects[objId];
 				foreach (var face in o)
 				{
 					var objFace = new ObjFace
 					{
-						ObjectName = $"lod{lod}_object{objId % compiledMeshObject.MeshHeader.NumLods}"
+						ObjectName = $"lod{lod}_object{objId % numObjects}"
 					};
 
 					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));

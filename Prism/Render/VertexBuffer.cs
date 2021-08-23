@@ -14,11 +14,13 @@ namespace Prism.Render
 
 		public int ElementBufferId = -1;
 		public int NormalBufferId = -1;
+		public int TexCoordBufferId = -1;
+		public int VertexBufferId = -1;
+		public int ColorBufferId = -1;
+		public int ObjectIndexBufferId = -1;
 
 		public int NumElements;
-		public int TexCoordBufferId = -1;
 		public int VaoId = -1;
-		public int VertexBufferId = -1;
 
 		public bool Initialized { get; private set; }
 
@@ -27,7 +29,7 @@ namespace Prism.Render
 			_hint = hint;
 		}
 
-		public void InitializeVbo(Vector3[] vertices, Vector3[] normals, Vector2[] texCoords, uint[] elements)
+		public void InitializeVbo(Vector3[] vertices, Vector3[] normals, Vector2[] texCoords, Vector3[] colors, int[] objectIds, uint[] elements)
 		{
 			try
 			{
@@ -78,6 +80,54 @@ namespace Prism.Render
 						out int bufferSize);
 					if (texCoords.Length * VECTOR2_SIZE_IN_BYTES != bufferSize)
 						throw new ApplicationException("Uv array not uploaded correctly");
+
+					// Clear the buffer Binding
+					GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				}
+
+				// Color Array Buffer
+				{
+					// Generate Array Buffer Id
+					if (ColorBufferId == -1)
+						GL.GenBuffers(1, out ColorBufferId);
+
+					// Bind current context to Array Buffer ID
+					GL.BindBuffer(BufferTarget.ArrayBuffer, ColorBufferId);
+
+					// Send data to buffer
+					GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(colors.Length * VECTOR3_SIZE_IN_BYTES),
+						colors,
+						_hint);
+
+					// Validate that the buffer is the correct size
+					GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize,
+						out int bufferSize);
+					if (colors.Length * VECTOR3_SIZE_IN_BYTES != bufferSize)
+						throw new ApplicationException("Color array not uploaded correctly");
+
+					// Clear the buffer Binding
+					GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				}
+
+				// Object ID Array Buffer
+				{
+					// Generate Array Buffer Id
+					if (ObjectIndexBufferId == -1)
+						GL.GenBuffers(1, out ObjectIndexBufferId);
+
+					// Bind current context to Array Buffer ID
+					GL.BindBuffer(BufferTarget.ArrayBuffer, ObjectIndexBufferId);
+
+					// Send data to buffer
+					GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(objectIds.Length * sizeof(int)),
+						objectIds,
+						_hint);
+
+					// Validate that the buffer is the correct size
+					GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize,
+						out int bufferSize);
+					if (objectIds.Length * sizeof(int) != bufferSize)
+						throw new ApplicationException("Object ID array not uploaded correctly");
 
 					// Clear the buffer Binding
 					GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -143,6 +193,14 @@ namespace Prism.Render
 				GL.EnableVertexAttribArray(2);
 				GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, 0, 0);
 
+				GL.BindBuffer(BufferTarget.ArrayBuffer, ColorBufferId);
+				GL.EnableVertexAttribArray(3);
+				GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+				GL.BindBuffer(BufferTarget.ArrayBuffer, ObjectIndexBufferId);
+				GL.EnableVertexAttribArray(4);
+				GL.VertexAttribIPointer(4, 1, VertexAttribIntegerType.Int, 0, IntPtr.Zero);
+
 				GL.BindVertexArray(0);
 
 				Initialized = true;
@@ -178,6 +236,8 @@ namespace Prism.Render
 			GL.DeleteBuffer(NormalBufferId);
 			GL.DeleteBuffer(VertexBufferId);
 			GL.DeleteBuffer(TexCoordBufferId);
+			GL.DeleteBuffer(ColorBufferId);
+			GL.DeleteBuffer(ObjectIndexBufferId);
 		}
 
 		public void Dispose()

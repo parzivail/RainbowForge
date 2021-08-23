@@ -10,11 +10,6 @@ namespace Prism.Resources
 			var assembly = Assembly.GetExecutingAssembly();
 			return assembly.GetManifestResourceStream("Prism.Resources." + filename);
 		}
-		public static string getResourcePath(string filename)
-        {
-			return System.AppDomain.CurrentDomain.BaseDirectory + @"Resources\" + filename;
-
-		}
 
 		public static string ReadResource(string filename)
 		{
