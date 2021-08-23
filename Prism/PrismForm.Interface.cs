@@ -22,6 +22,8 @@ namespace Prism
 {
 	public partial class PrismForm
 	{
+		private const string SETTINGS_FILENAME = "settings.json";
+
 		private readonly ToolStripLabel _statusForgeInfo;
 
 		private readonly ToolStripMenuItem _bOpenForge;
@@ -49,8 +51,9 @@ namespace Prism
 		private readonly TreeListView _infoControl;
 		private readonly TextBox _errorInfoControl;
 
-		private string _quickExportPath = "Quick Exports";
-		private ToolStripMenuItem _bDumpLods;
+		private ToolStripMenuItem _bEditSettings;
+
+		private PrismSettings _settings;
 
 		public PrismForm()
 		{
@@ -103,7 +106,9 @@ namespace Prism
 							(_bOpenForge = new ToolStripMenuItem("&Open Forge")
 							{
 								ShortcutKeys = Keys.Control | Keys.O
-							})
+							}),
+							new ToolStripSeparator(),
+							(_bEditSettings = new ToolStripMenuItem("&Settings")),
 						}
 					},
 					new ToolStripDropDownButton
@@ -145,16 +150,6 @@ namespace Prism
 						DropDownItems =
 						{
 							(_bResetViewport = new ToolStripMenuItem("&Reset 3D Viewport"))
-						}
-					},
-					new ToolStripDropDownButton
-					{
-						Text = "&Settings",
-						DropDownItems =
-						{
-							(_bExportPath = new ToolStripMenuItem("&Change export folder")),
-							new ToolStripSeparator(),
-							(_bDumpLods = new ToolStripMenuItem("&Dump LODs?"))
 						}
 					}
 				}
@@ -219,7 +214,11 @@ namespace Prism
 				OpenForge(ofd.FileName);
 			};
 
-			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
+			_bEditSettings.Click += (sender, args) =>
+			{
+				if (new SettingsForm(SETTINGS_FILENAME).ShowDialog(this) == DialogResult.OK)
+					_settings = PrismSettings.Load(SETTINGS_FILENAME);
+			};
 
 			_bDumpAsBinQuick.Click += CreateDumpEventHandler(DumpSelectionAsBin);
 			_bDumpAsDdsQuick.Click += CreateDumpEventHandler(DumpSelectionAsDds);
@@ -229,29 +228,21 @@ namespace Prism
 			_bDumpAsDdsAs.Click += CreateDumpEventHandler(DumpSelectionAsDds, true);
 			_bDumpAsObjAs.Click += CreateDumpEventHandler(DumpSelectionAsObj, true);
 
-			_bExportPath.Click += (sender, args) =>
-			{
-				var folderBrowserDialog = new FolderBrowserDialog();
-				if (folderBrowserDialog.ShowDialog() != DialogResult.OK)
-					return;
-
-				// TODO: load this from a config file
-				_quickExportPath = folderBrowserDialog.SelectedPath;
-			};
-
-			_bDumpLods.Click += (sender, args) => _bDumpLods.Checked = !_bDumpLods.Checked;
+			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
 
 			SetupRenderer();
 			SetupAssetList();
 
 			UpdateAbility(null);
+
+			_settings = PrismSettings.Load(SETTINGS_FILENAME);
 		}
 
 		private EventHandler CreateDumpEventHandler(Action<string, object> action, bool saveAs = false)
 		{
 			return (_, _) =>
 			{
-				var outputPath = _quickExportPath;
+				var outputPath = _settings.QuickExportLocation;
 
 				if (saveAs)
 				{

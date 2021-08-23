@@ -88,7 +88,7 @@ namespace Prism
 
 			var numObjects = compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods;
 
-			for (var objId = 0; objId < (_bDumpLods.Checked ? compiledMeshObject.Objects.Count : numObjects); objId++)
+			for (var objId = 0; objId < (_settings.ExportAllModelLods ? compiledMeshObject.Objects.Count : numObjects); objId++)
 			{
 				var lod = objId / numObjects;
 
@@ -97,7 +97,7 @@ namespace Prism
 				{
 					var objFace = new ObjFace
 					{
-						ObjectName = $"{assetMetaData.Filename + (_bDumpLods.Checked ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
+						ObjectName = $"{assetMetaData.Filename + (_settings.ExportAllModelLods ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
 					};
 
 					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
