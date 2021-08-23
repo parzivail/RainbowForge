@@ -46,6 +46,10 @@ namespace Prism
 		private readonly ToolStripMenuItem _bDumpAsObjQuick;
 		private readonly ToolStripMenuItem _bDumpAsObjAs;
 
+		private readonly ToolStripMenuItem _bDumpWWiseHeader;
+		private readonly ToolStripMenuItem _bDumpWWiseQuick;
+		private readonly ToolStripMenuItem _bDumpWWiseAs;
+
 		private readonly TextBox _searchTextBox;
 		private readonly TreeListView _assetList;
 
@@ -153,6 +157,15 @@ namespace Prism
 									(_bDumpAsObjQuick = new ToolStripMenuItem("&.obj | Quick Export")),
 									(_bDumpAsObjAs = new ToolStripMenuItem("&.obj | Export as..."))
 								}
+							}),
+							new ToolStripSeparator(),
+							(_bDumpWWiseHeader = new ToolStripMenuItem("&WWise Sound (*.wem)")
+							{
+								DropDownItems =
+								{
+									(_bDumpWWiseQuick = new ToolStripMenuItem("&.wem | Quick Export")),
+									(_bDumpWWiseAs = new ToolStripMenuItem("&.wem | Export as..."))
+								}
 							})
 						}
 					},
@@ -243,6 +256,9 @@ namespace Prism
 
 			_bDumpAsObjQuick.Click += CreateDumpEventHandler(DumpSelectionAsObj);
 			_bDumpAsObjAs.Click += CreateDumpEventHandler(DumpSelectionAsObj, true);
+
+			_bDumpWWiseQuick.Click += CreateDumpEventHandler(DumpSelectionAsWem);
+			_bDumpWWiseAs.Click += CreateDumpEventHandler(DumpSelectionAsWem, true);
 
 			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
 
@@ -542,6 +558,7 @@ namespace Prism
 			_bDumpAsBinHeader.Enabled = assetStream != null;
 			_bDumpAsDdsHeader.Enabled = _bDumpAsPngHeader.Enabled = type == AssetType.Texture;
 			_bDumpAsObjHeader.Enabled = type == AssetType.Mesh;
+			_bDumpWWiseHeader.Enabled = type == AssetType.Sound;
 		}
 
 		private void OnUiThread(Action action)

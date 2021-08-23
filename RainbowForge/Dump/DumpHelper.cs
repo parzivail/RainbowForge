@@ -104,6 +104,26 @@ namespace RainbowForge.Dump
 				stream.CopyTo(fs);
 			else
 				stream.CopyStream(fs, writeLength);
+			fs.Dispose();
+			stream.Dispose();
+		}
+
+		public static void DumpWem(string filename, Stream stream, long writeOffset = 0, int writeLength = -1)
+		{
+			MemoryStream ms = new MemoryStream();
+			stream.CopyTo(ms);
+			int RiffOffset = System.Text.Encoding.Latin1.GetString(ms.ToArray()).IndexOf("RIFF");
+			ms.Dispose();
+
+			using var fs = File.Open(filename, FileMode.Create);
+			stream.Seek(RiffOffset, SeekOrigin.Begin);
+			if (writeLength == -1)
+				stream.CopyTo(fs);
+			else
+				stream.CopyStream(fs, writeLength);
+
+			fs.Dispose();
+			stream.Dispose();
 		}
 
 		private static void DumpTexture(string bank, string name, Texture texture, byte[] surface)

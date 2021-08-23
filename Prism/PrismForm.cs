@@ -171,6 +171,12 @@ namespace Prism
 			bmp.Save(Path.Combine(outputDir, assetMetaData.Filename + ".png"), System.Drawing.Imaging.ImageFormat.Png);
 		}
 
+		private void DumpSelectionAsWem(string outputDir, object o)
+		{
+			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
+			using var stream = streamProvider.Invoke();
+			DumpHelper.DumpWem(Path.Combine(outputDir, assetMetaData.Filename + ".wem"), stream.BaseStream);
+		}
 		private static AssetMetaData GetAssetMetaData(object o)
 		{
 			return o switch
