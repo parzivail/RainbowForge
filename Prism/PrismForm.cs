@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using JeremyAnsel.Media.WavefrontObj;
-using Pfim;
 using Prism.Extensions;
 using Prism.Render;
 using RainbowForge;
@@ -138,6 +139,35 @@ namespace Prism
 			DumpHelper.DumpBin(Path.Combine(outputDir, assetMetaData.Filename + ".dds"), ddsStream);
 		}
 
+		private void DumpSelectionAsPng(string outputDir, object o)
+		{
+			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
+			using var stream = streamProvider.Invoke();
+
+			var texture = Texture.Read(stream);
+			using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
+			using var bmp = image.CreateBitmap();
+
+			if (_settings.FlipPngBlueChannel)
+			{
+				var bits = bmp.LockBits(new Rectangle(Point.Empty, bmp.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+				var pointer = bits.Scan0;
+				var size = Math.Abs(bits.Stride) * bmp.Height;
+				var pixels = new byte[size];
+				Marshal.Copy(pointer, pixels, 0, size);
+
+				for (var i = 0; i < pixels.Length; i += 4)
+				{
+					pixels[i + 0] = (byte)(255 - pixels[i + 0]); // Flip blue (in BGRA) channel
+				}
+
+				Marshal.Copy(pixels, 0, pointer, size);
+				bmp.UnlockBits(bits);
+			}
+
+			bmp.Save(Path.Combine(outputDir, assetMetaData.Filename + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+		}
+
 		private static AssetMetaData GetAssetMetaData(object o)
 		{
 			return o switch
@@ -210,57 +240,8 @@ namespace Prism
 					var texture = Texture.Read(stream);
 					using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
-					var newData = image.Data;
-					var newDataLen = image.DataLen;
-					var stride = image.Stride;
-					SKColorType colorType;
-					switch (image.Format)
-					{
-						case ImageFormat.Rgb8:
-							colorType = SKColorType.Gray8;
-							break;
-						case ImageFormat.R5g6b5:
-							// color channels still need to be swapped
-							colorType = SKColorType.Rgb565;
-							break;
-						case ImageFormat.Rgba16:
-							// color channels still need to be swapped
-							colorType = SKColorType.Argb4444;
-							break;
-						case ImageFormat.Rgb24:
-						{
-							// Skia has no 24bit pixels, so we upscale to 32bit
-							var pixels = image.DataLen / 3;
-							newDataLen = pixels * 4;
-							newData = new byte[newDataLen];
-							for (var i = 0; i < pixels; i++)
-							{
-								newData[i * 4] = image.Data[i * 3];
-								newData[i * 4 + 1] = image.Data[i * 3 + 1];
-								newData[i * 4 + 2] = image.Data[i * 3 + 2];
-								newData[i * 4 + 3] = 255;
-							}
-
-							stride = image.Width * 4;
-							colorType = SKColorType.Bgra8888;
-							break;
-						}
-						case ImageFormat.Rgba32:
-							colorType = SKColorType.Bgra8888;
-							break;
-						default:
-							throw new ArgumentException($"Skia unable to interpret pfim format: {image.Format}");
-					}
-
-					var imageInfo = new SKImageInfo(image.Width, image.Height, colorType, SKAlphaType.Unpremul);
-					var handle = GCHandle.Alloc(newData, GCHandleType.Pinned);
-					var ptr = Marshal.UnsafeAddrOfPinnedArrayElement(newData, 0);
-
-					using (var data = SKData.Create(ptr, newDataLen, (address, context) => handle.Free()))
-					using (var skImage = SKImage.FromPixels(imageInfo, data, stride))
-					{
+					using (var skImage = image.CreateSkImage())
 						_renderer2d.SetTexture(SKBitmap.FromImage(skImage));
-					}
 
 					OnUiThread(() => { SetPreviewPanel(_imageControl); });
 

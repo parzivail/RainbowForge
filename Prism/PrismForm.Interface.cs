@@ -38,6 +38,10 @@ namespace Prism
 		private readonly ToolStripMenuItem _bDumpAsDdsQuick;
 		private readonly ToolStripMenuItem _bDumpAsDdsAs;
 
+		private readonly ToolStripMenuItem _bDumpAsPngHeader;
+		private readonly ToolStripMenuItem _bDumpAsPngQuick;
+		private readonly ToolStripMenuItem _bDumpAsPngAs;
+
 		private readonly ToolStripMenuItem _bDumpAsObjHeader;
 		private readonly ToolStripMenuItem _bDumpAsObjQuick;
 		private readonly ToolStripMenuItem _bDumpAsObjAs;
@@ -116,7 +120,7 @@ namespace Prism
 						Text = "&Export",
 						DropDownItems =
 						{
-							(_bDumpAsBinHeader = new ToolStripMenuItem("&Binary File")
+							(_bDumpAsBinHeader = new ToolStripMenuItem("&Binary File (*.bin)")
 							{
 								DropDownItems =
 								{
@@ -125,16 +129,24 @@ namespace Prism
 								}
 							}),
 							new ToolStripSeparator(),
-							(_bDumpAsDdsHeader = new ToolStripMenuItem("&DirectDraw Surface")
+							(_bDumpAsDdsHeader = new ToolStripMenuItem("&DirectDraw Surface (*.dds)")
 							{
 								DropDownItems =
 								{
-									(_bDumpAsDdsQuick = new ToolStripMenuItem("&.dds | Quick Export")),
-									(_bDumpAsDdsAs = new ToolStripMenuItem("&.dds | Export as...")),
+									(_bDumpAsDdsQuick = new ToolStripMenuItem("&Quick Export")),
+									(_bDumpAsDdsAs = new ToolStripMenuItem("&Export as...")),
+								}
+							}),
+							(_bDumpAsPngHeader = new ToolStripMenuItem("&PNG (*.png)")
+							{
+								DropDownItems =
+								{
+									(_bDumpAsPngQuick = new ToolStripMenuItem("&Quick Export")),
+									(_bDumpAsPngAs = new ToolStripMenuItem("&Export as...")),
 								}
 							}),
 							new ToolStripSeparator(),
-							(_bDumpAsObjHeader = new ToolStripMenuItem("&Wavefront OBJ")
+							(_bDumpAsObjHeader = new ToolStripMenuItem("&Wavefront OBJ (*.obj)")
 							{
 								DropDownItems =
 								{
@@ -221,11 +233,15 @@ namespace Prism
 			};
 
 			_bDumpAsBinQuick.Click += CreateDumpEventHandler(DumpSelectionAsBin);
-			_bDumpAsDdsQuick.Click += CreateDumpEventHandler(DumpSelectionAsDds);
-			_bDumpAsObjQuick.Click += CreateDumpEventHandler(DumpSelectionAsObj);
-
 			_bDumpAsBinAs.Click += CreateDumpEventHandler(DumpSelectionAsBin, true);
+
+			_bDumpAsDdsQuick.Click += CreateDumpEventHandler(DumpSelectionAsDds);
 			_bDumpAsDdsAs.Click += CreateDumpEventHandler(DumpSelectionAsDds, true);
+
+			_bDumpAsPngQuick.Click += CreateDumpEventHandler(DumpSelectionAsPng);
+			_bDumpAsPngAs.Click += CreateDumpEventHandler(DumpSelectionAsPng, true);
+
+			_bDumpAsObjQuick.Click += CreateDumpEventHandler(DumpSelectionAsObj);
 			_bDumpAsObjAs.Click += CreateDumpEventHandler(DumpSelectionAsObj, true);
 
 			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
@@ -524,7 +540,7 @@ namespace Prism
 			}
 
 			_bDumpAsBinHeader.Enabled = assetStream != null;
-			_bDumpAsDdsHeader.Enabled = type == AssetType.Texture;
+			_bDumpAsDdsHeader.Enabled = _bDumpAsPngHeader.Enabled = type == AssetType.Texture;
 			_bDumpAsObjHeader.Enabled = type == AssetType.Mesh;
 		}
 
