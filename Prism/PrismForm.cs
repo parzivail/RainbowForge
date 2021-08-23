@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -67,16 +68,16 @@ namespace Prism
 			}
 		}
 
-		private void DumpSelectionAsBin(string fileName)
+		private void DumpSelectionAsBin(object o)
 		{
-			var streamData = GetAssetStream(_assetList.SelectedObject);
+			var streamData = GetAssetStream(o);
 			using var stream = streamData.StreamProvider.Invoke();
-			DumpHelper.DumpBin(fileName, stream.BaseStream);
+			DumpHelper.DumpBin(Path.Combine(_exportDialogPath.SelectedPath, streamData.MetaData.Filename + ".bin"), stream.BaseStream);
 		}
 
-		private void DumpSelectionAsObj(string fileName)
+		private void DumpSelectionAsObj(object o)
 		{
-			var streamData = GetAssetStream(_assetList.SelectedObject);
+			var streamData = GetAssetStream(o);
 			using var stream = streamData.StreamProvider.Invoke();
 
 			var header = MeshHeader.Read(stream);
@@ -87,16 +88,16 @@ namespace Prism
 
 			var numObjects = compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods;
 
-			for (var objId = 0; objId < compiledMeshObject.Objects.Count; objId++)
+			for (var objId = 0; objId < (_bDumpLods.Checked ? compiledMeshObject.Objects.Count : numObjects); objId++)
 			{
 				var lod = objId / numObjects;
 
-				var o = compiledMeshObject.Objects[objId];
-				foreach (var face in o)
+				var objObject = compiledMeshObject.Objects[objId];
+				foreach (var face in objObject)
 				{
 					var objFace = new ObjFace
 					{
-						ObjectName = $"lod{lod}_object{objId % numObjects}"
+						ObjectName = $"{streamData.MetaData.Filename + (_bDumpLods.Checked ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
 					};
 
 					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
@@ -122,19 +123,19 @@ namespace Prism
 			foreach (var v in container.TexCoords)
 				obj.TextureVertices.Add(new ObjVector3(v.X, v.Y));
 
-			obj.WriteTo(fileName);
+			obj.WriteTo(Path.Combine(_exportDialogPath.SelectedPath, streamData.MetaData.Filename + ".obj"));
 		}
 
-		private void DumpSelectionAsDds(string fileName)
+		private void DumpSelectionAsDds(object o)
 		{
-			var streamData = GetAssetStream(_assetList.SelectedObject);
+			var streamData = GetAssetStream(o);
 			using var stream = streamData.StreamProvider.Invoke();
 
 			var texture = Texture.Read(stream);
 			var surface = texture.ReadSurfaceBytes(stream);
 			using var ddsStream = DdsHelper.GetDdsStream(texture, surface);
 
-			DumpHelper.DumpBin(fileName, ddsStream);
+			DumpHelper.DumpBin(Path.Combine(_exportDialogPath.SelectedPath, streamData.MetaData.Filename + ".dds"), ddsStream);
 		}
 
 		private static AssetMetaData GetAssetMetaData(object o)
@@ -416,14 +417,14 @@ namespace Prism
 			}
 		}
 
-		private TreeListViewEntry CreateUidLinkEntryNode(UidLinkEntry ule)
+		private static TreeListViewEntry CreateUidLinkEntryNode(UidLinkEntry ule)
 		{
 			var node1 = new TreeListViewEntry(nameof(UidLinkEntry.UidLinkNode1), ule.UidLinkNode1 == null ? "null" : $"{ule.UidLinkNode1.LinkedUid:X16}");
 			var node2 = new TreeListViewEntry(nameof(UidLinkEntry.UidLinkNode2), ule.UidLinkNode2 == null ? "null" : $"{ule.UidLinkNode2.LinkedUid:X16}");
 			return new TreeListViewEntry(nameof(UidLinkNode), null, node1, node2);
 		}
 
-		private TreeListViewEntry CreateMipContainerReferenceNode(TextureSelector mcr)
+		private static TreeListViewEntry CreateMipContainerReferenceNode(TextureSelector mcr)
 		{
 			return new TreeListViewEntry("MipContainerReference", null,
 				new TreeListViewEntry("Var1", mcr.Var1),
