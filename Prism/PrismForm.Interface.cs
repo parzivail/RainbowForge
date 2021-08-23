@@ -24,10 +24,14 @@ namespace Prism
 
 		private readonly ToolStripMenuItem _bOpenForge;
 		private readonly ToolStripMenuItem _bResetViewport;
+		private readonly ToolStripMenuItem _bExportPath;
 
 		private readonly ToolStripMenuItem _bDumpAsBin;
 		private readonly ToolStripMenuItem _bDumpAsDds;
 		private readonly ToolStripMenuItem _bDumpAsObj;
+		private readonly ToolStripMenuItem _bDumpAsBinAs;
+		private readonly ToolStripMenuItem _bDumpAsDdsAs;
+		private readonly ToolStripMenuItem _bDumpAsObjAs;
 
 		private readonly TextBox _searchTextBox;
 		private readonly TreeListView _assetList;
@@ -38,6 +42,9 @@ namespace Prism
 		private readonly TreeListView _infoControl;
 		private readonly TextBox _errorInfoControl;
 
+		private FolderBrowserDialog _exportDialogPath;
+		private ToolStripMenuItem _bDumpLods;
+
 		public PrismForm()
 		{
 			SuspendLayout();
@@ -45,6 +52,8 @@ namespace Prism
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
 			Text = "Prism";
+
+			SetConfig();
 
 			Controls.Add(_splitContainer = new MinimalSplitContainer
 			{
@@ -93,14 +102,17 @@ namespace Prism
 					},
 					new ToolStripDropDownButton
 					{
-						Text = "&Dump",
+						Text = "&Export",
 						DropDownItems =
 						{
-							(_bDumpAsBin = new ToolStripMenuItem("&Binary file")),
+							(_bDumpAsBin = new ToolStripMenuItem("&.bin | Quick Export")),
+							(_bDumpAsBinAs = new ToolStripMenuItem("&.bin | Export as...")),
 							new ToolStripSeparator(),
-							(_bDumpAsDds = new ToolStripMenuItem("&DirectDraw Surface")),
+							(_bDumpAsDds = new ToolStripMenuItem("&.dds | Quick Export")),
+							(_bDumpAsDdsAs = new ToolStripMenuItem("&.dds | Export as...")),
 							new ToolStripSeparator(),
-							(_bDumpAsObj = new ToolStripMenuItem("&Wavefront OBJ"))
+							(_bDumpAsObj = new ToolStripMenuItem("&.obj | Quick Export")),
+							(_bDumpAsObjAs = new ToolStripMenuItem("&.obj | Export as..."))
 						}
 					},
 					new ToolStripDropDownButton
@@ -109,6 +121,16 @@ namespace Prism
 						DropDownItems =
 						{
 							(_bResetViewport = new ToolStripMenuItem("&Reset 3D Viewport"))
+						}
+					},
+					new ToolStripDropDownButton
+					{
+						Text = "&Settings",
+						DropDownItems =
+						{
+							(_bExportPath = new ToolStripMenuItem("&Change export folder")),
+							new ToolStripSeparator(),
+							(_bDumpLods = new ToolStripMenuItem("&Dump LODs?"))
 						}
 					}
 				}
@@ -175,9 +197,16 @@ namespace Prism
 
 			_bResetViewport.Click += (sender, args) => _renderer3d.ResetView();
 
-			_bDumpAsBin.Click += CreateDumpEventHandler("Binary Files|*.bin", DumpSelectionAsBin);
-			_bDumpAsDds.Click += CreateDumpEventHandler("DirectDraw Surfaces|*.dds", DumpSelectionAsDds);
-			_bDumpAsObj.Click += CreateDumpEventHandler("Wavefront OBJs|*.obj", DumpSelectionAsObj);
+			_bDumpAsBin.Click += CreateDumpEventHandler(DumpSelectionAsBin);
+			_bDumpAsDds.Click += CreateDumpEventHandler(DumpSelectionAsDds);
+			_bDumpAsObj.Click += CreateDumpEventHandler(DumpSelectionAsObj);
+
+			_bDumpAsBinAs.Click += CreateDumpEventHandler(DumpSelectionAsBin, true);
+			_bDumpAsDdsAs.Click += CreateDumpEventHandler(DumpSelectionAsDds, true);
+			_bDumpAsObjAs.Click += CreateDumpEventHandler(DumpSelectionAsObj, true);
+
+			_bExportPath.Click += (sender, args) => _exportDialogPath.ShowDialog();
+			_bDumpLods.Click += (sender, args) => _bDumpLods.Checked = !_bDumpLods.Checked;
 
 			SetupRenderer();
 			SetupAssetList();
@@ -185,20 +214,30 @@ namespace Prism
 			UpdateAbility(null);
 		}
 
-		private static EventHandler CreateDumpEventHandler(string filter, Action<string> action)
+		private void SetConfig() // TODO: save to file
 		{
-			return (_, _) =>
+			_exportDialogPath = new FolderBrowserDialog
 			{
-				var sfd = new SaveFileDialog
-				{
-					Filter = filter
-				};
-
-				if (sfd.ShowDialog() == DialogResult.OK)
-					action(sfd.FileName);
+				SelectedPath = "_export"
 			};
 		}
 
+		private EventHandler CreateDumpEventHandler(Action<object> action, bool saveAs = false)
+		{
+			return (_, _) =>
+			{
+				if (saveAs)
+					_exportDialogPath.ShowDialog();
+
+				var outputDir = Path.Combine(Environment.CurrentDirectory, _exportDialogPath.SelectedPath);
+				Directory.CreateDirectory(outputDir);
+
+				foreach (var SelectedObject in _assetList.SelectedObjects)
+				{
+					action(SelectedObject);
+				}
+			};
+		}
 
 		private void SetPreviewPanel(Control control)
 		{
@@ -386,7 +425,6 @@ namespace Prism
 			};
 		}
 
-
 		private static bool DoesEntryMatchFilter(object entry, string filter)
 		{
 			if (string.IsNullOrWhiteSpace(filter))
@@ -402,7 +440,8 @@ namespace Prism
 
 		private void OnAssetListOnSelectionChanged(object sender, EventArgs args)
 		{
-			var selectedEntry = _assetList.SelectedObject;
+			if (_assetList.SelectedObjects.Count < 1) return;
+			var selectedEntry = _assetList.SelectedObjects[0]; // TODO: find a way to get the last selected index to preview the latest selected asset
 			lock (_openedForge)
 			{
 				var stream = GetAssetStream(selectedEntry);
@@ -440,9 +479,9 @@ namespace Prism
 				magic = (Magic)assetStream.MetaData.Magic;
 			}
 
-			_bDumpAsBin.Enabled = assetStream != null;
-			_bDumpAsDds.Enabled = type == AssetType.Texture;
-			_bDumpAsObj.Enabled = type == AssetType.Mesh;
+			_bDumpAsBin.Enabled = _bDumpAsBinAs.Enabled = assetStream != null;
+			_bDumpAsDds.Enabled = _bDumpAsDdsAs.Enabled = type == AssetType.Texture;
+			_bDumpAsObj.Enabled = _bDumpAsObjAs.Enabled = type == AssetType.Mesh;
 		}
 
 		private void OnUiThread(Action action)
