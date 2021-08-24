@@ -1,4 +1,4 @@
-﻿namespace RainbowForge.Info
+﻿namespace RainbowForge.Structs
 {
 	public class BuildTable
 	{

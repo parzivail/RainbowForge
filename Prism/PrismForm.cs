@@ -16,10 +16,10 @@ using RainbowForge.Core;
 using RainbowForge.Core.Container;
 using RainbowForge.Dump;
 using RainbowForge.Image;
-using RainbowForge.Info;
 using RainbowForge.Link;
 using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
+using RainbowForge.Structs;
 using SkiaSharp;
 
 namespace Prism
@@ -376,6 +376,17 @@ namespace Prism
 										)).ToArray()
 									)
 								)
+							};
+							break;
+						}
+						case Magic.LocalizationPackage:
+						{
+							using var stream = assetStream.StreamProvider.Invoke();
+							var lc = LocalizationPackage.Read(stream);
+
+							entries = new List<TreeListViewEntry>
+							{
+								CreateMetadataInfoNode(assetStream),
 							};
 							break;
 						}

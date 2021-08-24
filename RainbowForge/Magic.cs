@@ -24,6 +24,7 @@
 		WeaponData = 0xADBAB640,
 		GameBootstrap = 0xE5A83560,
 		LocalizationPackage = 0x6E3C9C6F,
+		CompressedLocalizationData = 0xd28389b5,
 		PlatformManager = 0xAE88DE65,
 		World = 0xFBB63E47,
 		LoadUnit = 0x943945C4,
