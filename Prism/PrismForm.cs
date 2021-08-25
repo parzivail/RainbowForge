@@ -145,14 +145,13 @@ namespace Prism
 			using var stream = streamProvider.Invoke();
 
 			var texture = Texture.Read(stream);
-			var bNormalMap = texture.TexFormat == 0x6;	// Most normal maps use BC5
 			using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 			using var bmp = image.CreateBitmap();
 
 			if (_settings.FlipPngSpace)
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-			if (bNormalMap)
+			if (texture.TexFormat == 0x6) // Most normal maps use BC5
 			{
 				if (_settings.FlipPngGreenChannel || _settings.RecalculatePngBlueChannel)
 				{
