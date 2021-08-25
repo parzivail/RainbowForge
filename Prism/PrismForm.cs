@@ -154,14 +154,9 @@ namespace Prism
 
 			if (bNormalMap)
 			{
-				if (_settings.FlipPngGreenChannel)
+				if (_settings.FlipPngGreenChannel || _settings.RecalculatePngBlueChannel)
 				{
-					TextureUtil.FlipChannel(bmp, 1);
-				}
-
-				if (_settings.RecalculatePngBlueChannel)
-				{
-					TextureUtil.PatchNormalMap(bmp);
+					TextureUtil.PatchNormalMap(bmp, _settings.FlipPngGreenChannel ? 1 : -1, _settings.RecalculatePngBlueChannel);
 				}
 			}
 
