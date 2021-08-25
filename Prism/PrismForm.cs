@@ -145,30 +145,27 @@ namespace Prism
 			using var stream = streamProvider.Invoke();
 
 			var texture = Texture.Read(stream);
+			var bNormalMap = texture.TexFormat == 0x6;	// Most normal maps use BC5
 			using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 			using var bmp = image.CreateBitmap();
 
 			if (_settings.FlipPngSpace)
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-			if (_settings.FlipPngGreenChannel)
+			if (bNormalMap)
 			{
-				var bits = bmp.LockBits(new Rectangle(Point.Empty, bmp.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-				var pointer = bits.Scan0;
-				var size = Math.Abs(bits.Stride) * bmp.Height;
-				var pixels = new byte[size];
-				Marshal.Copy(pointer, pixels, 0, size);
-
-				for (var i = 0; i < pixels.Length; i += 4)
+				if (_settings.FlipPngGreenChannel)
 				{
-					pixels[i + 1] = (byte)(255 - pixels[i + 1]); // Flip green (in BGRA) channel
+					TextureUtil.FlipChannel(bmp, 1);
 				}
 
-				Marshal.Copy(pixels, 0, pointer, size);
-				bmp.UnlockBits(bits);
+				if (_settings.RecalculatePngBlueChannel)
+				{
+					TextureUtil.PatchNormalMap(bmp);
+				}
 			}
 
-			bmp.Save(Path.Combine(outputDir, assetMetaData.Filename + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+			bmp.Save(Path.Combine(outputDir, assetMetaData.Filename + ".png"), ImageFormat.Png);
 		}
 
 		private static AssetMetaData GetAssetMetaData(object o)

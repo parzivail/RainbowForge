@@ -28,7 +28,6 @@ namespace Prism
 
 		private readonly ToolStripMenuItem _bOpenForge;
 		private readonly ToolStripMenuItem _bResetViewport;
-		private readonly ToolStripMenuItem _bExportPath;
 
 		private readonly ToolStripMenuItem _bDumpAsBinHeader;
 		private readonly ToolStripMenuItem _bDumpAsBinQuick;
