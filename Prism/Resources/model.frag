@@ -8,6 +8,9 @@ uniform sampler2D texRadiance;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
 
+uniform int useReflections;
+uniform int useCheckerboard;
+
 in vec3 fragPos;
 in vec3 fragNormal;
 in vec3 fragVertColor;
@@ -29,6 +32,9 @@ vec3(0.89, 0.12, 0.91),
 vec3(0.28, 0.56, 0.56)
 );
 
+vec4 GRAY80 = vec4(vec3(0.8), 1.0);
+vec4 WHITE = vec4(vec3(1.0), 1.0);
+
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
@@ -38,8 +44,8 @@ void main()
 {
     float specularStrength = 0.5;
     float specularIntensity = 0.5;
-    vec4 radianceSamp = texture(texRadiance, matcapTexCoord);
-    vec4 checkerSamp = texture(texUv, fragTexCoord);
+    vec4 radianceSamp = mix(GRAY80, texture(texRadiance, matcapTexCoord), useReflections);
+    vec4 checkerSamp = mix(WHITE, texture(texUv, fragTexCoord), useCheckerboard);
     vec4 reflectionSamp = texture(texReflection, matcapTexCoord);
     vec3 norm = normalize(fragNormal);
 
@@ -60,7 +66,7 @@ void main()
     vec4 beforeMatCap = mix(checkerSamp, vec4(appliedColor, 1.0), 0.5) * vec4(vec3(clamp(ambient + diffuse, 0, 1)), 1);
     vec4 beforeReflection = mix(beforeMatCap, radianceSamp * beforeMatCap, 0.75);
 
-    color = mix(beforeReflection, beforeReflection * reflectionSamp, 0.3);
+    color = mix(beforeReflection, beforeReflection * reflectionSamp, 0.3 * useReflections);
     //color = samp;
 
 }

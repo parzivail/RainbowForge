@@ -13,6 +13,9 @@ namespace Prism.Render
 {
 	public class ModelRenderer
 	{
+		private readonly Func<PrismSettings> _settingsProvider;
+		private PrismSettings Settings => _settingsProvider.Invoke();
+
 		private readonly IRenderContext _renderContext;
 		private readonly VertexBuffer _vbo = new();
 
@@ -28,6 +31,11 @@ namespace Prism.Render
 
 		private bool _hasTexture;
 		private int _textureId;
+
+		private int _reflectionTextureId;
+		private int _uvTextureId;
+		private int _radianceTextureId;
+
 		private Vector2 _translation = new(0, 0);
 		private Framebuffer _viewFbo;
 
@@ -35,14 +43,10 @@ namespace Prism.Render
 
 		private CompiledMeshObject _compiledMeshObject;
 
-		public static Vector3 ByteToFloatColor(Vector3 input)
-		{
-			return input / 255f;
-		}
-
-		public ModelRenderer(IRenderContext renderContext)
+		public ModelRenderer(IRenderContext renderContext, Func<PrismSettings> settingsProvider)
 		{
 			_renderContext = renderContext;
+			_settingsProvider = settingsProvider;
 
 			_camera = new Camera
 			{
@@ -117,30 +121,32 @@ namespace Prism.Render
 				_shaderModel.Uniforms.SetValue("texReflection", 2);
 				_shaderModel.Uniforms.SetValue("texRadiance", 3);
 				_shaderModel.Uniforms.SetValue("texUv", 4);
-				_shaderModel.Uniforms.SetValue("colorIn", ByteToFloatColor(new Vector3(255, 255, 255)));
+				_shaderModel.Uniforms.SetValue("colorIn", new Vector3(1, 1, 1));
 				_shaderModel.Uniforms.SetValue("lightPos", new Vector3(0.6f, -1, 0.8f));
 				_shaderModel.Uniforms.SetValue("lightColor", new Vector3(1f, 1f, 1f));
 
 				_textureId = GL.GenTexture();
 
-				var reflectionTexture = GL.GenTexture();
+				_reflectionTextureId = GL.GenTexture();
 				using var reflectionBmp = new Bitmap(ResourceHelper.GetResource("reflectionvenicematcap.png"));
-				reflectionBmp.LoadGlTexture(reflectionTexture, TextureTarget.Texture2D);
+				reflectionBmp.LoadGlTexture(_reflectionTextureId, TextureTarget.Texture2D);
 
-				var uvTexture = GL.GenTexture();
+				_uvTextureId = GL.GenTexture();
 				using var uvBmp = new Bitmap(ResourceHelper.GetResource("uv_debug.png"));
-				uvBmp.LoadGlTexture(uvTexture, TextureTarget.Texture2D);
+				uvBmp.LoadGlTexture(_uvTextureId, TextureTarget.Texture2D);
 
-				var radianceTexture = GL.GenTexture();
+				_radianceTextureId = GL.GenTexture();
 				using var radianceBmp = new Bitmap(ResourceHelper.GetResource("radiancevenicematcap.png"));
-				radianceBmp.LoadGlTexture(radianceTexture, TextureTarget.Texture2D);
+				radianceBmp.LoadGlTexture(_radianceTextureId, TextureTarget.Texture2D);
 
 				GL.ActiveTexture(TextureUnit.Texture2);
-				GL.BindTexture(TextureTarget.Texture2D, reflectionTexture);
+				GL.BindTexture(TextureTarget.Texture2D, _reflectionTextureId);
+
 				GL.ActiveTexture(TextureUnit.Texture3);
-				GL.BindTexture(TextureTarget.Texture2D, radianceTexture);
+				GL.BindTexture(TextureTarget.Texture2D, _radianceTextureId);
+
 				GL.ActiveTexture(TextureUnit.Texture4);
-				GL.BindTexture(TextureTarget.Texture2D, uvTexture);
+				GL.BindTexture(TextureTarget.Texture2D, _uvTextureId);
 			}
 
 			if (width != _viewFbo.Width || height != _viewFbo.Height)
@@ -200,6 +206,10 @@ namespace Prism.Render
 
 				GL.ActiveTexture(TextureUnit.Texture1);
 				GL.BindTexture(TextureTarget.Texture2D, _hasTexture ? _textureId : 0);
+
+				var settings = Settings;
+				_shaderModel.Uniforms.SetValue("useReflections", settings.Use3DReflections ? 1 : 0);
+				_shaderModel.Uniforms.SetValue("useCheckerboard", settings.Use3DCheckerboard ? 1 : 0);
 
 				_shaderModel.Use();
 				_vbo.Render(PrimitiveType.Triangles);

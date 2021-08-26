@@ -7,6 +7,22 @@ namespace Prism
 	public class PrismSettings
 	{
 		[
+			Category("3D Viewport"),
+			DisplayName("Use reflections"),
+			Description("Whether or not skybox reflections are enabled in the 3D viewport."),
+			DefaultValue(false)
+		]
+		public bool Use3DReflections { get; set; } = false;
+
+		[
+			Category("3D Viewport"),
+			DisplayName("Use checkerboard texture"),
+			Description("Whether or not models in the 3D viewport render using the checkerboard debug texture."),
+			DefaultValue(false)
+		]
+		public bool Use3DCheckerboard { get; set; } = false;
+
+		[
 			Category("Export"),
 			DisplayName("Quick Export Directory"),
 			Description("The directory to which \"Quick Export\" actions will output files."),

@@ -488,6 +488,7 @@
 		OperatorUnlockable = 0x587515A2,
 		CharmUnlockable = 0x5E78DF4D,
 		GDOUIDescription = 0x51066FDD,
+		GDOUIDescription2 = 0x56C88C7F,
 		SoundExplosionTinnitusData = 0xC10BB5D1,
 		GDOAddTag = 0x9B19F386,
 		RecoilWeaponData = 0xAAC174F3,
@@ -525,7 +526,7 @@
 		TextureSelector = 0x7d08460d,
 		R6ActionFilter = 0xc6382399,
 		MeshBone = 0x9ef0e7a1,
-		ShaderCodeVariable = 0x1bcb6f77,
+		ShaderCodeVariable = 0x1bcb6f77
 	}
 
 	public enum ContainerMagic : uint

@@ -27,15 +27,4 @@ namespace RainbowForge.Structs
 			return new LocalizationPackage(fileMeta, cld);
 		}
 	}
-
-	public class CompressedLocalizationData
-	{
-		public static CompressedLocalizationData Read(BinaryReader r)
-		{
-			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.CompressedLocalizationData, magic);
-
-			return new CompressedLocalizationData();
-		}
-	}
 }

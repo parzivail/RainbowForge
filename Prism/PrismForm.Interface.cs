@@ -111,7 +111,11 @@ namespace Prism
 								ShortcutKeys = Keys.Control | Keys.O
 							}),
 							new ToolStripSeparator(),
-							(_bEditSettings = new ToolStripMenuItem("&Settings")),
+							(_bEditSettings = new ToolStripMenuItem("&Settings")
+							{
+								ShortcutKeys = Keys.Control | Keys.Oemcomma,
+								ShortcutKeyDisplayString = "Ctrl+,"
+							}),
 						}
 					},
 					new ToolStripDropDownButton
@@ -294,7 +298,7 @@ namespace Prism
 
 			_imageControl.PaintSurface += (sender, args) => { _renderer2d.Render(args); };
 
-			_renderer3d = new ModelRenderer(new GlControlContext(_glControl));
+			_renderer3d = new ModelRenderer(new GlControlContext(_glControl), () => _settings);
 			_glControl.MouseDown += (sender, args) => _renderer3d.OnMouseDown(args.Location);
 			_glControl.MouseMove += (sender, args) => _renderer3d.OnMouseMove(args.Location, (args.Button & MouseButtons.Left) != 0, (args.Button & MouseButtons.Right) != 0);
 			_glControl.MouseWheel += (sender, args) => _renderer3d.OnMouseWheel(args.Delta);
