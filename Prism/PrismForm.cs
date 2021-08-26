@@ -151,24 +151,15 @@ namespace Prism
 			if (_settings.FlipPngSpace)
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-			if (_settings.FlipPngGreenChannel)
+			if (texture.TexFormat == 0x6) // Most normal maps use BC5
 			{
-				var bits = bmp.LockBits(new Rectangle(Point.Empty, bmp.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-				var pointer = bits.Scan0;
-				var size = Math.Abs(bits.Stride) * bmp.Height;
-				var pixels = new byte[size];
-				Marshal.Copy(pointer, pixels, 0, size);
-
-				for (var i = 0; i < pixels.Length; i += 4)
+				if (_settings.FlipPngGreenChannel || _settings.RecalculatePngBlueChannel)
 				{
-					pixels[i + 1] = (byte)(255 - pixels[i + 1]); // Flip green (in BGRA) channel
+					TextureUtil.PatchNormalMap(bmp, _settings.FlipPngGreenChannel ? 1 : -1, _settings.RecalculatePngBlueChannel);
 				}
-
-				Marshal.Copy(pixels, 0, pointer, size);
-				bmp.UnlockBits(bits);
 			}
 
-			bmp.Save(Path.Combine(outputDir, assetMetaData.Filename + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+			bmp.Save(Path.Combine(outputDir, assetMetaData.Filename + ".png"), ImageFormat.Png);
 		}
 
 		private static AssetMetaData GetAssetMetaData(object o)

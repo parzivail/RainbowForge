@@ -10,8 +10,8 @@ namespace RainbowForge
 		{
 			// Named but not correctly
 			0x1014FA99, // FileContainer
-			0x9468B9E2, // TextureGui1
-			0x05A61FAD, // TextureGui2
+			0x9468B9E2, // TextureGui0
+			0x05A61FAD, // TextureGui1
 			0x427411A3, // WemSound
 			// Totally unknown
 			0x21943A63, 0x23BF9925, 0x23CD3131, 0x24D19860, 0x25B46ADB, 0x27966F42, 0x297D86AF, 0x2C62E10B, 0x2F732FDB, 0x305DAAF0,
@@ -56,8 +56,8 @@ namespace RainbowForge
 				Magic.CompiledHighResolutionTextureMap => AssetType.Texture,
 				Magic.CompiledUltraResolutionTextureMap => AssetType.Texture,
 				Magic.CompiledFutureResolutionTextureMap => AssetType.Texture,
+				Magic.TextureGui0 => AssetType.Texture,
 				Magic.TextureGui1 => AssetType.Texture,
-				Magic.TextureGui2 => AssetType.Texture,
 				Magic.WemSound => AssetType.Sound,
 				Magic.EntityBuilder => AssetType.FlatArchive,
 				Magic.WeaponData => AssetType.FlatArchive,

@@ -13,16 +13,16 @@ namespace Prism
 			SuspendLayout();
 
 			AutoScaleMode = AutoScaleMode.Font;
-			ClientSize = new Size(400, 500);
+			ClientSize = new Size(530, 500);
 			Text = "Prism";
 
 			PropertyGrid pgSettings;
 
-			Controls.Add((pgSettings = new PropertyGrid
+			Controls.Add(pgSettings = new PropertyGrid
 			{
 				Dock = DockStyle.Fill,
 				SelectedObject = PrismSettings.Load(filename)
-			}));
+			});
 
 			Button bSave;
 			Button bCancel;
