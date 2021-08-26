@@ -4,10 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainbowForge", "RainbowForg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{8AE96F2D-E7BA-4DA4-ABC6-0F3F9A2A2CE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetCatalog", "AssetCatalog\AssetCatalog.csproj", "{AC0846ED-9D6D-43E7-B39C-2A63C5E15AEA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForgeDiff", "ForgeDiff\ForgeDiff.csproj", "{7B1E21C4-7010-4C3D-9635-A7BE3BB1CC75}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpTool", "DumpTool\DumpTool.csproj", "{0337F28A-2FD6-472C-81F2-4BAC305D1B5F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism", "Prism\Prism.csproj", "{22894B1E-0865-4AE9-9102-ED3ACC138B16}"
