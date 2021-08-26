@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using JeremyAnsel.Media.WavefrontObj;
@@ -235,7 +234,18 @@ namespace Prism
 					using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
 					using (var skImage = image.CreateSkImage())
-						_renderer2d.SetTexture(SKBitmap.FromImage(skImage));
+						_renderer2d.SetTexture(SKBitmap.FromImage(skImage), new KeyValuePair<string, string>[]
+						{
+							new("Width", texture.Width.ToString()),
+							new("Height", texture.Height.ToString()),
+							new("Size Scalar", texture.Chan.ToString()),
+							new("Mips", texture.Mips.ToString()),
+							new("Blocks", texture.NumBlocks.ToString()),
+							new("Unk. Data 1 (flags?)", texture.Data1.ToString()),
+							new("Unk. Data 2", texture.Data2.ToString()),
+							new("Format", $"{DdsHelper.TextureFormats[texture.TexFormat]}"),
+							new("Type", Enum.IsDefined(typeof(TextureType), texture.TexType) ? texture.TexType.ToString() : $"{texture.TexType:X}")
+						});
 
 					OnUiThread(() => { SetPreviewPanel(_imageControl); });
 
@@ -367,17 +377,6 @@ namespace Prism
 										)).ToArray()
 									)
 								)
-							};
-							break;
-						}
-						case Magic.LocalizationPackage:
-						{
-							using var stream = assetStream.StreamProvider.Invoke();
-							var lc = LocalizationPackage.Read(stream);
-
-							entries = new List<TreeListViewEntry>
-							{
-								CreateMetadataInfoNode(assetStream),
 							};
 							break;
 						}

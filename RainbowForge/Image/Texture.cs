@@ -17,9 +17,11 @@ namespace RainbowForge.Image
 		public uint Mips { get; }
 		public int Width { get; }
 		public int Height { get; }
+		public int Data1 { get; }
+		public int Data2 { get; }
 
 		private Texture(FileMetaData metaData, long dataStart, long ddsStart, uint texFormat, TextureType texType, uint containerId, ushort numBlocks, long texsize, uint chan, uint mips, int width,
-			int height)
+			int height, int data1, int data2)
 		{
 			MetaData = metaData;
 			DataStart = dataStart;
@@ -33,6 +35,8 @@ namespace RainbowForge.Image
 			Mips = mips;
 			Width = width;
 			Height = height;
+			Data1 = data1;
+			Data2 = data2;
 		}
 
 		public static Texture Read(BinaryReader r)
@@ -59,10 +63,12 @@ namespace RainbowForge.Image
 			var x20 = r.ReadUInt32(); // 0
 			var x24 = r.ReadUInt32(); // 0
 			var containerId = r.ReadUInt32(); // [0x28] container id
-			var x2C = r.ReadByte(); // [0x2C]
+			MagicHelper.AssertEquals(Magic.CompiledTextureMapData, containerId);
+
+			var data1 = r.ReadByte(); // [0x2C]
 
 			var numBlocks = r.ReadUInt16(); // [0x2D]
-			var x2F = r.ReadByte(); // [0x2F] might indicate whether there is alpha channel in texture (not sure, needs more research)
+			var data2 = r.ReadByte(); // [0x2F] might indicate whether there is alpha channel in texture (not sure, needs more research)
 
 			var x30 = r.ReadUInt32(); // 7
 			var ddsStart = r.BaseStream.Position;
@@ -91,7 +97,7 @@ namespace RainbowForge.Image
 			var width = (int)Math.Floor(w / powChan);
 			var height = (int)Math.Floor(h / powChan);
 
-			return new Texture(header, dataStart, ddsStart, texFormat, texType, containerId, numBlocks, texsize, chan, mips, width, height);
+			return new Texture(header, dataStart, ddsStart, texFormat, texType, containerId, numBlocks, texsize, chan, mips, width, height, data1, data2);
 		}
 
 		public byte[] ReadSurfaceBytes(BinaryReader r)

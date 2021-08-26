@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -10,6 +11,7 @@ namespace Prism.Render
 
 		private static readonly float _transparentCheckerboardScale = 8f;
 		private static readonly SKPaint _transparentCheckerboardPaint;
+		private static readonly SKPaint _textPaint;
 
 		static SurfaceRenderer()
 		{
@@ -21,10 +23,17 @@ namespace Prism.Render
 			{
 				PathEffect = SKPathEffect.Create2DPath(matrix, path)
 			};
+
+			_textPaint = new SKPaint(new SKFont(SKTypeface.Default, 16))
+			{
+				Color = SKColors.White,
+				Style = SKPaintStyle.Fill
+			};
 		}
 
 		private SKBitmap _texture;
 		private Point _lastMousePos;
+		private KeyValuePair<string, string>[] _hudData;
 
 		public SurfaceRenderer(SKControl imageControl)
 		{
@@ -57,8 +66,10 @@ namespace Prism.Render
 			_imageControl.Invalidate();
 		}
 
-		public void SetTexture(SKBitmap bitmap)
+		public void SetTexture(SKBitmap bitmap, KeyValuePair<string, string>[] hudData)
 		{
+			_hudData = hudData;
+
 			if (_texture == null)
 				_texture = bitmap;
 			else
@@ -89,17 +100,27 @@ namespace Prism.Render
 			rect.Inflate(_transparentCheckerboardScale, _transparentCheckerboardScale);
 			canvas.DrawRect(rect, _transparentCheckerboardPaint);
 
+
 			canvas.Save();
-
-			canvas.SetMatrix(ContentTransformation);
-
 			if (_texture != null)
 				lock (_texture)
 				{
+					canvas.SetMatrix(ContentTransformation);
 					canvas.DrawBitmap(_texture, 0, 0);
 				}
 
 			canvas.Restore();
+
+			if (_hudData != null)
+			{
+				var lineOffset = _textPaint.FontSpacing + _textPaint.FontMetrics.Leading;
+				var y = 10 + lineOffset;
+				foreach (var (key, value) in _hudData)
+				{
+					canvas.DrawText($"{key}: {value}", 10, y, _textPaint);
+					y += lineOffset;
+				}
+			}
 		}
 	}
 }

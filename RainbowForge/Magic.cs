@@ -12,6 +12,7 @@
 		CompiledHighResolutionTextureMap = 0x59CE4D13,
 		CompiledUltraResolutionTextureMap = 0x9F492D22,
 		CompiledFutureResolutionTextureMap = 0x3876CCDF,
+		CompiledTextureMapData = 0xc30c4b3d,
 		TextureGui0 = 0x9468B9E2,
 		TextureGui1 = 0x05A61FAD,
 		WemSound = 0x427411A3,

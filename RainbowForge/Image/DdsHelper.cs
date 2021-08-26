@@ -36,6 +36,7 @@ namespace RainbowForge.Image
 		public static readonly Dictionary<uint, DirectXTexUtil.DXGIFormat> TextureFormats = new()
 		{
 			{ 0x0, DirectXTexUtil.DXGIFormat.B8G8R8A8UNORM },
+			{ 0x1, DirectXTexUtil.DXGIFormat.R8G8B8A8SNORM },
 			{ 0x2, DirectXTexUtil.DXGIFormat.BC1UNORM },
 			{ 0x3, DirectXTexUtil.DXGIFormat.BC1UNORM },
 			{ 0x4, DirectXTexUtil.DXGIFormat.BC2UNORM },
@@ -44,8 +45,10 @@ namespace RainbowForge.Image
 			{ 0x7, DirectXTexUtil.DXGIFormat.R8UNORM },
 			{ 0x8, DirectXTexUtil.DXGIFormat.R8UNORM },
 			{ 0x9, DirectXTexUtil.DXGIFormat.R16UNORM },
+			{ 0xA, DirectXTexUtil.DXGIFormat.A8P8 }, // actually A8I8 -- does this work?
 			{ 0xB, DirectXTexUtil.DXGIFormat.R32UINT },
 			{ 0xC, DirectXTexUtil.DXGIFormat.R32G32B32FLOAT }, // r32g32b32a32_uint???
+			{ 0xD, DirectXTexUtil.DXGIFormat.R16G16B16A16FLOAT },
 			{ 0xE, DirectXTexUtil.DXGIFormat.BC4UNORM }, // bc4???
 			{ 0xF, DirectXTexUtil.DXGIFormat.BC6HUF16 },
 			{ 0x10, DirectXTexUtil.DXGIFormat.BC7UNORM },
