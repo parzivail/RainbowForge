@@ -11,6 +11,7 @@ using Prism.Extensions;
 using Prism.Render;
 using RainbowForge;
 using RainbowForge.Archive;
+using RainbowForge.Components;
 using RainbowForge.Core;
 using RainbowForge.Core.Container;
 using RainbowForge.Dump;
@@ -18,7 +19,6 @@ using RainbowForge.Image;
 using RainbowForge.Link;
 using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
-using RainbowForge.Structs;
 using SkiaSharp;
 
 namespace Prism

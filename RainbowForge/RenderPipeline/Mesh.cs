@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using RainbowForge.Model;
+using RainbowForge.Structs;
 
 namespace RainbowForge.RenderPipeline
 {
@@ -7,7 +9,7 @@ namespace RainbowForge.RenderPipeline
 		public uint Var1 { get; }
 		public ulong InternalUid { get; }
 		public byte[] Data { get; }
-		public MeshBone[] Props { get; }
+		public MeshBone[] Bones { get; }
 		public uint Magic2 { get; }
 		public uint Var2 { get; }
 		public ulong CompiledMeshObjectUid { get; }
@@ -15,12 +17,12 @@ namespace RainbowForge.RenderPipeline
 		public ulong InternalUid2 { get; }
 		public byte[] Data2 { get; }
 
-		private Mesh(uint var1, ulong internalUid, byte[] data, MeshBone[] props, uint magic2, uint var2, ulong compiledMeshObjectUid, ulong[] materials, ulong internalUid2, byte[] data2)
+		private Mesh(uint var1, ulong internalUid, byte[] data, MeshBone[] bones, uint magic2, uint var2, ulong compiledMeshObjectUid, ulong[] materials, ulong internalUid2, byte[] data2)
 		{
 			Var1 = var1;
 			InternalUid = internalUid;
 			Data = data;
-			Props = props;
+			Bones = bones;
 			Magic2 = magic2;
 			Var2 = var2;
 			CompiledMeshObjectUid = compiledMeshObjectUid;
@@ -40,10 +42,10 @@ namespace RainbowForge.RenderPipeline
 
 			var data = r.ReadBytes(32);
 
-			var numProperties = r.ReadUInt32();
-			var props = new MeshBone[numProperties];
-			for (var i = 0; i < props.Length; i++)
-				props[i] = MeshBone.Read(r);
+			var numBones = r.ReadUInt32();
+			var bones = new MeshBone[numBones];
+			for (var i = 0; i < bones.Length; i++)
+				bones[i] = MeshBone.Read(r);
 
 			var magic2 = r.ReadUInt32();
 			var var2 = r.ReadUInt32();
@@ -58,17 +60,19 @@ namespace RainbowForge.RenderPipeline
 			var internalUid2 = r.ReadUInt64();
 			var data2 = r.ReadBytes(25);
 
-			return new Mesh(var1, internalUid, data, props, magic2, var2, meshUid, materialContainers, internalUid2, data2);
+			return new Mesh(var1, internalUid, data, bones, magic2, var2, meshUid, materialContainers, internalUid2, data2);
 		}
 	}
 
 	public class MeshBone
 	{
-		public byte[] Data { get; }
+		public Matrix4F Transformation { get; }
+		public BoneId Id { get; }
 
-		private MeshBone(byte[] data)
+		private MeshBone(Matrix4F transformation, BoneId id)
 		{
-			Data = data;
+			Transformation = transformation;
+			Id = id;
 		}
 
 		public static MeshBone Read(BinaryReader r)
@@ -77,9 +81,10 @@ namespace RainbowForge.RenderPipeline
 			var magic = r.ReadUInt32();
 			MagicHelper.AssertEquals(Magic.MeshBone, magic);
 
-			var data = r.ReadBytes(68);
+			var transformation = r.ReadStruct<Matrix4F>(Matrix4F.SizeInBytes);
+			var id = (BoneId)r.ReadUInt32();
 
-			return new MeshBone(data);
+			return new MeshBone(transformation, id);
 		}
 	}
 }

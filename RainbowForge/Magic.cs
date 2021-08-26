@@ -527,7 +527,8 @@
 		TextureSelector = 0x7d08460d,
 		R6ActionFilter = 0xc6382399,
 		MeshBone = 0x9ef0e7a1,
-		ShaderCodeVariable = 0x1bcb6f77
+		ShaderCodeVariable = 0x1bcb6f77,
+		PhysicsSDKDataPack = 0x390f5602,
 	}
 
 	public enum ContainerMagic : uint

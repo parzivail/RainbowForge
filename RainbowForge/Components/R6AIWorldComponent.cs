@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace RainbowForge.Structs
+namespace RainbowForge.Components
 {
 	public record R6AIRoom(string Name, ulong[] Uids);
 

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace RainbowForge.Structs
+namespace RainbowForge.Components
 {
 	public class LocalizationPackage
 	{
