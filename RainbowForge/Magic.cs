@@ -532,6 +532,25 @@ namespace RainbowForge
 		MeshBone = 0x9ef0e7a1,
 		ShaderCodeVariable = 0x1bcb6f77,
 		PhysicsSDKDataPack = 0x390f5602,
+		BoneInitialTransforms = 0x6350e5a6,
+		SkeletonMirrorData = 0xe96b19a5,
+		Bone = 0x95741049,
+		ConstraintTarget = 0xdf638110,
+		PositionConstraintBoneModifier = 0xd0c34a81,
+		OrientationConstraintBoneModifier = 0x75116750,
+		BallJointBoneModifier = 0x4bf66801,
+		RollBoneModifier = 0x76d082f6,
+		ConstraintBoneModifier = 0x84240425,
+		CompressBoneModifier = 0x844987d6,
+		HingeVectorBoneModifier = 0xc0dd28a9,
+		StretchBoneModifier = 0xcf6d16fa,
+		WrinkleBoneModifier = 0xd12b891d,
+		PendulumBoneModifier = 0x544175b,
+		ReflexBoneModifier = 0x57daa86,
+		LookAtBoneModifier = 0x8d774b2,
+		FollowBoneModifier = 0x13ae4b43,
+		HingeBoneModifier = 0x324796c7,
+		Reflex3SkeletonConstraints = 0x8e3fb47a
 	}
 
 	public enum ContainerMagic : uint
