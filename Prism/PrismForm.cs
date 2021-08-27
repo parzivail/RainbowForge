@@ -218,7 +218,8 @@ namespace Prism
 			if (_settings.FlipPngSpace)
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-			if (texture.TexFormat == 0x6) // Most normal maps use BC5
+			if ((texture.TexType == TextureType.Normal || texture.TexType == TextureType.Misc) &&
+				texture.TexFormat == 0x6)
 			{
 				if (_settings.FlipPngGreenChannel || _settings.RecalculatePngBlueChannel)
 				{
