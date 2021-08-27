@@ -54,7 +54,7 @@ namespace RainbowForge
 
 		public static Vector2 ReadUInt32AsUv(this BinaryReader r)
 		{
-			var vec = r.ReadStruct<Vec2H>(4);
+			var vec = r.ReadStruct<Vector2H>(4);
 			return new Vector2((float)vec.X, (float)vec.Y);
 		}
 
@@ -62,7 +62,7 @@ namespace RainbowForge
 		{
 			var buf = new byte[size];
 			if (stream.Read(buf, 0, size) != size)
-				throw new InvalidDataException("Unable to read struct, insufficient data");
+				throw new EndOfStreamException();
 
 			return buf.ToStruct<T>();
 		}

@@ -58,6 +58,8 @@
         </EmbeddedResource>
         <None Remove="Resources\uv_debug.png"/>
         <EmbeddedResource Include="Resources\uv_debug.png"/>
+        <None Remove="Resources\bone.obj"/>
+        <EmbeddedResource Include="Resources\bone.obj"/>
     </ItemGroup>
 
 </Project>

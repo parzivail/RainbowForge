@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using JeremyAnsel.Media.WavefrontObj;
 using Prism.Extensions;
 using Prism.Render;
+using Prism.Resources;
 using RainbowForge;
 using RainbowForge.Archive;
 using RainbowForge.Components;
@@ -80,50 +81,114 @@ namespace Prism
 			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
 			using var stream = streamProvider.Invoke();
 
-			var header = MeshHeader.Read(stream);
-
-			var compiledMeshObject = CompiledMeshObject.Read(stream, header);
-
-			var obj = new ObjFile();
-
-			var numObjects = compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods;
-
-			for (var objId = 0; objId < (_settings.ExportAllModelLods ? compiledMeshObject.Objects.Count : numObjects); objId++)
+			if (MagicHelper.GetFiletype(assetMetaData.Magic) == AssetType.Mesh)
 			{
-				var lod = objId / numObjects;
+				var header = MeshHeader.Read(stream);
 
-				var objObject = compiledMeshObject.Objects[objId];
-				foreach (var face in objObject)
+				var compiledMeshObject = CompiledMeshObject.Read(stream, header);
+
+				var obj = new ObjFile();
+
+				var numObjects = compiledMeshObject.Objects.Count / compiledMeshObject.MeshHeader.NumLods;
+
+				for (var objId = 0; objId < (_settings.ExportAllModelLods ? compiledMeshObject.Objects.Count : numObjects); objId++)
 				{
-					var objFace = new ObjFace
+					var lod = objId / numObjects;
+
+					var objObject = compiledMeshObject.Objects[objId];
+					foreach (var face in objObject)
 					{
-						ObjectName = $"{assetMetaData.Filename + (_settings.ExportAllModelLods ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
-					};
+						var objFace = new ObjFace
+						{
+							ObjectName = $"{assetMetaData.Filename + (_settings.ExportAllModelLods ? $"_lod{lod}_" : "_")}object{objId % numObjects}"
+						};
 
-					objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
-					objFace.Vertices.Add(new ObjTriplet(face.B + 1, face.B + 1, face.B + 1));
-					objFace.Vertices.Add(new ObjTriplet(face.C + 1, face.C + 1, face.C + 1));
+						objFace.Vertices.Add(new ObjTriplet(face.A + 1, face.A + 1, face.A + 1));
+						objFace.Vertices.Add(new ObjTriplet(face.B + 1, face.B + 1, face.B + 1));
+						objFace.Vertices.Add(new ObjTriplet(face.C + 1, face.C + 1, face.C + 1));
 
-					obj.Faces.Add(objFace);
+						obj.Faces.Add(objFace);
+					}
 				}
-			}
 
-			var container = compiledMeshObject.Container;
-			for (var i = 0; i < container.Vertices.Length; i++)
+				var container = compiledMeshObject.Container;
+				for (var i = 0; i < container.Vertices.Length; i++)
+				{
+					var vert = container.Vertices[i];
+					var color = container.Colors?[0, i] ?? new Color4(1, 1, 1, 1);
+
+					obj.Vertices.Add(new ObjVertex(vert.X, vert.Y, vert.Z, color.R, color.G, color.B, color.A));
+				}
+
+				foreach (var v in container.Normals)
+					obj.VertexNormals.Add(new ObjVector3(v.X, v.Y, v.Z));
+
+				foreach (var v in container.TexCoords)
+					obj.TextureVertices.Add(new ObjVector3(v.X, v.Y));
+
+				obj.WriteTo(Path.Combine(outputDir, assetMetaData.Filename + ".obj"));
+			}
+			else if (MagicHelper.Equals(Magic.Mesh, assetMetaData.Magic))
 			{
-				var vert = container.Vertices[i];
-				var color = container.Colors?[0, i] ?? new Color4(1, 1, 1, 1);
+				var header = Mesh.Read(stream);
 
-				obj.Vertices.Add(new ObjVertex(vert.X, vert.Y, vert.Z, color.R, color.G, color.B, color.A));
+				var boneModel = ObjFile.FromStream(ResourceHelper.GetResource("bone.obj"));
+
+				var obj = new ObjFile();
+
+				var i = 0;
+				foreach (var bone in header.Bones)
+				{
+					foreach (var face in boneModel.Faces)
+					{
+						var objFace = new ObjFace
+						{
+							ObjectName = $"Bone_{(Enum.IsDefined(typeof(BoneId), bone.Id) ? bone.Id : $"{(uint)bone.Id:X8}")}"
+						};
+
+						objFace.Vertices.Add(new ObjTriplet(face.Vertices[0].Vertex + i, face.Vertices[0].Texture + i, face.Vertices[0].Normal + i));
+						objFace.Vertices.Add(new ObjTriplet(face.Vertices[1].Vertex + i, face.Vertices[1].Texture + i, face.Vertices[1].Normal + i));
+						objFace.Vertices.Add(new ObjTriplet(face.Vertices[2].Vertex + i, face.Vertices[2].Texture + i, face.Vertices[2].Normal + i));
+
+						obj.Faces.Add(objFace);
+					}
+
+					foreach (var vertex in boneModel.Vertices)
+					{
+						var x = vertex.Position.X;
+						var y = vertex.Position.Y;
+						var z = vertex.Position.Z;
+
+						var nx = x * bone.Transformation.M11 + y * bone.Transformation.M21 + z * bone.Transformation.M31 + bone.Transformation.M41;
+						var ny = x * bone.Transformation.M12 + y * bone.Transformation.M22 + z * bone.Transformation.M32 + bone.Transformation.M42;
+						var nz = x * bone.Transformation.M13 + y * bone.Transformation.M23 + z * bone.Transformation.M33 + bone.Transformation.M43;
+
+						obj.Vertices.Add(new ObjVertex(nx, ny, nz));
+					}
+
+					foreach (var vertex in boneModel.VertexNormals)
+					{
+						var x = vertex.X;
+						var y = vertex.Y;
+						var z = vertex.Z;
+
+						var nx = x * bone.Transformation.M11 + y * bone.Transformation.M21 + z * bone.Transformation.M31 + bone.Transformation.M41;
+						var ny = x * bone.Transformation.M12 + y * bone.Transformation.M22 + z * bone.Transformation.M32 + bone.Transformation.M42;
+						var nz = x * bone.Transformation.M13 + y * bone.Transformation.M23 + z * bone.Transformation.M33 + bone.Transformation.M43;
+
+						obj.VertexNormals.Add(new ObjVector3(nx, ny, nz));
+					}
+
+					foreach (var vertex in boneModel.TextureVertices)
+					{
+						obj.TextureVertices.Add(new ObjVector3(vertex.X, vertex.Y, vertex.Z));
+					}
+
+					i += boneModel.Vertices.Count;
+				}
+
+				obj.WriteTo(Path.Combine(outputDir, assetMetaData.Filename + "_bones.obj"));
 			}
-
-			foreach (var v in container.Normals)
-				obj.VertexNormals.Add(new ObjVector3(v.X, v.Y, v.Z));
-
-			foreach (var v in container.TexCoords)
-				obj.TextureVertices.Add(new ObjVector3(v.X, v.Y));
-
-			obj.WriteTo(Path.Combine(outputDir, assetMetaData.Filename + ".obj"));
 		}
 
 		private void DumpSelectionAsDds(string outputDir, object o)
@@ -131,11 +196,14 @@ namespace Prism
 			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
 			using var stream = streamProvider.Invoke();
 
-			var texture = Texture.Read(stream);
-			var surface = texture.ReadSurfaceBytes(stream);
-			using var ddsStream = DdsHelper.GetDdsStream(texture, surface);
+			if (MagicHelper.GetFiletype(assetMetaData.Magic) == AssetType.Texture)
+			{
+				var texture = Texture.Read(stream);
+				var surface = texture.ReadSurfaceBytes(stream);
+				using var ddsStream = DdsHelper.GetDdsStream(texture, surface);
 
-			DumpHelper.DumpBin(Path.Combine(outputDir, assetMetaData.Filename + ".dds"), ddsStream);
+				DumpHelper.DumpBin(Path.Combine(outputDir, assetMetaData.Filename + ".dds"), ddsStream);
+			}
 		}
 
 		private void DumpSelectionAsPng(string outputDir, object o)
@@ -293,6 +361,8 @@ namespace Prism
 									new TreeListViewEntry("Var1", mp.Var1),
 									new TreeListViewEntry("Var2", mp.Var2),
 									new TreeListViewEntry("Mesh UID", $"{mp.CompiledMeshObjectUid:X16}"),
+									new TreeListViewEntry(nameof(Mesh.Bones), null,
+										mp.Bones.Select(arg => new TreeListViewEntry("ID", $"{(Enum.IsDefined(typeof(BoneId), arg.Id) ? arg.Id : $"{(uint)arg.Id:X8}")}")).ToArray()),
 									new TreeListViewEntry(nameof(Mesh.Materials), null, mp.Materials.Select(arg => new TreeListViewEntry("UID", $"{arg:X16}")).ToArray())
 								)
 							};

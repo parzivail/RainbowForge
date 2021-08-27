@@ -1,5 +1,8 @@
-﻿namespace RainbowForge.Model
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace RainbowForge.Model
 {
+	[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Enum member values are the CRC32 of the exact member name")]
 	public enum BoneId : uint
 	{
 		Root = 0xb6c65665,

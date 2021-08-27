@@ -1,5 +1,8 @@
-﻿namespace RainbowForge
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace RainbowForge
 {
+	[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Enum member values are the CRC32 of the exact member name")]
 	public enum Magic : ulong
 	{
 		Metadata = 0,

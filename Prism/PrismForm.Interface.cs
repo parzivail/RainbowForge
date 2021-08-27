@@ -544,7 +544,7 @@ namespace Prism
 
 			_bDumpAsBinHeader.Enabled = assetStream != null;
 			_bDumpAsDdsHeader.Enabled = _bDumpAsPngHeader.Enabled = type == AssetType.Texture;
-			_bDumpAsObjHeader.Enabled = type == AssetType.Mesh;
+			_bDumpAsObjHeader.Enabled = type == AssetType.Mesh || MagicHelper.Equals(Magic.Mesh, magic);
 		}
 
 		private void OnUiThread(Action action)
