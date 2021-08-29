@@ -514,9 +514,23 @@ namespace Prism
 			foreach (var forge in forgeFiles)
 			{
 				sw.WriteLine(Path.GetFileName(forge));
-				foreach (var entry in Forge.GetForge(forge).Entries)
+				var currentForge = Forge.GetForge(forge);
+				foreach (var entry in currentForge.Entries)
 				{
-					sw.WriteLine(entry.Uid.ToString("X16") + ": " + entry.MetaData.FileName + "." + (Magic)entry.MetaData.FileType);
+					var entryMetaData = GetAssetMetaData(entry);
+					sw.WriteLine("> " + entryMetaData.Uid.ToString("X16") + ": " + entryMetaData.Filename + "." + (Magic)entryMetaData.Magic);
+
+					if (MagicHelper.GetFiletype(entryMetaData.Magic) != AssetType.FlatArchive || currentForge.GetContainer(entryMetaData.Uid) is not ForgeAsset fa)
+						continue;
+
+					var archiveStream = fa.GetDataStream(currentForge);
+					var archive = FlatArchive.Read(archiveStream);
+
+					foreach (var archiveEntry in archive.Entries[1..])	// first archive entry always has the same UID, Magic and Name so we skip it
+					{
+						entryMetaData = GetAssetMetaData(archiveEntry);
+						sw.WriteLine(">> " + entryMetaData.Uid.ToString("X16") + ": " + entryMetaData.Filename + "." + (Magic)entryMetaData.Magic);
+					}
 				}
 			}
 			MessageBox.Show("Successfully generated filelist.txt", "Done");
