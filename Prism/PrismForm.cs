@@ -505,5 +505,21 @@ namespace Prism
 			OpenedForge = Forge.GetForge(filename);
 			Text = $"Prism - {filename}";
 		}
+
+		private static void GenerateFileList(string[] forgeFiles)
+		{
+			var fileListPath = Path.Combine(Environment.CurrentDirectory, "filelist.txt");
+
+			using var sw = new StreamWriter(fileListPath);
+			foreach (var forge in forgeFiles)
+			{
+				sw.WriteLine(Path.GetFileName(forge));
+				foreach (var entry in Forge.GetForge(forge).Entries)
+				{
+					sw.WriteLine(entry.Uid.ToString("X16") + ": " + entry.MetaData.FileName + "." + (Magic)entry.MetaData.FileType);
+				}
+			}
+			MessageBox.Show("Successfully generated filelist.txt", "Done");
+		}
 	}
 }

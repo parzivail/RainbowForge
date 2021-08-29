@@ -27,6 +27,7 @@ namespace Prism
 		private readonly ToolStripLabel _statusForgeInfo;
 
 		private readonly ToolStripMenuItem _bOpenForge;
+		private readonly ToolStripMenuItem _bGenerateFilelist;
 		private readonly ToolStripMenuItem _bResetViewport;
 
 		private readonly ToolStripMenuItem _bDumpAsBinHeader;
@@ -109,6 +110,11 @@ namespace Prism
 							(_bOpenForge = new ToolStripMenuItem("&Open Forge")
 							{
 								ShortcutKeys = Keys.Control | Keys.O
+							}),
+							new ToolStripSeparator(),
+							(_bGenerateFilelist = new ToolStripMenuItem("&Generate Filelist")
+							{
+								ShortcutKeys = Keys.Control | Keys.I
 							}),
 							new ToolStripSeparator(),
 							(_bEditSettings = new ToolStripMenuItem("&Settings")
@@ -218,7 +224,7 @@ namespace Prism
 
 			_bOpenForge.Click += (sender, args) =>
 			{
-				var ofd = new OpenFileDialog
+				using var ofd = new OpenFileDialog
 				{
 					Filter = "Forge Files|*.forge"
 				};
@@ -227,6 +233,24 @@ namespace Prism
 					return;
 
 				OpenForge(ofd.FileName);
+			};
+
+			_bGenerateFilelist.Click += (sender, args) =>
+			{
+				using var fbd = new FolderBrowserDialog
+				{
+					Description = "Selected the folder containing the forges."
+				};
+
+				if (fbd.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(fbd.SelectedPath))
+					return;
+
+				string[] forgeFiles = Directory.GetFiles(fbd.SelectedPath, "*.forge");
+
+				if (forgeFiles.Length < 1)
+					return;
+
+				GenerateFileList(forgeFiles);
 			};
 
 			_bEditSettings.Click += (sender, args) =>
