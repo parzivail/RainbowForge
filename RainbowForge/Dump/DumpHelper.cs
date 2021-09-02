@@ -28,7 +28,7 @@ namespace RainbowForge.Dump
 			{
 				case AssetType.Mesh:
 				{
-					var header = MeshHeader.Read(assetStream);
+					var header = MeshHeader.Read(assetStream, forge.Version);
 
 					var mesh = CompiledMeshObject.Read(assetStream, header);
 
@@ -38,7 +38,7 @@ namespace RainbowForge.Dump
 				}
 				case AssetType.Texture:
 				{
-					var texture = Texture.Read(assetStream);
+					var texture = Texture.Read(assetStream, forge.Version);
 
 					var surface = texture.ReadSurfaceBytes(assetStream);
 
@@ -51,7 +51,7 @@ namespace RainbowForge.Dump
 					// format notes: see https://github.com/vgmstream/vgmstream/blob/master/src/meta/wwise.c
 					// vgmstream should be able to convert all of the WEM files spit out by this to WAV without any issues
 
-					var wem = WemSound.Read(assetStream);
+					var wem = WemSound.Read(assetStream, forge.Version);
 
 					DumpBin(outputDirectory, $"id{entry.Uid}", assetStream.BaseStream, wem.PayloadOffset, wem.PayloadLength, "wem");
 
@@ -59,7 +59,7 @@ namespace RainbowForge.Dump
 				}
 				case AssetType.FlatArchive:
 				{
-					var arc = FlatArchive.Read(assetStream);
+					var arc = FlatArchive.Read(assetStream, forge.Version);
 
 					var arcDir = Path.Combine(outputDirectory, $"flatarchive_id{entry.Uid}");
 

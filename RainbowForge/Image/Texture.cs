@@ -39,9 +39,9 @@ namespace RainbowForge.Image
 			Data2 = data2;
 		}
 
-		public static Texture Read(BinaryReader r)
+		public static Texture Read(BinaryReader r, uint version)
 		{
-			var header = FileMetaData.Read(r);
+			var header = FileMetaData.Read(r, version);
 
 			var secondMagic = r.ReadUInt32();
 			var var2 = r.ReadUInt32();

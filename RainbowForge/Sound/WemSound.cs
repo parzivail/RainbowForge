@@ -21,9 +21,9 @@ namespace RainbowForge.Sound
 		// private static BinaryWriter bw = new BinaryWriter(File.Open(@"R:\Siege Dumps\Asset Indexes\New in Y6S1\sound\headers.bin", FileMode.Append));
 		// private static int i = 0;
 
-		public static WemSound Read(BinaryReader r)
+		public static WemSound Read(BinaryReader r, uint version)
 		{
-			var fmeta = FileMetaData.Read(r);
+			var fmeta = FileMetaData.Read(r, version);
 
 			var secondMagic = r.ReadUInt32();
 			var var2 = r.ReadUInt32();

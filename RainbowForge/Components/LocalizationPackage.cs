@@ -13,9 +13,9 @@ namespace RainbowForge.Components
 			Data = data;
 		}
 
-		public static LocalizationPackage Read(BinaryReader r)
+		public static LocalizationPackage Read(BinaryReader r, uint version)
 		{
-			var fileMeta = FileMetaData.Read(r);
+			var fileMeta = FileMetaData.Read(r, version);
 
 			var secondMagic = r.ReadUInt32();
 			MagicHelper.AssertEquals(Magic.LocalizationPackage, secondMagic);

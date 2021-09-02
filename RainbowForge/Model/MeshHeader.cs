@@ -46,10 +46,10 @@ namespace RainbowForge.Model
 			FaceUnknownDataLen = faceUnknownDataLen;
 		}
 
-		public static MeshHeader Read(BinaryReader r)
+		public static MeshHeader Read(BinaryReader r, uint version)
 		{
 			// file header (0x5C - zeroes till verts)
-			var metaHeader = FileMetaData.Read(r);
+			var metaHeader = FileMetaData.Read(r, version);
 
 			var secondMagic = r.ReadUInt32();
 			var var2 = r.ReadUInt32();

@@ -40,7 +40,7 @@ namespace DumpTool
 						if (container is not ForgeAsset forgeAsset) continue;
 
 						var assetStream = forgeAsset.GetDataStream(forge);
-						var arc = FlatArchive.Read(assetStream);
+						var arc = FlatArchive.Read(assetStream, forge.Version);
 
 						if (arc.Entries.Any(archiveEntry => archiveEntry.MetaData.Uid == args.Uid))
 							Console.WriteLine($"{file} -> within flat archive {entry.Uid}");

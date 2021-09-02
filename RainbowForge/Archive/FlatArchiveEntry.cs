@@ -17,9 +17,9 @@ namespace RainbowForge.Archive
 			PayloadLength = payloadLength;
 		}
 
-		public static FlatArchiveEntry Read(BinaryReader r, int index)
+		public static FlatArchiveEntry Read(BinaryReader r, uint version, int index)
 		{
-			var meta = FileMetaData.Read(r);
+			var meta = FileMetaData.Read(r, version);
 
 			var length = meta.ContainerType - 8; // length - int64(uid)
 

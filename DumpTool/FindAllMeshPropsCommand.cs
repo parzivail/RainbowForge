@@ -43,7 +43,7 @@ namespace DumpTool
 				return false;
 
 			var assetStream = forgeAsset.GetDataStream(forge);
-			var arc = FlatArchive.Read(assetStream);
+			var arc = FlatArchive.Read(assetStream, forge.Version);
 
 			foreach (var meshProp in arc.Entries)
 			{

@@ -49,7 +49,7 @@ namespace DumpTool
 			if (container is not ForgeAsset forgeAsset) return;
 
 			var assetStream = forgeAsset.GetDataStream(forge);
-			var arc = FlatArchive.Read(assetStream);
+			var arc = FlatArchive.Read(assetStream, forge.Version);
 
 			if (arc.Entries.All(archiveEntry => !MagicHelper.Equals(Magic.Mesh, archiveEntry.MetaData.FileType)))
 			{

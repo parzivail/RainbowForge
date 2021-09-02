@@ -13,13 +13,13 @@ namespace RainbowForge.Archive
 			Entries = entries;
 		}
 
-		public static FlatArchive Read(BinaryReader r)
+		public static FlatArchive Read(BinaryReader r, uint version)
 		{
 			var entries = new List<FlatArchiveEntry>();
 
 			var index = 0;
 			while (r.BaseStream.Position != r.BaseStream.Length)
-				entries.Add(FlatArchiveEntry.Read(r, index++));
+				entries.Add(FlatArchiveEntry.Read(r, version, index++));
 
 			if (r.BaseStream.Length != r.BaseStream.Position)
 				throw new InvalidDataException();

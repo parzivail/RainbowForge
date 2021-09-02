@@ -450,7 +450,7 @@ namespace Prism
 				if (container is not ForgeAsset forgeAsset) throw new InvalidDataException("Container is not asset");
 
 				var assetStream = forgeAsset.GetDataStream(_openedForge);
-				var fa = FlatArchive.Read(assetStream);
+				var fa = FlatArchive.Read(assetStream, _openedForge.Version);
 
 				foreach (var entry in fa.Entries) _flatArchiveEntryMap[entry.MetaData.Uid] = e.Uid;
 
