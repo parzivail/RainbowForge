@@ -33,7 +33,7 @@ namespace RainbowForge.Components
 			return (ushort)((b0 << 8) | (b1 >> 8));
 		}
 
-		private static ulong ByteswapUint64(ulong value)
+		private static uint ByteswapUint32(uint value)
 		{
 			var b0 = value & 0x000000FF;
 			var b1 = value & 0x0000FF00;
@@ -66,9 +66,9 @@ namespace RainbowForge.Components
 			var localizationPointers = new LocalizationPointer[numLocalizations];
 			for (var i = 0; i < numLocalizations; i++)
 			{
-				var localizationId = (uint)ByteswapUint64(r.ReadUInt32());
-				var stringDataPos = (uint)ByteswapUint64(r.ReadUInt32());
-				var lengthDataPos = (uint)ByteswapUint64(r.ReadUInt32());
+				var localizationId = ByteswapUint32(r.ReadUInt32());
+				var stringDataPos = ByteswapUint32(r.ReadUInt32());
+				var lengthDataPos = ByteswapUint32(r.ReadUInt32());
 
 				localizationPointers[i] = new LocalizationPointer(localizationId, stringDataPos, lengthDataPos);
 			}

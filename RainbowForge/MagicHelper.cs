@@ -14,6 +14,11 @@ namespace RainbowForge
 			0x05A61FAD, // TextureGui1
 			0x427411A3, // WemSound
 			0x56C88C7F, // GDOUIDescription2
+			0xF8E187EA, // InventoryScope
+			0x0B7410FB, // InventoryBarrel
+			0x305DAAF0, // InventoryLaser
+			0xCEA4CA0E, // InventoryGunGrip
+			0xCE4A0B93, // InventoryMagazine
 			// Totally unknown
 			0x21943A63, 0x23BF9925, 0x23CD3131, 0x24D19860, 0x25B46ADB, 0x27966F42, 0x297D86AF, 0x2C62E10B, 0x2F732FDB, 0x305DAAF0,
 			0x307F9215, 0x30B11EF1, 0x31B492A9, 0x334B31A2, 0x337544B7, 0x33A3568D, 0x33ECCB02, 0x340378D4, 0x345D8BAB, 0x36BE7C80,

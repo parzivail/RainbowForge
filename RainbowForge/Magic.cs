@@ -550,7 +550,12 @@ namespace RainbowForge
 		LookAtBoneModifier = 0x8d774b2,
 		FollowBoneModifier = 0x13ae4b43,
 		HingeBoneModifier = 0x324796c7,
-		Reflex3SkeletonConstraints = 0x8e3fb47a
+		Reflex3SkeletonConstraints = 0x8e3fb47a,
+		InventoryScope = 0xF8E187EA,
+		InventoryBarrel = 0x0B7410FB,
+		InventoryLaser = 0x305DAAF0,
+		InventoryGunGrip = 0xCEA4CA0E,
+		InventoryMagazine = 0xCE4A0B93
 	}
 
 	public enum ContainerMagic : uint
