@@ -41,48 +41,55 @@ namespace RainbowForge.Core
 
 		public static EntryMetaData Read(BinaryReader r, ulong uid, ulong offset, uint version)
 		{
-			if(version == 30) {
-				var x00 = r.ReadUInt32(); // [0x00] 0
-				var x04 = r.ReadUInt32(); // [0x04] 4
-				var x08 = r.ReadUInt64(); // [0x08] 0
-				var x10 = r.ReadUInt32(); // [0x10] 4
-				var name = r.ReadBytes(0xFF); // [0x14] entry metadata
-				var nameLength = r.ReadByte(); // [0x113] some byte
-				var timestamp = r.ReadUInt32(); // [0x114]
-				var x118 = r.ReadUInt32(); // [0x118] 0
-				var prevEntryIdx = r.ReadInt32(); // [0x11c] previous entry index
-				var nextEntryIdx = r.ReadInt32(); // [0x120] next entry index
-				var x124 = r.ReadUInt64(); // [0x124] 0
-				var fileType = r.ReadUInt32(); // [0x12c]
-				var x130 = r.ReadUInt32(); // [0x130] 0
-				// var extraData = r.ReadBytes(12); // [0x134] looks like compressed data
-				var x134 = r.ReadUInt64(); // [0x134]
-				var dataSize = r.ReadUInt32(); // [0x13c]
-				
-				var nameBytes = NameEncoding.DecodeName(name[..nameLength], fileType, uid, offset, NameEncoding.FILENAME_ENCODING_ENTRY_KEY_STEP);
-				return new EntryMetaData(Encoding.ASCII.GetString(nameBytes), name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, dataSize, x00, x04, x08, x10);
-			} else if (version == 29) {
-				var dataSize = r.ReadUInt32(); // [0x00]
-				var x04 = r.ReadUInt64(); // [0x04]
-				var x0c = r.ReadUInt32(); // [0x0c]
-				var fileType = r.ReadUInt32(); // [0x10]
-				var x18 = r.ReadUInt64(); // [0x18]
-				var nextEntryIdx = r.ReadInt32(); // [0x1c] next entry index
-				var prevEntryIdx = r.ReadInt32(); // [0x20] previous entry index
-				var x24 = r.ReadUInt32(); // [0x24]
-				var timestamp = r.ReadUInt32(); // [0x28]
-				var name = r.ReadBytes(0xFF); // [0x2c] entry metadata
-				var nameLength = r.ReadByte(); // [0x12b] some byte
-				var x12c = r.ReadUInt32(); // [0x12c]
-				var x130 = r.ReadUInt32(); // [0x130]
-				var x134 = r.ReadUInt32(); // [0x134]
-				var x138 = r.ReadUInt32(); // [0x138]
-				var x13c = r.ReadUInt32(); // [0x13c]
-				
-				var nameBytes = NameEncoding.DecodeName(name[..nameLength], fileType, uid, offset, NameEncoding.FILENAME_ENCODING_ENTRY_KEY_STEP);
-				return new EntryMetaData(Encoding.ASCII.GetString(nameBytes), name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, dataSize, x0c, x24, x04, x12c);
+			switch (version)
+			{
+				case >= 30:
+				{
+					var x00 = r.ReadUInt32(); // [0x00] 0
+					var x04 = r.ReadUInt32(); // [0x04] 4
+					var x08 = r.ReadUInt64(); // [0x08] 0
+					var x10 = r.ReadUInt32(); // [0x10] 4
+					var name = r.ReadBytes(0xFF); // [0x14] entry metadata
+					var nameLength = r.ReadByte(); // [0x113] some byte
+					var timestamp = r.ReadUInt32(); // [0x114]
+					var x118 = r.ReadUInt32(); // [0x118] 0
+					var prevEntryIdx = r.ReadInt32(); // [0x11c] previous entry index
+					var nextEntryIdx = r.ReadInt32(); // [0x120] next entry index
+					var x124 = r.ReadUInt64(); // [0x124] 0
+					var fileType = r.ReadUInt32(); // [0x12c]
+					var x130 = r.ReadUInt32(); // [0x130] 0
+					// var extraData = r.ReadBytes(12); // [0x134] looks like compressed data
+					var x134 = r.ReadUInt64(); // [0x134]
+					var dataSize = r.ReadUInt32(); // [0x13c]
+
+					var nameBytes = NameEncoding.DecodeName(name[..nameLength], fileType, uid, offset, NameEncoding.FILENAME_ENCODING_ENTRY_KEY_STEP);
+					return new EntryMetaData(Encoding.ASCII.GetString(nameBytes), name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, dataSize, x00, x04, x08, x10);
+				}
+				case <= 29:
+				{
+					var dataSize = r.ReadUInt32(); // [0x00]
+					var x04 = r.ReadUInt64(); // [0x04]
+					var x0c = r.ReadUInt32(); // [0x0c]
+					var fileType = r.ReadUInt32(); // [0x10]
+					var x18 = r.ReadUInt64(); // [0x18]
+					var nextEntryIdx = r.ReadInt32(); // [0x1c] next entry index
+					var prevEntryIdx = r.ReadInt32(); // [0x20] previous entry index
+					var x24 = r.ReadUInt32(); // [0x24]
+					var timestamp = r.ReadUInt32(); // [0x28]
+					var name = r.ReadBytes(0xFF); // [0x2c] entry metadata
+					var nameLength = r.ReadByte(); // [0x12b] some byte
+					var x12c = r.ReadUInt32(); // [0x12c]
+					var x130 = r.ReadUInt32(); // [0x130]
+					var x134 = r.ReadUInt32(); // [0x134]
+					var x138 = r.ReadUInt32(); // [0x138]
+					var x13c = r.ReadUInt32(); // [0x13c]
+
+					var nameBytes = NameEncoding.DecodeName(name[..nameLength], fileType, uid, offset, NameEncoding.FILENAME_ENCODING_ENTRY_KEY_STEP);
+					return new EntryMetaData(Encoding.ASCII.GetString(nameBytes), name, nameLength, timestamp, prevEntryIdx, nextEntryIdx, fileType, dataSize, x0c, x24, x04, x12c);
+				}
+				default:
+					throw new NotImplementedException($"Unsupported version {version}");
 			}
-			throw new NotImplementedException($"Unsupported version {version}");
 		}
 	}
 }
