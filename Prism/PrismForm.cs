@@ -83,7 +83,7 @@ namespace Prism
 
 			if (MagicHelper.GetFiletype(assetMetaData.Magic) == AssetType.Mesh)
 			{
-				var header = MeshHeader.Read(stream);
+				var header = MeshHeader.Read(stream, _openedForge.Version);
 
 				var compiledMeshObject = CompiledMeshObject.Read(stream, header);
 
@@ -198,7 +198,7 @@ namespace Prism
 
 			if (MagicHelper.GetFiletype(assetMetaData.Magic) == AssetType.Texture)
 			{
-				var texture = Texture.Read(stream);
+				var texture = Texture.Read(stream, _openedForge.Version);
 				var surface = texture.ReadSurfaceBytes(stream);
 				using var ddsStream = DdsHelper.GetDdsStream(texture, surface);
 
@@ -211,7 +211,7 @@ namespace Prism
 			var (_, assetMetaData, streamProvider) = GetAssetStream(o);
 			using var stream = streamProvider.Invoke();
 
-			var texture = Texture.Read(stream);
+			var texture = Texture.Read(stream, _openedForge.Version);
 			using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 			using var bmp = image.CreateBitmap();
 
@@ -264,7 +264,7 @@ namespace Prism
 						() =>
 						{
 							using var assetStream = forgeAsset.GetDataStream(_openedForge);
-							var arc = FlatArchive.Read(assetStream);
+							var arc = FlatArchive.Read(assetStream, _openedForge.Version);
 							return arc.GetEntryStream(assetStream.BaseStream, flatArchiveEntry.MetaData.Uid);
 						});
 				}
@@ -280,7 +280,7 @@ namespace Prism
 				case AssetType.Mesh:
 				{
 					using var stream = assetStream.StreamProvider.Invoke();
-					var header = MeshHeader.Read(stream);
+					var header = MeshHeader.Read(stream, _openedForge.Version);
 					var mesh = CompiledMeshObject.Read(stream, header);
 
 					OnUiThread(() =>
@@ -299,7 +299,7 @@ namespace Prism
 				case AssetType.Texture:
 				{
 					using var stream = assetStream.StreamProvider.Invoke();
-					var texture = Texture.Read(stream);
+					var texture = Texture.Read(stream, _openedForge.Version);
 					using var image = Pfim.Pfim.FromStream(DdsHelper.GetDdsStream(texture, texture.ReadSurfaceBytes(stream)));
 
 					using (var skImage = image.CreateSkImage())
@@ -524,7 +524,7 @@ namespace Prism
 						continue;
 
 					var archiveStream = fa.GetDataStream(currentForge);
-					var archive = FlatArchive.Read(archiveStream);
+					var archive = FlatArchive.Read(archiveStream, currentForge.Version);
 
 					foreach (var archiveEntry in archive.Entries[1..])	// first archive entry always has the same UID, Magic and Name so we skip it
 					{

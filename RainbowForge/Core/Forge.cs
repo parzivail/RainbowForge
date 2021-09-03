@@ -126,7 +126,7 @@ namespace RainbowForge.Core
 
 				r.BaseStream.Seek(metaTableOffset, SeekOrigin.Begin);
 				for (var j = 0; j < maxFile; j++)
-					entries[j].MetaData = EntryMetaData.Read(r, entries[j].Uid, (ulong)entries[j].Offset);
+					entries[j].MetaData = EntryMetaData.Read(r, entries[j].Uid, (ulong)entries[j].Offset, version);
 
 				totalEntries.AddRange(entries);
 
