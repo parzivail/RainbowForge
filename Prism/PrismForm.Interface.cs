@@ -460,16 +460,41 @@ namespace Prism
 			_assetList.CellRightClick += (sender, args) =>
 			{
 				var tlv = (TreeListView)sender;
-				var meta = GetAssetMetaData(tlv.SelectedObject);
+
+				var filenameText = "";
+				var uidText = "";
+				var magicText = "";
+
+				foreach (var o in tlv.SelectedObjects)
+				{
+					var meta = GetAssetMetaData(o);
+
+					if (filenameText.Length == 0)
+						filenameText = meta.Filename;
+					else
+						filenameText += $"\n" + meta.Filename;
+
+					var uidStr = $"0x{meta.Uid:X16}";
+					if (uidText.Length == 0)
+						uidText = uidStr;
+					else
+						uidText += $"\n" + uidStr;
+
+					var magicStr = $"0x{meta.Magic:X8}";
+					if (magicText.Length == 0)
+						magicText = magicStr;
+					else
+						magicText += $"\n" + magicStr;
+				}
 
 				var bCopyName = new ToolStripMenuItem("&Copy Name");
-				bCopyName.Click += (o, eventArgs) => Clipboard.SetText(meta.Filename);
+				bCopyName.Click += (o, eventArgs) => Clipboard.SetText(filenameText);
 
 				var bCopyUid = new ToolStripMenuItem("&Copy UID");
-				bCopyUid.Click += (o, eventArgs) => Clipboard.SetText($"0x{meta.Uid:X16}");
+				bCopyUid.Click += (o, eventArgs) => Clipboard.SetText(uidText);
 
 				var bCopyFiletype = new ToolStripMenuItem("&Copy Filetype");
-				bCopyFiletype.Click += (o, eventArgs) => Clipboard.SetText($"0x{meta.Magic:X8}");
+				bCopyFiletype.Click += (o, eventArgs) => Clipboard.SetText(magicText);
 
 				args.MenuStrip = new ContextMenuStrip
 				{
