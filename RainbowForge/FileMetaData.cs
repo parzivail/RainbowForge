@@ -28,6 +28,7 @@ namespace RainbowForge
 			{
 				case >= 30:
 				{
+					// in AC, a name length with 0x80000000 bit set means encrypted
 					var filenameLength = r.ReadUInt32();
 					var filename = r.ReadBytes((int)filenameLength);
 					var var1 = r.ReadUInt32();
