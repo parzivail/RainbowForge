@@ -746,6 +746,23 @@ namespace RainbowForge
 		BattlePassUniverseScreen = 0xEA266162,
 		EventActivity = 0x1763682B,
 		KinoReplaceSystemFamiliesData = 0xC52060FD,
+		PackGDOUIDescription = 0x101AF874,
+		LootCrateGDOUIDescription = 0xB648C1DF,
+		BattlePassGDOUIDescription = 0x91860285,
+		LaserReinforcementData = 0xD26D9DC9,
+		PlatformRuntimeSettings = 0x307F9215,
+		MultiBehaviorInterceptionRuleSet = 0x8BB308EA,
+		SingleBehaviorInterceptionRuleSet = 0x253D8D16,
+		MultiBuyUnlockable = 0x0745E69C,
+		GDOOperatorGameplayMetaInfo = 0xA818CD8D,
+		OperatorCardElement = 0xC3645505,
+		UnlockableManagerRewardCollection = 0x6009EB19,
+		EsportTeamObject = 0xA43332F8,
+		GuiSoundManager = 0x91DFE9EC,
+		GameGuiFactory = 0x11C5A979,
+		PhoenixLocalizedFontData = 0x669403B9,
+		PhoenixFontDescriptorData = 0xCBD4939A,
+		GuiDevComposition = 0x44929C4E,
 	}
 
 	public enum ContainerMagic : uint
