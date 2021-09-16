@@ -744,6 +744,8 @@ namespace RainbowForge
 		PhoenixFontData = 0x9BB2CDF2,
 		BattlePassRule = 0x9A1C7FA6,
 		BattlePassUniverseScreen = 0xEA266162,
+		EventActivity = 0x1763682B,
+		KinoReplaceSystemFamiliesData = 0xC52060FD,
 	}
 
 	public enum ContainerMagic : uint
