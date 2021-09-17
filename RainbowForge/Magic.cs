@@ -571,7 +571,7 @@ namespace RainbowForge
 		OptInFlowScreen = 0x163FB24F,
 		MatchOutcomeScreen = 0x1749DC10,
 		HudDeathExperienceScreen = 0x17D11ADA,
-		FunnelNavigationScreen = 0x180E0D55,
+		FunnelNavigation = 0x180E0D55,
 		ControlsOptionsScreen = 0x1910B39F,
 		KoreanPCBangScreen = 0x194A1FE4,
 		BattlePassProgressionScreen = 0x1AAFCE39,
@@ -763,6 +763,11 @@ namespace RainbowForge
 		PhoenixLocalizedFontData = 0x669403B9,
 		PhoenixFontDescriptorData = 0xCBD4939A,
 		GuiDevComposition = 0x44929C4E,
+		ManagedSoundMedia = 0x9CB7D50B,
+		BattlePoint = 0xFABAE07A,
+		GDOUIACKNotification = 0xB66B7701,
+		BattlePassGameObject = 0x0D8CA779,
+		LivePreloadFont = 0x4802A946,
 	}
 
 	public enum ContainerMagic : uint
