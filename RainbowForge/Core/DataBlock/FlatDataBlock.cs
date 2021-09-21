@@ -4,30 +4,37 @@ namespace RainbowForge.Core.DataBlock
 {
 	public class FlatDataBlock : IAssetBlock
 	{
-		public byte[] Meta { get; }
 		public long Offset { get; }
 		public int Length { get; }
 
-		private FlatDataBlock(byte[] meta, long offset, int length)
+		private FlatDataBlock(long offset, int length)
 		{
-			Meta = meta;
 			Offset = offset;
 			Length = length;
 		}
 
 		public static FlatDataBlock Read(BinaryReader r, Entry entry)
 		{
-			var numMetaEntries = r.ReadByte();
+			var numChunks = r.ReadUInt16();
+			var unk1 = r.ReadUInt16();
 
-			// smallest numMetaEntries is 1, so the smallest
-			// header length is 15
-			var metaLength = 12 * numMetaEntries + 3;
-			var meta = r.ReadBytes(metaLength);
+			var payloadSizes = new int[numChunks];
+			var serializedSizes = new int[numChunks];
+			for (var i = 0; i < numChunks; i++)
+			{
+				payloadSizes[i] = r.ReadInt32();
+				serializedSizes[i] = r.ReadInt32();
+			}
+
+			var checksumData = new uint[numChunks];
+
+			for (var i = 0; i < numChunks; i++)
+				checksumData[i] = r.ReadUInt32();
 
 			var dataStart = r.BaseStream.Position;
 			r.BaseStream.Seek(entry.End, SeekOrigin.Begin);
 
-			return new FlatDataBlock(meta, dataStart, (int)(entry.End - dataStart));
+			return new FlatDataBlock(dataStart, (int)(entry.End - dataStart));
 		}
 
 		public Stream GetDataStream(BinaryReader r)

@@ -154,8 +154,19 @@ namespace RainbowScimitar
 
 	public enum ScimitarFilePackMethod : uint
 	{
-		Chunked = 3,
-		Linear = 7
+		/// <summary>
+		/// Indicates the Block strategy for packing file data chunks. The asset
+		/// serializes the list of block sizes, and each block is accompanied by
+		/// a checksum at the start of each block.
+		/// </summary>
+		Block = 3,
+
+		/// <summary>
+		/// Indicates the Streaming strategy for packing file data chunks. The
+		/// asset serializes the list of block sizes as well as the checksums,
+		/// and blocks are tightly packed with no interruptions.
+		/// </summary>
+		Streaming = 7
 	}
 
 	public interface IScimitarFileData
@@ -172,7 +183,7 @@ namespace RainbowScimitar
 
 	public record ScimitarChunkDataInfo(uint Checksum, long Offset);
 
-	public record ScimitarChunkedData(ushort Unknown1, ScimitarChunkSizeInfo[] SizeInfo, ScimitarChunkDataInfo[] DataInfo) : IScimitarFileData
+	public record ScimitarBlockPackedData(ushort Unknown1, ScimitarChunkSizeInfo[] SizeInfo, ScimitarChunkDataInfo[] DataInfo) : IScimitarFileData
 	{
 		/// <inheritdoc />
 		public Stream GetStream(Stream bundleStream)
@@ -203,7 +214,7 @@ namespace RainbowScimitar
 			return ms;
 		}
 
-		public static ScimitarChunkedData Read(BinaryReader r)
+		public static ScimitarBlockPackedData Read(BinaryReader r)
 		{
 			var numChunks = r.ReadUInt16();
 			var unknown1 = r.ReadUInt16();
@@ -221,11 +232,11 @@ namespace RainbowScimitar
 				r.BaseStream.Seek(size.SerializedSize, SeekOrigin.Current);
 			}
 
-			return new ScimitarChunkedData(unknown1, sizeData, chunkData);
+			return new ScimitarBlockPackedData(unknown1, sizeData, chunkData);
 		}
 	}
 
-	public record ScimitarLinearData() : IScimitarFileData
+	public record ScimitarStreamingPackedData() : IScimitarFileData
 	{
 		/// <inheritdoc />
 		public Stream GetStream(Stream bundleStream)
@@ -233,7 +244,7 @@ namespace RainbowScimitar
 			throw new NotImplementedException();
 		}
 
-		public static ScimitarLinearData Read(BinaryReader r)
+		public static ScimitarStreamingPackedData Read(BinaryReader r)
 		{
 			var numChunks = r.ReadUInt16();
 			var unk1 = r.ReadUInt16();
@@ -244,7 +255,10 @@ namespace RainbowScimitar
 			for (var i = 0; i < numChunks; i++)
 				checksumData[i] = r.ReadUInt32();
 
-			return new ScimitarLinearData();
+			if (sizeData.Any(info => info.PayloadSize != info.SerializedSize))
+				throw new NotSupportedException("Streaming data blocks with compression are not yet supported!");
+
+			return new ScimitarStreamingPackedData();
 		}
 	}
 
@@ -262,25 +276,29 @@ namespace RainbowScimitar
 
 			return header.PackMethod switch
 			{
-				ScimitarFilePackMethod.Chunked => new ScimitarPackedData(ScimitarChunkedData.Read(r)), //  TODO: actually "regular chunked data"?
-				ScimitarFilePackMethod.Linear => new ScimitarPackedData(ScimitarLinearData.Read(r)), //  TODO: actually "streamable chunked data"?
+				ScimitarFilePackMethod.Block => new ScimitarPackedData(ScimitarBlockPackedData.Read(r)),
+				ScimitarFilePackMethod.Streaming => new ScimitarPackedData(ScimitarStreamingPackedData.Read(r)),
 				_ => throw new ArgumentOutOfRangeException(nameof(header.PackMethod), $"Unknown pack method 0x{(uint)header.PackMethod:X}")
 			};
 		}
 	}
 
-	public record ScimitarFile(ScimitarPackedData FileData, ScimitarPackedData MetaData)
+	public record ScimitarFile(ScimitarPackedData FileData, ScimitarPackedData MetaData, ScimitarSubFileData[] SubFileData)
 	{
 		public static ScimitarFile Read(BinaryReader r)
 		{
 			var fileData = ScimitarPackedData.Read(r);
 			var metaData = ScimitarPackedData.Read(r);
-			return new ScimitarFile(fileData, metaData);
+
+			using var metaStream = new BinaryReader(metaData.Data.GetStream(r.BaseStream));
+			var metaSubFileData = metaStream.ReadLengthPrefixedStructs<ScimitarSubFileData>();
+
+			return new ScimitarFile(fileData, metaData, metaSubFileData);
 		}
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	readonly struct ScimitarSubFileData
+	public readonly struct ScimitarSubFileData
 	{
 		public readonly ScimitarId Uid;
 		public readonly int Unknown1;
