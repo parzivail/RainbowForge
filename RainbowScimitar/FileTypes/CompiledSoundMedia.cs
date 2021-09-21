@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using RainbowScimitar.Extensions;
+using RainbowScimitar.Scimitar;
 
 namespace RainbowScimitar.FileTypes
 {

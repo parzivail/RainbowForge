@@ -2,10 +2,10 @@
 using System.Text;
 using RainbowForge.Core;
 
-namespace RainbowScimitar
+namespace RainbowScimitar.Scimitar
 {
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct ScimitarAssetMetadata
+	public readonly struct ScimitarAssetMetadata
 	{
 		public readonly uint Unknown1;
 		public readonly uint Unknown2;

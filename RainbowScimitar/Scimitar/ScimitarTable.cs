@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using RainbowScimitar.Extensions;
 
-namespace RainbowScimitar
+namespace RainbowScimitar.Scimitar
 {
 	public record ScimitarTable(int NumFiles, int NumDirs, long PosFat, long NextPosFat, int FirstIndex, int LastIndex, long MetaTableOffset, long DirectoryOffset, ScimitarFileTableEntry[] Files,
 		ScimitarAssetMetadata[] MetaTableEntries)
