@@ -5,7 +5,7 @@ namespace RainbowScimitar.Extensions
 {
 	public static class StreamExt
 	{
-		public static void CopyStream(this Stream src, Stream dest, int length, int buffSize = 8192)
+		public static void CopyStreamTo(this Stream src, Stream dest, int length, int buffSize = 8192)
 		{
 			var buffer = new byte[buffSize];
 			int read;

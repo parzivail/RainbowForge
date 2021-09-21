@@ -20,6 +20,7 @@ using RainbowForge.Image;
 using RainbowForge.Link;
 using RainbowForge.Model;
 using RainbowForge.RenderPipeline;
+using RainbowForge.Sound;
 using SkiaSharp;
 
 namespace Prism
@@ -219,7 +220,7 @@ namespace Prism
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
 			if ((texture.TexType == TextureType.Normal || texture.TexType == TextureType.Misc) &&
-				texture.TexFormat == 0x6)
+			    texture.TexFormat == 0x6)
 			{
 				if (_settings.FlipPngGreenChannel || _settings.RecalculatePngBlueChannel)
 				{
@@ -292,6 +293,25 @@ namespace Prism
 							_renderer3d.SetTexture(null);
 							_renderer3d.SetPartBounds(header.ObjectBoundingBoxes.Take((int)(header.ObjectBoundingBoxes.Length / header.NumLods)).ToArray());
 						}
+					});
+
+					break;
+				}
+				case AssetType.Sound:
+				{
+					using var stream = assetStream.StreamProvider.Invoke();
+					var sound = WemSound.Read(stream, _openedForge.Version);
+
+					var entries = new List<TreeListViewEntry>
+					{
+						CreateMetadataInfoNode(assetStream)
+					};
+
+					OnUiThread(() =>
+					{
+						_infoControl.SetObjects(entries);
+						_infoControl.ExpandAll();
+						SetPreviewPanel(_infoControl);
 					});
 
 					break;
@@ -526,13 +546,14 @@ namespace Prism
 					var archiveStream = fa.GetDataStream(currentForge);
 					var archive = FlatArchive.Read(archiveStream, currentForge.Version);
 
-					foreach (var archiveEntry in archive.Entries[1..])	// first archive entry always has the same UID, Magic and Name so we skip it
+					foreach (var archiveEntry in archive.Entries[1..]) // first archive entry always has the same UID, Magic and Name so we skip it
 					{
 						entryMetaData = GetAssetMetaData(archiveEntry);
 						sw.WriteLine(">> " + entryMetaData.Uid.ToString("X16") + ": " + entryMetaData.Filename + "." + (Magic)entryMetaData.Magic);
 					}
 				}
 			}
+
 			MessageBox.Show("Successfully generated filelist.txt", "Done");
 		}
 	}

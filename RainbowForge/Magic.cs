@@ -787,7 +787,7 @@ namespace RainbowForge
 	}
 
 	[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Enum member names are how they appear in game files")]
-	public enum StaticUids : ulong
+	public enum StaticUid : ulong
 	{
 		DataControlGlobalMetaKey = 0x010,
 		GameBootstrap = 0x800,
@@ -809,7 +809,7 @@ namespace RainbowForge
 		PlatformManager = 0x969,
 		GameFlowConfig = 0xBDA,
 		DefaultMaterial = 0xBDB,
-		FastLoadTableOfContent = 0xBE0,
+		FastLoadTableOfContents = 0xBE0,
 		DefaultVisualRenderingSetting = 0xBFF,
 		VisualRenderingSettingConvertFromFP = 0xC00,
 		VisualRenderingSettingConvertFromTP = 0xC01,

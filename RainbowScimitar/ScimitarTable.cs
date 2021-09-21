@@ -3,34 +3,9 @@ using RainbowScimitar.Extensions;
 
 namespace RainbowScimitar
 {
-	public class ScimitarTable
+	public record ScimitarTable(int NumFiles, int NumDirs, long PosFat, long NextPosFat, int FirstIndex, int LastIndex, long MetaTableOffset, long DirectoryOffset, ScimitarFileTableEntry[] Files,
+		ScimitarAssetMetadata[] MetaTableEntries)
 	{
-		public int NumFiles { get; }
-		public int NumDirs { get; }
-		public long PosFat { get; }
-		public long NextPosFat { get; }
-		public int FirstIndex { get; }
-		public int LastIndex { get; }
-		public long MetaTableOffset { get; }
-		public long DirectoryOffset { get; }
-		public ScimitarFile[] Files { get; }
-		public ScimitarMetaTableEntry[] MetaTableEntries { get; }
-
-		private ScimitarTable(int numFiles, int numDirs, long posFat, long nextPosFat, int firstIndex, int lastIndex, long metaTableOffset, long directoryOffset, ScimitarFile[] files,
-			ScimitarMetaTableEntry[] metaTableEntries)
-		{
-			NumFiles = numFiles;
-			NumDirs = numDirs;
-			PosFat = posFat;
-			NextPosFat = nextPosFat;
-			FirstIndex = firstIndex;
-			LastIndex = lastIndex;
-			MetaTableOffset = metaTableOffset;
-			DirectoryOffset = directoryOffset;
-			Files = files;
-			MetaTableEntries = metaTableEntries;
-		}
-
 		public static ScimitarTable Read(BinaryReader r)
 		{
 			var numFiles = r.ReadInt32();
@@ -43,10 +18,10 @@ namespace RainbowScimitar
 			var directoryOffset = r.ReadInt64();
 
 			r.BaseStream.Seek(posFat, SeekOrigin.Begin);
-			var files = r.ReadStructs<ScimitarFile>(numFiles);
+			var files = r.ReadStructs<ScimitarFileTableEntry>(numFiles);
 
 			r.BaseStream.Seek(metaTableOffset, SeekOrigin.Begin);
-			var metaTableEntries = r.ReadStructs<ScimitarMetaTableEntry>(numFiles);
+			var metaTableEntries = r.ReadStructs<ScimitarAssetMetadata>(numFiles);
 
 			return new ScimitarTable(numFiles, numDirs, posFat, nextPosFat, firstIndex, lastIndex, metaTableOffset, directoryOffset, files, metaTableEntries);
 		}
