@@ -13,5 +13,7 @@ namespace RainbowScimitar.Scimitar
 
 		public bool IsRelative => (Id & RELATIVE_ID_MASK) == RELATIVE_ID_BITMAP;
 		public int RelativeIndex => (int)(Id & RELATIVE_INDEX_MASK);
+
+		public static implicit operator ulong(ScimitarId id) => id.Id;
 	}
 }

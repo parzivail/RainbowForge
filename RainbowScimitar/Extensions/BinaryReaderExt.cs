@@ -11,7 +11,8 @@ namespace RainbowScimitar.Extensions
 			var size = Marshal.SizeOf(t);
 
 			var buf = new byte[size];
-			if (stream.Read(buf, 0, size) != size)
+			var amountRead = stream.Read(buf, 0, size);
+			if (amountRead != size)
 				throw new EndOfStreamException();
 
 			buf.ToStruct(ref t);

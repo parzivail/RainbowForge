@@ -7,8 +7,8 @@ namespace RainbowScimitar.Scimitar
 	{
 		public static ScimitarFile Read(BinaryReader r)
 		{
+			var metaData = IScimitarFileData.Read(r);
 			var fileData = IScimitarFileData.Read(r);
-			var metaData = IScimitarFileData.Read(r); // TODO: uses different container magic vs fileData
 
 			using var metaStream = new BinaryReader(metaData.GetStream(r.BaseStream));
 			var metaSubFileData = metaStream.ReadLengthPrefixedStructs<ScimitarSubFileData>();

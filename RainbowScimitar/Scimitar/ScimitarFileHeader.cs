@@ -7,7 +7,7 @@ namespace RainbowScimitar.Scimitar
 	{
 		public readonly short Unknown1;
 		public readonly ScimitarFilePackMethod PackMethod; // TODO: is this two int16s?
-		public readonly short Unknown2;
+		public readonly byte Unknown2;
 		public readonly short Unknown3;
 	}
 }

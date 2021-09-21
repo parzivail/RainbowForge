@@ -44,8 +44,8 @@ namespace RainbowScimitar.Scimitar
 
 			EntryMap = new Dictionary<ulong, BundleEntryPointer>();
 			for (var tableIdx = 0; tableIdx < tables.Length; tableIdx++)
-				for (var i = 0; i < tables[i].Files.Length; i++)
-					EntryMap[tables[i].Files[i].Uid] = new BundleEntryPointer(tableIdx, i);
+				for (var fileIdx = 0; fileIdx < tables[tableIdx].Files.Length; fileIdx++)
+					EntryMap[tables[tableIdx].Files[fileIdx].Uid] = new BundleEntryPointer(tableIdx, fileIdx);
 		}
 
 		public static Scimitar Read(BinaryReader r)

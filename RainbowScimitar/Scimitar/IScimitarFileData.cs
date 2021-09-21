@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using RainbowScimitar.Extensions;
 
@@ -6,15 +7,18 @@ namespace RainbowScimitar.Scimitar
 {
 	public interface IScimitarFileData
 	{
-		private const ulong MAGIC = 0x1015FA9957FBAA36;
+		private static readonly HashSet<ulong> KnownMagics = new()
+		{
+			0x1014FA9957FBAA34, 0x1015FA9957FBAA36
+		};
 
 		public Stream GetStream(Stream bundleStream);
 
 		public static IScimitarFileData Read(BinaryReader r)
 		{
 			var magic = r.ReadUInt64();
-			if (magic != MAGIC)
-				throw new InvalidDataException($"Expected file magic 0x{MAGIC:X16}, got 0x{magic:X16}");
+			if (!KnownMagics.Contains(magic))
+				throw new InvalidDataException($"Expected file magic, got 0x{magic:X16}");
 
 			var header = r.ReadStruct<ScimitarFileHeader>();
 

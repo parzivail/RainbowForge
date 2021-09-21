@@ -1,6 +1,6 @@
 ﻿namespace RainbowScimitar.Scimitar
 {
-	public enum ScimitarFilePackMethod : uint
+	public enum ScimitarFilePackMethod : short
 	{
 		/// <summary>
 		/// Indicates the Block strategy for packing file data chunks. The asset
