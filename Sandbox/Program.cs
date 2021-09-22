@@ -1,5 +1,6 @@
-﻿using System.IO;
-using RainbowScimitar;
+﻿using System;
+using System.IO;
+using RainbowScimitar.Scimitar;
 
 namespace Sandbox
 {
@@ -7,9 +8,37 @@ namespace Sandbox
 	{
 		private static void Main(string[] args)
 		{
-			using var br = new BinaryReader(File.Open("R:\\Siege Dumps\\Y6S1 v15500403\\datapc64_ondemand.forge", FileMode.Open));
+			var path = @"R:\Steam\steamapps\common\Tom Clancy's Rainbow Six Siege - Test Server";
+			foreach (var forgeFilename in Directory.GetFiles(path, "*.forge"))
+			{
+				Console.Error.WriteLine(forgeFilename);
 
-			var sc = Scimitar.Read(br);
+				using var fs = File.Open(forgeFilename, FileMode.Open);
+				var bundle = Scimitar.Read(fs);
+
+				foreach (var (uid, entry) in bundle.EntryMap)
+				{
+					if (!Scimitar.IsFile(uid))
+						continue;
+
+					var fte = bundle.GetFileEntry(entry);
+					var mte = bundle.GetMetaEntry(entry);
+					var name = mte.DecodeName(fte);
+
+					var file = Scimitar.ReadFile(fs, fte);
+					if (file.SubFileData.Length > 1)
+					{
+						using var stream = file.FileData.GetStream(fs);
+
+						for (var i = 0; i < file.SubFileData.Length; i++)
+						{
+							var (subMeta, subStream) = file.GetSubFile(stream, i);
+						}
+					}
+				}
+			}
+
+			Console.Error.WriteLine("Done.");
 		}
 	}
 }

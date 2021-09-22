@@ -48,8 +48,10 @@ namespace RainbowScimitar.Scimitar
 					EntryMap[tables[tableIdx].Files[fileIdx].Uid] = new BundleEntryPointer(tableIdx, fileIdx);
 		}
 
-		public static Scimitar Read(BinaryReader r)
+		public static Scimitar Read(Stream bundleStream)
 		{
+			var r = new BinaryReader(bundleStream);
+
 			var formatId = Encoding.ASCII.GetBytes("scimitar\x00");
 
 			var magic = r.ReadBytes(formatId.Length);
@@ -111,28 +113,34 @@ namespace RainbowScimitar.Scimitar
 
 		public ScimitarAssetMetadata GetMetaEntry(BundleEntryPointer p) => Tables[p.Table].MetaTableEntries[p.Index];
 
-		public ScimitarGlobalMeta ReadGlobalMeta(BinaryReader r)
+		public ScimitarGlobalMeta ReadGlobalMeta(Stream bundleStream)
 		{
 			var entry = GetEntry(StaticUid.DataControlGlobalMetaKey);
 			var fileEntry = GetFileEntry(entry);
 
-			r.BaseStream.Seek(fileEntry.Offset, SeekOrigin.Begin);
-			return ScimitarGlobalMeta.Read(r);
+			bundleStream.Seek(fileEntry.Offset, SeekOrigin.Begin);
+			return ScimitarGlobalMeta.Read(bundleStream);
 		}
 
-		public ScimitarFastLoadTableOfContents ReadFastLoadToc(BinaryReader r)
+		public ScimitarFastLoadTableOfContents ReadFastLoadToc(Stream bundleStream)
 		{
 			var entry = GetEntry(StaticUid.FastLoadTableOfContents);
 			var fileEntry = GetFileEntry(entry);
 
-			r.BaseStream.Seek(fileEntry.Offset, SeekOrigin.Begin);
-			return ScimitarFastLoadTableOfContents.Read(r);
+			bundleStream.Seek(fileEntry.Offset, SeekOrigin.Begin);
+			return ScimitarFastLoadTableOfContents.Read(bundleStream);
 		}
 
-		public ScimitarFile ReadFile(BinaryReader r, ScimitarFileTableEntry entry)
+		public static ScimitarArchive ReadFile(Stream bundleStream, ScimitarFileTableEntry entry)
 		{
-			r.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
-			return ScimitarFile.Read(r);
+			bundleStream.Seek(entry.Offset, SeekOrigin.Begin);
+			return ScimitarArchive.Read(bundleStream);
+		}
+
+		public static bool IsFile(ulong id)
+		{
+			var staticUid = (StaticUid)id;
+			return staticUid is not (StaticUid.DataControlGlobalMetaKey or StaticUid.FastLoadTableOfContents);
 		}
 	}
 }

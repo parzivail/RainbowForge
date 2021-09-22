@@ -14,8 +14,10 @@ namespace RainbowScimitar.Scimitar
 
 		public Stream GetStream(Stream bundleStream);
 
-		public static IScimitarFileData Read(BinaryReader r)
+		public static IScimitarFileData Read(Stream bundleStream)
 		{
+			var r = new BinaryReader(bundleStream);
+
 			var magic = r.ReadUInt64();
 			if (!KnownMagics.Contains(magic))
 				throw new InvalidDataException($"Expected file magic, got 0x{magic:X16}");
@@ -24,8 +26,8 @@ namespace RainbowScimitar.Scimitar
 
 			return header.PackMethod switch
 			{
-				ScimitarFilePackMethod.Block => ScimitarBlockPackedData.Read(r),
-				ScimitarFilePackMethod.Streaming => ScimitarStreamingPackedData.Read(r),
+				ScimitarFilePackMethod.Block => ScimitarBlockPackedData.Read(bundleStream),
+				ScimitarFilePackMethod.Streaming => ScimitarStreamingPackedData.Read(bundleStream),
 				_ => throw new ArgumentOutOfRangeException(nameof(header.PackMethod), $"Unknown pack method 0x{(uint)header.PackMethod:X}")
 			};
 		}

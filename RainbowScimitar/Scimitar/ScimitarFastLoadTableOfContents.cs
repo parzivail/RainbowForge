@@ -4,7 +4,7 @@ namespace RainbowScimitar.Scimitar
 {
 	public record ScimitarFastLoadTableOfContents()
 	{
-		public static ScimitarFastLoadTableOfContents Read(BinaryReader r)
+		public static ScimitarFastLoadTableOfContents Read(Stream bundleStream)
 		{
 			return new ScimitarFastLoadTableOfContents();
 		}

@@ -14,8 +14,10 @@ namespace RainbowScimitar.Scimitar
 			return new SubStream(bundleStream, Offset, SizeInfo.Sum(info => info.PayloadSize));
 		}
 
-		public static ScimitarStreamingPackedData Read(BinaryReader r)
+		public static ScimitarStreamingPackedData Read(Stream bundleStream)
 		{
+			var r = new BinaryReader(bundleStream);
+
 			var numChunks = r.ReadUInt16();
 			var unk1 = r.ReadUInt16();
 
@@ -28,7 +30,7 @@ namespace RainbowScimitar.Scimitar
 			if (sizeData.Any(info => info.PayloadSize != info.SerializedSize))
 				throw new NotSupportedException("Streaming data blocks with compression are not yet supported!");
 
-			return new ScimitarStreamingPackedData(unk1, sizeData, checksumData, r.BaseStream.Position);
+			return new ScimitarStreamingPackedData(unk1, sizeData, checksumData, bundleStream.Position);
 		}
 	}
 }

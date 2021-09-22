@@ -37,8 +37,10 @@ namespace RainbowScimitar.Scimitar
 			return ms;
 		}
 
-		public static ScimitarBlockPackedData Read(BinaryReader r)
+		public static ScimitarBlockPackedData Read(Stream bundleStream)
 		{
+			var r = new BinaryReader(bundleStream);
+
 			var numChunks = r.ReadUInt16();
 			var unknown1 = r.ReadUInt16();
 
@@ -52,7 +54,7 @@ namespace RainbowScimitar.Scimitar
 				var checksum = r.ReadUInt32();
 				chunkData[i] = new ScimitarChunkDataInfo(checksum, r.BaseStream.Position);
 
-				r.BaseStream.Seek(size.SerializedSize, SeekOrigin.Current);
+				bundleStream.Seek(size.SerializedSize, SeekOrigin.Current);
 			}
 
 			return new ScimitarBlockPackedData(unknown1, sizeData, chunkData);
