@@ -16,8 +16,8 @@ namespace RainbowForge
 		CompiledUltraResolutionTextureMap = 0x9F492D22,
 		CompiledFutureResolutionTextureMap = 0x3876CCDF,
 		CompiledTextureMapData = 0xc30c4b3d,
-		TextureGui0 = 0x9468B9E2,
-		TextureGui1 = 0x05A61FAD,
+		CompiledLowResolutionGuiTextureMap = 0x9468B9E2,
+		CompiledMediumResolutionGuiTextureMap = 0x05A61FAD,
 		CompiledSoundMedia = 0x427411A3, // Wwise sound
 		BuildTable = 0x22ECBE63,
 		BuildColumn = 0x36839608,
@@ -799,7 +799,18 @@ namespace RainbowForge
 		PhoenixWidgetData = 0x1B3B6644,
 		PhoenixVideoData = 0xB16F9CAE,
 		PhoenixEnumData = 0xB7ABC60E,
-		PhoenixSoundData = 0xE12986CE
+		PhoenixSoundData = 0xE12986CE,
+		PhoenixWidgetTypeData = 0xA5A10525,
+		PhoenixTextStyleData = 0x005557B9,
+		PhoenixImageAtlasData = 0xDF8E96F1,
+		PhoenixFontCharacterSetData = 0x0CFB284C,
+		RuntimeRenderScalingFactorSettings = 0xBB5542A0,
+		LaserReinforcementDeployableData = 0x5D86305B,
+		R6GameplayInteractionsPreset = 0xDBAA67AC,
+		R6SeasonalTrainingChallenges = 0xF5AC3340,
+		RuntimeAntiAliasingSettings = 0xA89F658D,
+		LaserReinforcementSystemController = 0x2DF799F3,
+		PhoenixColorPaletteData = 0x037B5227,
 	}
 
 	public enum ContainerMagic : uint
