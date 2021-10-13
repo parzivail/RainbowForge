@@ -16,6 +16,9 @@ namespace RainbowForge
 			_minPos = offset;
 			_length = length;
 			_maxPos = offset + length;
+
+			if (offset + length > source.Length)
+				throw new EndOfStreamException();
 		}
 
 		/// <inheritdoc />
@@ -38,7 +41,7 @@ namespace RainbowForge
 		/// <inheritdoc />
 		public override int Read(byte[] buffer, int offset, int count)
 		{
-			return _source.Read(buffer, offset, Math.Min((int)(_maxPos - _source.Position), count));
+			return _source.Read(buffer, offset, Math.Max(Math.Min((int)(_maxPos - _source.Position), count), 0));
 		}
 
 		/// <inheritdoc />

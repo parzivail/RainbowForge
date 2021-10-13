@@ -811,6 +811,7 @@ namespace RainbowForge
 		RuntimeAntiAliasingSettings = 0xA89F658D,
 		LaserReinforcementSystemController = 0x2DF799F3,
 		PhoenixColorPaletteData = 0x037B5227,
+		RuntimeAdaptiveRenderScalingTargetFPSSettings = 0x650f34cf,
 	}
 
 	public enum ContainerMagic : uint
