@@ -47,7 +47,20 @@ namespace RainbowForge
 		/// <inheritdoc />
 		public override long Seek(long offset, SeekOrigin origin)
 		{
-			return _source.Seek(offset + _minPos, origin);
+			switch (origin)
+			{
+				case SeekOrigin.Begin:
+					return _source.Seek(offset + _minPos, SeekOrigin.Begin);
+					break;
+				case SeekOrigin.Current:
+					return _source.Seek(offset, SeekOrigin.Current);
+					break;
+				case SeekOrigin.End:
+					return _source.Seek(_maxPos - offset, SeekOrigin.Begin);
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(origin), origin, null);
+			}
 		}
 
 		/// <inheritdoc />

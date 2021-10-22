@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
+using RainbowForge;
+using RainbowScimitar.Scimitar;
 
 namespace RainbowScimitar.Extensions
 {
@@ -34,6 +36,17 @@ namespace RainbowScimitar.Extensions
 		{
 			var count = r.ReadInt32();
 			return r.ReadStructs<T>(count);
+		}
+
+		public static ScimitarId ReadUid(this BinaryReader r)
+		{
+			return r.ReadUInt64();
+		}
+
+		public static void ReadMagic(this BinaryReader r, Magic magic)
+		{
+			var needle = r.ReadUInt32();
+			MagicHelper.AssertEquals(magic, needle);
 		}
 	}
 }

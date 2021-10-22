@@ -19,8 +19,15 @@ namespace RainbowScimitar.Scimitar
 			var r = new BinaryReader(bundleStream);
 
 			var magic = r.ReadUInt64();
-			if (!KnownMagics.Contains(magic))
+
+			if (magic - 0x1015FA9957FBAA35u >= 2 && magic != 0x1004FA9957FBAA33 && magic != 0x1014FA9957FBAA34)
+			{
+				// Not sure how this check works in practice but it's the one the game uses
 				throw new InvalidDataException($"Expected file magic, got 0x{magic:X16}");
+			}
+
+			// if ((magic & 0xFF00FFFFFFFFFF00) != 0x1000FA9957FBAA00)
+			// 	throw new InvalidDataException($"Expected file magic, got 0x{magic:X16}");
 
 			var header = r.ReadStruct<ScimitarFileHeader>();
 

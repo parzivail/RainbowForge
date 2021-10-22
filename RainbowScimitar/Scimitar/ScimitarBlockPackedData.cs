@@ -1,8 +1,7 @@
 ﻿using System.IO;
-using System.IO.Compression;
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Helper;
-using Zstandard.Net;
+using ZstdNet;
 
 namespace RainbowScimitar.Scimitar
 {
@@ -23,7 +22,7 @@ namespace RainbowScimitar.Scimitar
 				if (size.PayloadSize > size.SerializedSize)
 				{
 					// Contents are compressed
-					using var dctx = new ZstandardStream(bundleStream, CompressionMode.Decompress, true);
+					using var dctx = new DecompressionStream(bundleStream, 1024);
 					dctx.CopyStreamTo(ms, size.PayloadSize);
 				}
 				else
