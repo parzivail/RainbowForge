@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using RainbowForge;
 using RainbowScimitar.Extensions;
@@ -40,8 +39,6 @@ namespace RainbowScimitar.FileTypes
 				var giBoundingVolumeUid = r.ReadUid();
 				var giBoundingVolume = GIBoundingVolume.Read(r);
 			}
-			else
-				Console.WriteLine($"A ({giBoundingVolumeFlags}) - {((FileStream)r.BaseStream).Name}");
 
 			var giBoundingVolumeFlags2 = r.ReadByte();
 			if (giBoundingVolumeFlags2 == 0)
@@ -49,8 +46,6 @@ namespace RainbowScimitar.FileTypes
 				var giBoundingVolumeUid = r.ReadUid();
 				var giBoundingVolume = GIBoundingVolume.Read(r);
 			}
-			else
-				Console.WriteLine($"B ({giBoundingVolumeFlags2}) - {((FileStream)r.BaseStream).Name}");
 
 			var iColorUid = r.ReadUid();
 			var iColor = IColor.Read(r);
