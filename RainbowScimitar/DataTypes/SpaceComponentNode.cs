@@ -1,14 +1,15 @@
 ﻿using System.IO;
 using RainbowForge;
 using RainbowScimitar.Extensions;
+using RainbowScimitar.Scimitar;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
-	public record SpaceManager(SpaceComponentNode[] Children)
+	public record SpaceComponentNode(ScimitarId Id, SpaceComponentNode[] Children)
 	{
-		public static SpaceManager Read(BinaryReader r)
+		public static SpaceComponentNode Read(BinaryReader r)
 		{
-			r.ReadMagic(Magic.SpaceManager);
+			r.ReadMagic(Magic.SpaceComponentNode);
 
 			var numChildren = r.ReadInt32();
 
@@ -20,7 +21,9 @@ namespace RainbowScimitar.FileTypes
 				children[i] = SpaceComponentNode.Read(r);
 			}
 
-			return new SpaceManager(children);
+			var uid = r.ReadUid();
+
+			return new SpaceComponentNode(uid, children);
 		}
 	}
 }

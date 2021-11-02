@@ -2,7 +2,7 @@
 using RainbowForge;
 using RainbowScimitar.Extensions;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record WindDefinition(float[] Unknown1)
 	{

@@ -2,7 +2,7 @@
 using RainbowForge;
 using RainbowScimitar.Extensions;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record IColor(int Unknown1, float[] Unknown2, ushort Unknown3)
 	{

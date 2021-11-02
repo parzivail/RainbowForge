@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using RainbowForge;
 using RainbowScimitar.Extensions;
+using RainbowScimitar.Model;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record GIBoundingVolume(Box Bounds, Vec3f Unknown1, int Unknown2, int Unknown3, int Unknown4, float Unknown5, int Unknown6)
 	{

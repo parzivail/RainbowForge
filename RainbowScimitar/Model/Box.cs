@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.Model
 {
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct Box
@@ -11,5 +11,11 @@ namespace RainbowScimitar.FileTypes
 		public readonly float MaxX;
 		public readonly float MaxY;
 		public readonly float MaxZ;
+
+		/// <inheritdoc />
+		public override string ToString()
+		{
+			return $"({MinX}, {MinY}, {MinZ}) -> ({MaxX}, {MaxY}, {MaxZ})";
+		}
 	}
 }

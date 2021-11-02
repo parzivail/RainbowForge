@@ -25,5 +25,23 @@ namespace RainbowScimitar.Scimitar
 
 			return new ScimitarTable(numFiles, numDirs, posFat, nextPosFat, firstIndex, lastIndex, metaTableOffset, directoryOffset, files, metaTableEntries);
 		}
+
+		public void Write(BinaryWriter w)
+		{
+			w.Write(NumFiles);
+			w.Write(NumDirs);
+			w.Write(PosFat);
+			w.Write(NextPosFat);
+			w.Write(FirstIndex);
+			w.Write(LastIndex);
+			w.Write(MetaTableOffset);
+			w.Write(DirectoryOffset);
+
+			w.BaseStream.Seek(PosFat, SeekOrigin.Begin);
+			w.WriteStructs(Files);
+
+			w.BaseStream.Seek(MetaTableOffset, SeekOrigin.Begin);
+			w.WriteStructs(MetaTableEntries);
+		}
 	}
 }

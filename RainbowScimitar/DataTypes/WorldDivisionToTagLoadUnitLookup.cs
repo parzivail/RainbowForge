@@ -3,7 +3,7 @@ using RainbowForge;
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Scimitar;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record WorldDivisionToTagLoadUnitLookup(ScimitarId WorldSectionUid, WorldLoadUnitLoadByTag WorldLoadUnitLoadByTag)
 	{

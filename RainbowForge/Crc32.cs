@@ -1,4 +1,6 @@
-﻿namespace RainbowForge
+﻿using System.IO;
+
+namespace RainbowForge
 {
 	public class Crc32
 	{
@@ -36,6 +38,24 @@
 			var hash = seed;
 			for (var i = start; i < start + size; i++)
 				hash = (hash >> 8) ^ DefaultTable[buffer[i] ^ (hash & 0xff)];
+			return hash;
+		}
+
+		public static uint Compute(Stream buffer, long length)
+		{
+			return Compute(DefaultSeed, buffer, length);
+		}
+
+		public static uint Compute(uint seed, Stream buffer, long length)
+		{
+			return ~CalculateHash(seed, buffer, length);
+		}
+
+		public static uint CalculateHash(uint seed, Stream buffer, long size)
+		{
+			var hash = seed;
+			for (var i = 0L; i < size; i++)
+				hash = (hash >> 8) ^ DefaultTable[buffer.ReadByte() ^ (hash & 0xff)];
 			return hash;
 		}
 	}

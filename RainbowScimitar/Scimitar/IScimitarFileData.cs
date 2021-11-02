@@ -38,5 +38,25 @@ namespace RainbowScimitar.Scimitar
 				_ => throw new ArgumentOutOfRangeException(nameof(header.PackMethod), $"Unknown pack method 0x{(uint)header.PackMethod:X}")
 			};
 		}
+
+		public static void Write(Stream dataStream, Stream bundleStream, ScimitarFilePackMethod packMethod)
+		{
+			var w = new BinaryWriter(bundleStream);
+
+			w.Write(0x1014FA9957FBAA34uL);
+			w.WriteStruct(new ScimitarFileHeader(packMethod));
+
+			switch (packMethod)
+			{
+				case ScimitarFilePackMethod.Block:
+					ScimitarBlockPackedData.Write(dataStream, bundleStream);
+					break;
+				case ScimitarFilePackMethod.Streaming:
+					ScimitarStreamingPackedData.Write(dataStream, bundleStream);
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(packMethod), packMethod, null);
+			}
+		}
 	}
 }

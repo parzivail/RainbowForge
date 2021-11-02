@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using RainbowForge;
 using RainbowScimitar.Extensions;
+using RainbowScimitar.Model;
 using RainbowScimitar.Scimitar;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record WorldLoader(WorldLoaderSubNode[] Children)
 	{

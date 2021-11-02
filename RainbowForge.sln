@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prism", "Prism\Prism.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainbowScimitar", "RainbowScimitar\RainbowScimitar.csproj", "{94CFB368-13B4-4A64-A7D2-64BD09CF5810}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetDiff", "AssetDiff\AssetDiff.csproj", "{ECA9C389-27BE-44AA-8CED-5C780611106F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,9 @@ Global
 		{94CFB368-13B4-4A64-A7D2-64BD09CF5810}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94CFB368-13B4-4A64-A7D2-64BD09CF5810}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94CFB368-13B4-4A64-A7D2-64BD09CF5810}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECA9C389-27BE-44AA-8CED-5C780611106F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECA9C389-27BE-44AA-8CED-5C780611106F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECA9C389-27BE-44AA-8CED-5C780611106F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECA9C389-27BE-44AA-8CED-5C780611106F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

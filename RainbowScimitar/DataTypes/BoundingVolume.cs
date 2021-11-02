@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using RainbowForge;
 using RainbowScimitar.Extensions;
+using RainbowScimitar.Model;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record BoundingVolume(int Unknown1, Box Volume)
 	{

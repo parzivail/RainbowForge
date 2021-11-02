@@ -2,7 +2,7 @@
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Scimitar;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record CompiledSoundMedia()
 	{

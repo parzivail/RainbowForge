@@ -3,9 +3,11 @@ using RainbowForge;
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Scimitar;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
-	public record World()
+	public record World(SpaceManager SpaceManager, SoundState SoundState, ScimitarId WorldDivisionContainerUid, WorldLoader WorldLoader, ScimitarId DefaultScenarioUid, WorldGraphicData GraphicData,
+		BoundingVolume BoundingVolume, GIBoundingVolume GiBoundingVolume, GIBoundingVolume GiBoundingVolume2, IColor Color, WindDefinition WindDefinition, ScimitarId[] Unknown1,
+		ScimitarId SoundPropogationMapUid, float[] Unknown2)
 	{
 		public static World Read(BinaryReader r)
 		{
@@ -34,17 +36,21 @@ namespace RainbowScimitar.FileTypes
 
 			// TODO: only seems to be 0 or 3, 0 on all maps except Tower, Italy, Morocco, HerefordRework, Austrailia, and ThemePark_V2
 			var giBoundingVolumeFlags = r.ReadByte();
+			ScimitarId giBoundingVolumeUid;
+			GIBoundingVolume giBoundingVolume = null;
 			if (giBoundingVolumeFlags == 0)
 			{
-				var giBoundingVolumeUid = r.ReadUid();
-				var giBoundingVolume = GIBoundingVolume.Read(r);
+				giBoundingVolumeUid = r.ReadUid();
+				giBoundingVolume = GIBoundingVolume.Read(r);
 			}
 
 			var giBoundingVolumeFlags2 = r.ReadByte();
+			ScimitarId giBoundingVolume2Uid;
+			GIBoundingVolume giBoundingVolume2 = null;
 			if (giBoundingVolumeFlags2 == 0)
 			{
-				var giBoundingVolumeUid = r.ReadUid();
-				var giBoundingVolume = GIBoundingVolume.Read(r);
+				giBoundingVolume2Uid = r.ReadUid();
+				giBoundingVolume2 = GIBoundingVolume.Read(r);
 			}
 
 			var iColorUid = r.ReadUid();
@@ -61,8 +67,8 @@ namespace RainbowScimitar.FileTypes
 
 			var floats = r.ReadStructs<float>(23);
 
-			var pos = r.BaseStream.Position;
-			return null;
+			return new World(spaceManager, soundState, worldDivisionContainerUid, worldLoader, defaultScenarioUid, graphicData, boundingVolume, giBoundingVolume, giBoundingVolume2, iColor,
+				windDefinition, extraUids, soundPropogationMapUid, floats);
 		}
 	}
 }

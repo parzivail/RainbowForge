@@ -1,7 +1,5 @@
 ﻿using System.IO;
-using System.Text;
 using RainbowForge;
-using RainbowForge.Core;
 
 namespace RainbowScimitar.Scimitar
 {
@@ -52,38 +50,6 @@ namespace RainbowScimitar.Scimitar
 			// ulong size (8 bytes) is subtracted because {metadata.Size} is always that much too big -- it's
 			// possible that the UID isn't part of ScimitarArchiveFileMetadata, it's part of the asset stream
 			return (metadata, new SubStream(fileStream, fileStream.Position, metadata.Size - sizeof(ulong)));
-		}
-	}
-
-	public class ScimitarArchiveFileMetadata
-	{
-		public string Filename { get; }
-		public int Size { get; }
-		public uint FileType { get; }
-		public ScimitarId Uid { get; }
-
-		private ScimitarArchiveFileMetadata(string filename, int size, uint fileType, ScimitarId uid)
-		{
-			Filename = filename;
-			Size = size;
-			FileType = fileType;
-			Uid = uid;
-		}
-
-		public static ScimitarArchiveFileMetadata Read(Stream bundleStream)
-		{
-			var r = new BinaryReader(bundleStream);
-
-			// in AC, a name length with 0x80000000 bit set means encrypted
-			var filenameLength = r.ReadUInt32();
-			var filenameBytes = r.ReadBytes((int)filenameLength);
-			var size = r.ReadInt32();
-			var fileType = r.ReadUInt32();
-			var uid = r.ReadUInt64();
-
-			var nameBytes = NameEncoding.DecodeName(filenameBytes, fileType, uid, 0, NameEncoding.FILENAME_ENCODING_FILE_KEY_STEP);
-
-			return new ScimitarArchiveFileMetadata(Encoding.ASCII.GetString(nameBytes), size, fileType, uid);
 		}
 	}
 }

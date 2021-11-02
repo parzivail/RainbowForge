@@ -2,7 +2,7 @@
 using RainbowForge;
 using RainbowScimitar.Extensions;
 
-namespace RainbowScimitar.FileTypes
+namespace RainbowScimitar.DataTypes
 {
 	public record GISettings(float Unknown1, float Unknown2)
 	{

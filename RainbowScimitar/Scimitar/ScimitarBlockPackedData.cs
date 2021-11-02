@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using RainbowForge;
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Helper;
 using ZstdNet;
@@ -34,6 +35,47 @@ namespace RainbowScimitar.Scimitar
 
 			ms.Position = 0;
 			return ms;
+		}
+
+		public static void Write(Stream dataStream, Stream bundleStream)
+		{
+			var w = new BinaryWriter(bundleStream);
+
+			// 256kb chunks
+			const int chunkSize = 256 * 1024;
+			var numChunks = dataStream.Length / chunkSize + 1;
+
+			w.Write((short)numChunks);
+
+			// w.Write(Unknown1);
+			w.Write((short)0);
+
+			using var msChunks = StreamHelper.MemoryStreamManager.GetStream("ScimitarBlockPackedData.Write/Chunks");
+			var wChunk = new BinaryWriter(msChunks);
+
+			while (dataStream.Position < dataStream.Length)
+			{
+				using var msChunk = StreamHelper.MemoryStreamManager.GetStream("ScimitarBlockPackedData.Write/TempChunk");
+				var payloadSize = dataStream.CopyStreamTo(msChunk, chunkSize);
+
+				msChunk.Position = 0;
+				wChunk.Write(Crc32.Compute(msChunk, msChunk.Length));
+
+				var startPos = msChunks.Position;
+
+				var cs = new CompressionStream(msChunks);
+				msChunk.Position = 0;
+				msChunk.CopyTo(cs);
+				cs.Close();
+
+				var serializedSize = (int)(msChunks.Position - startPos);
+
+				w.Write(payloadSize);
+				w.Write(serializedSize);
+			}
+
+			msChunks.Position = 0;
+			msChunks.CopyTo(bundleStream);
 		}
 
 		public static ScimitarBlockPackedData Read(Stream bundleStream)

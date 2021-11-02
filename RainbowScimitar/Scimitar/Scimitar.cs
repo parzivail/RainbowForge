@@ -15,17 +15,17 @@ namespace RainbowScimitar.Scimitar
 		public uint FatLocation { get; }
 		public ulong GloablMetaFileKey { get; }
 		public uint Unk1 { get; }
-		public uint Unk2 { get; }
+		public byte Unk2 { get; }
 		public uint Unk3 { get; }
 		public uint Unk4 { get; }
 		public uint Unk4B { get; }
-		public uint FirstFreeFile { get; }
-		public uint FirstFreeDir { get; }
+		public int FirstFreeFile { get; }
+		public int FirstFreeDir { get; }
 		public uint SizeOfFat { get; }
 		public ulong FirstTablePosition { get; }
 		public ScimitarTable[] Tables { get; }
 
-		private Scimitar(uint version, uint fatLocation, ulong gloablMetaFileKey, uint unk1, uint unk2, uint unk3, uint unk4, uint unk4B, uint firstFreeFile, uint firstFreeDir, uint sizeOfFat,
+		private Scimitar(uint version, uint fatLocation, ulong gloablMetaFileKey, uint unk1, byte unk2, uint unk3, uint unk4, uint unk4B, int firstFreeFile, int firstFreeDir, uint sizeOfFat,
 			ulong firstTablePosition, ScimitarTable[] tables)
 		{
 			Version = version;
@@ -48,6 +48,46 @@ namespace RainbowScimitar.Scimitar
 					EntryMap[tables[tableIdx].Files[fileIdx].Uid] = new BundleEntryPointer(tableIdx, fileIdx);
 		}
 
+		public void Write(Stream fileStream)
+		{
+			var w = new BinaryWriter(fileStream);
+			var formatId = Encoding.ASCII.GetBytes("scimitar\x00");
+
+			w.Write(formatId);
+
+			w.Write(Version);
+			w.Write(FatLocation);
+			w.Write(Unk1);
+
+			w.Write(GloablMetaFileKey);
+
+			w.Write(Unk2);
+
+			w.Write(Tables.Sum(table => table.NumFiles));
+			w.Write(0); // TODO: directories
+
+			w.Write(Unk3);
+			w.Write(Unk4);
+			w.Write(Unk4B);
+
+			w.Write(FirstFreeFile);
+			w.Write(FirstFreeDir);
+
+			w.Write(SizeOfFat);
+			w.Write(Tables.Length);
+
+			w.Write(FirstTablePosition);
+			w.BaseStream.Seek((long)FirstTablePosition, SeekOrigin.Begin);
+
+			foreach (var scimitarTable in Tables)
+			{
+				scimitarTable.Write(w);
+
+				if (scimitarTable.NextPosFat != -1)
+					w.BaseStream.Seek(scimitarTable.NextPosFat, SeekOrigin.Begin);
+			}
+		}
+
 		public static Scimitar Read(Stream bundleStream)
 		{
 			var r = new BinaryReader(bundleStream);
@@ -60,9 +100,10 @@ namespace RainbowScimitar.Scimitar
 
 			var version = r.ReadUInt32();
 			var fatLocation = r.ReadUInt32();
+			var unk1 = r.ReadUInt32();
+
 			var gloablMetaFileKey = r.ReadUInt64();
 
-			var unk1 = r.ReadUInt32();
 			var unk2 = r.ReadByte();
 
 			var numEntries = r.ReadUInt32(); // files + hash entry + descriptor entry
@@ -75,10 +116,10 @@ namespace RainbowScimitar.Scimitar
 				unk4b = r.ReadUInt32();
 			}
 
-			var firstFreeFile = r.ReadUInt32();
-			var firstFreeDir = r.ReadUInt32();
+			var firstFreeFile = r.ReadInt32();
+			var firstFreeDir = r.ReadInt32();
 
-			var sizeOfFat = r.ReadUInt32();
+			var sizeOfFat = r.ReadUInt32(); // entries + directories
 			var numTables = r.ReadUInt32();
 
 			var firstTablePosition = r.ReadUInt64();

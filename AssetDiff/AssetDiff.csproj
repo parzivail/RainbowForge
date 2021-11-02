@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\RainbowScimitar\RainbowScimitar.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Crc32C.NET" Version="1.0.5"/>
+    </ItemGroup>
+
+</Project>
