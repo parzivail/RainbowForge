@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using RainbowForge;
+using RainbowScimitar.Compression;
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Helper;
 using ZstdNet;
 
 namespace RainbowScimitar.Scimitar
 {
-	public record ScimitarBlockPackedData(ushort Unknown1, ScimitarChunkSizeInfo[] SizeInfo, ScimitarChunkDataInfo[] DataInfo) : IScimitarFileData
+	public record ScimitarBlockPackedData(ushort Unknown1, ScimitarChunkSizeInfo[] SizeInfo, ScimitarChunkDataInfo[] DataInfo, CompressionMethod CompressionMethod) : IScimitarFileData
 	{
 		/// <inheritdoc />
 		public Stream GetStream(Stream bundleStream)
@@ -23,8 +24,26 @@ namespace RainbowScimitar.Scimitar
 				if (size.PayloadSize > size.SerializedSize)
 				{
 					// Contents are compressed
-					using var dctx = new DecompressionStream(bundleStream, 1024);
-					dctx.CopyStreamTo(ms, size.PayloadSize);
+					switch (CompressionMethod)
+					{
+						case CompressionMethod.Zstd:
+						{
+							using var dctx = new DecompressionStream(bundleStream, 1024);
+							dctx.CopyStreamTo(ms, size.PayloadSize);
+							break;
+						}
+						case CompressionMethod.Oodle:
+						{
+							OodleHelper.EnsureOodleLoaded();
+
+							// Contents are compressed
+							var compressed = new byte[size.SerializedSize];
+							bundleStream.Read(compressed, 0, compressed.Length);
+							var decompressed = Oodle2Core8.Decompress(compressed, size.PayloadSize);
+							ms.Write(decompressed, 0, decompressed.Length);
+							break;
+						}
+					}
 				}
 				else
 				{
@@ -78,7 +97,7 @@ namespace RainbowScimitar.Scimitar
 			msChunks.CopyTo(bundleStream);
 		}
 
-		public static ScimitarBlockPackedData Read(Stream bundleStream)
+		public static ScimitarBlockPackedData Read(Stream bundleStream, CompressionMethod compressionMethod)
 		{
 			var r = new BinaryReader(bundleStream);
 
@@ -98,7 +117,7 @@ namespace RainbowScimitar.Scimitar
 				bundleStream.Seek(size.SerializedSize, SeekOrigin.Current);
 			}
 
-			return new ScimitarBlockPackedData(unknown1, sizeData, chunkData);
+			return new ScimitarBlockPackedData(unknown1, sizeData, chunkData, compressionMethod);
 		}
 	}
 }

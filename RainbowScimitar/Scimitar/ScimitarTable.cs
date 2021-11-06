@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 using RainbowScimitar.Extensions;
 
 namespace RainbowScimitar.Scimitar
@@ -23,6 +24,9 @@ namespace RainbowScimitar.Scimitar
 			r.BaseStream.Seek(metaTableOffset, SeekOrigin.Begin);
 			var metaTableEntries = r.ReadStructs<ScimitarAssetMetadata>(numFiles);
 
+			r.BaseStream.Seek(directoryOffset, SeekOrigin.Begin);
+			var directories = r.ReadStructs<ScimitarDirectory>(numDirs);
+
 			return new ScimitarTable(numFiles, numDirs, posFat, nextPosFat, firstIndex, lastIndex, metaTableOffset, directoryOffset, files, metaTableEntries);
 		}
 
@@ -43,5 +47,26 @@ namespace RainbowScimitar.Scimitar
 			w.BaseStream.Seek(MetaTableOffset, SeekOrigin.Begin);
 			w.WriteStructs(MetaTableEntries);
 		}
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	internal struct ScimitarDirectory
+	{
+		public readonly int NumFiles;
+		public readonly int Unknown1;
+		public readonly int Unknown2;
+		public readonly int Unknown3;
+		public readonly int Unknown4;
+
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+		public readonly byte[] Name;
+
+		public readonly int Unknown5;
+		public readonly int Unknown6;
+		public readonly int Unknown7;
+		public readonly int Unknown8;
+		public readonly int Unknown9;
+		public readonly int Unknown10;
+		public readonly int Unknown11;
 	}
 }

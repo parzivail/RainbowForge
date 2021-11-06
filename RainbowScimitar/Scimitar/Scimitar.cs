@@ -48,46 +48,6 @@ namespace RainbowScimitar.Scimitar
 					EntryMap[tables[tableIdx].Files[fileIdx].Uid] = new BundleEntryPointer(tableIdx, fileIdx);
 		}
 
-		public void Write(Stream fileStream)
-		{
-			var w = new BinaryWriter(fileStream);
-			var formatId = Encoding.ASCII.GetBytes("scimitar\x00");
-
-			w.Write(formatId);
-
-			w.Write(Version);
-			w.Write(FatLocation);
-			w.Write(Unk1);
-
-			w.Write(GloablMetaFileKey);
-
-			w.Write(Unk2);
-
-			w.Write(Tables.Sum(table => table.NumFiles));
-			w.Write(0); // TODO: directories
-
-			w.Write(Unk3);
-			w.Write(Unk4);
-			w.Write(Unk4B);
-
-			w.Write(FirstFreeFile);
-			w.Write(FirstFreeDir);
-
-			w.Write(SizeOfFat);
-			w.Write(Tables.Length);
-
-			w.Write(FirstTablePosition);
-			w.BaseStream.Seek((long)FirstTablePosition, SeekOrigin.Begin);
-
-			foreach (var scimitarTable in Tables)
-			{
-				scimitarTable.Write(w);
-
-				if (scimitarTable.NextPosFat != -1)
-					w.BaseStream.Seek(scimitarTable.NextPosFat, SeekOrigin.Begin);
-			}
-		}
-
 		public static Scimitar Read(Stream bundleStream)
 		{
 			var r = new BinaryReader(bundleStream);
@@ -98,7 +58,7 @@ namespace RainbowScimitar.Scimitar
 			if (!magic.SequenceEqual(formatId))
 				throw new InvalidDataException("Input file not SCIMITAR bundle");
 
-			var version = r.ReadUInt32();
+			var version = r.ReadUInt32(); // 30 as of Y6S3
 			var fatLocation = r.ReadUInt32();
 			var unk1 = r.ReadUInt32();
 

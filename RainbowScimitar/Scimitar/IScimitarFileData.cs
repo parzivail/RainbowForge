@@ -31,12 +31,19 @@ namespace RainbowScimitar.Scimitar
 
 			var header = r.ReadStruct<ScimitarFileHeader>();
 
-			return header.PackMethod switch
+			switch (header.PackMethod)
 			{
-				ScimitarFilePackMethod.Block => ScimitarBlockPackedData.Read(bundleStream),
-				ScimitarFilePackMethod.Streaming => ScimitarStreamingPackedData.Read(bundleStream),
-				_ => throw new ArgumentOutOfRangeException(nameof(header.PackMethod), $"Unknown pack method 0x{(uint)header.PackMethod:X}")
-			};
+				case ScimitarFilePackMethod.BlockZstd:
+					return ScimitarBlockPackedData.Read(bundleStream, CompressionMethod.Zstd);
+				case ScimitarFilePackMethod.BlockOodle:
+					return ScimitarBlockPackedData.Read(bundleStream, CompressionMethod.Oodle);
+				case ScimitarFilePackMethod.Streaming:
+					return ScimitarStreamingPackedData.Read(bundleStream);
+				default:
+				{
+					throw new ArgumentOutOfRangeException(nameof(header.PackMethod), $"Unknown pack method 0x{(uint)header.PackMethod:X}");
+				}
+			}
 		}
 
 		public static void Write(Stream dataStream, Stream bundleStream, ScimitarFilePackMethod packMethod)
@@ -48,7 +55,7 @@ namespace RainbowScimitar.Scimitar
 
 			switch (packMethod)
 			{
-				case ScimitarFilePackMethod.Block:
+				case ScimitarFilePackMethod.BlockZstd:
 					ScimitarBlockPackedData.Write(dataStream, bundleStream);
 					break;
 				case ScimitarFilePackMethod.Streaming:
@@ -58,5 +65,11 @@ namespace RainbowScimitar.Scimitar
 					throw new ArgumentOutOfRangeException(nameof(packMethod), packMethod, null);
 			}
 		}
+	}
+
+	public enum CompressionMethod
+	{
+		Zstd,
+		Oodle
 	}
 }

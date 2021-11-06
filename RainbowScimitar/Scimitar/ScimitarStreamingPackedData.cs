@@ -1,18 +1,38 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using RainbowForge;
 using RainbowScimitar.Extensions;
 using RainbowScimitar.Helper;
 
 namespace RainbowScimitar.Scimitar
 {
-	public record ScimitarStreamingPackedData(ushort Unknown1, ScimitarChunkSizeInfo[] SizeInfo, uint[] ChecksumInfo, long Offset) : IScimitarFileData
+	public record ScimitarStreamingPackedData(ushort Unknown1, ScimitarChunkSizeInfo[] SizeInfo, uint[] ChecksumInfo, long[] Offsets) : IScimitarFileData
 	{
 		/// <inheritdoc />
 		public Stream GetStream(Stream bundleStream)
 		{
-			return new SubStream(bundleStream, Offset, SizeInfo.Sum(info => info.PayloadSize));
+			var ms = StreamHelper.MemoryStreamManager.GetStream("ScimitarBlockPackedData.GetStream");
+
+			for (var i = 0; i < SizeInfo.Length; i++)
+			{
+				var size = SizeInfo[i];
+
+				bundleStream.Seek(Offsets[i], SeekOrigin.Begin);
+
+				if (size.PayloadSize > size.SerializedSize)
+				{
+					// Is this supported in the wild?
+					throw new NotSupportedException("Compressed streaming blocks are not supported!");
+				}
+				else
+				{
+					// Contents are not compressed
+					bundleStream.CopyStreamTo(ms, size.PayloadSize);
+				}
+			}
+
+			ms.Position = 0;
+			return ms;
 		}
 
 		public static void Write(Stream dataStream, Stream bundleStream)
@@ -72,10 +92,16 @@ namespace RainbowScimitar.Scimitar
 			for (var i = 0; i < numChunks; i++)
 				checksumData[i] = r.ReadUInt32();
 
-			if (sizeData.Any(info => info.PayloadSize != info.SerializedSize))
-				throw new NotSupportedException("Streaming data blocks with compression are not yet supported!");
+			var offsets = new long[numChunks];
+			for (var i = 0; i < sizeData.Length; i++)
+			{
+				var sizeInfo = sizeData[i];
 
-			return new ScimitarStreamingPackedData(unk1, sizeData, checksumData, bundleStream.Position);
+				offsets[i] = r.BaseStream.Position;
+				r.BaseStream.Seek(sizeInfo.SerializedSize, SeekOrigin.Current);
+			}
+
+			return new ScimitarStreamingPackedData(unk1, sizeData, checksumData, offsets);
 		}
 	}
 }
