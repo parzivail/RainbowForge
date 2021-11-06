@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.Compression;
+using RainbowForge.Compression;
 using Zstandard.Net;
 
 namespace RainbowForge.Core.DataBlock
@@ -10,13 +11,15 @@ namespace RainbowForge.Core.DataBlock
 		public bool IsPacked { get; }
 		public uint PackedLength { get; }
 		public uint UnpackedLength { get; }
+		public bool UseOodle { get; }
 
-		public ChunkedDataBlock(ChunkedData[] chunks, bool isPacked, uint packedLength, uint unpackedLength)
+		public ChunkedDataBlock(ChunkedData[] chunks, bool isPacked, uint packedLength, uint unpackedLength, bool useOodle)
 		{
 			Chunks = chunks;
 			IsPacked = isPacked;
 			PackedLength = packedLength;
 			UnpackedLength = unpackedLength;
+			UseOodle = useOodle;
 		}
 
 		public Stream GetDataStream(BinaryReader r)
@@ -29,11 +32,23 @@ namespace RainbowForge.Core.DataBlock
 
 				if (chunk.IsCompressed)
 				{
-					using var dctx = new ZstandardStream(r.BaseStream, CompressionMode.Decompress, true);
-					// TODO: make sure this reads exactly {chunk.SerializedLength} bytes -- it should,
-					// but reading {chunk.DataLength} bytes from a decompression stream is
-					// a weird way to do it
-					dctx.CopyStream(ms, (int)chunk.DataLength);
+					if (UseOodle)
+					{
+						OodleHelper.EnsureOodleLoaded();
+
+						// Contents are compressed
+						var compressed = r.ReadBytes((int)chunk.SerializedLength);
+						var decompressed = Oodle2Core8.Decompress(compressed, (int)chunk.DataLength);
+						ms.Write(decompressed, 0, decompressed.Length);
+					}
+					else
+					{
+						using var dctx = new ZstandardStream(r.BaseStream, CompressionMode.Decompress, true);
+						// TODO: make sure this reads exactly {chunk.SerializedLength} bytes -- it should,
+						// but reading {chunk.DataLength} bytes from a decompression stream is
+						// a weird way to do it
+						dctx.CopyStream(ms, (int)chunk.DataLength);
+					}
 				}
 				else
 				{
@@ -45,7 +60,7 @@ namespace RainbowForge.Core.DataBlock
 			return ms;
 		}
 
-		public static ChunkedDataBlock Read(BinaryReader r)
+		public static ChunkedDataBlock Read(BinaryReader r, bool useOodle = false)
 		{
 			// numChunks used to be an int32, but it caused read errors
 			// TODO: is it actually an int16?
@@ -76,7 +91,7 @@ namespace RainbowForge.Core.DataBlock
 				r.BaseStream.Seek(chunk.SerializedLength, SeekOrigin.Current);
 			}
 
-			return new ChunkedDataBlock(chunks, isCompressed, serializedLength, dataLength);
+			return new ChunkedDataBlock(chunks, isCompressed, serializedLength, dataLength, useOodle);
 		}
 	}
 }

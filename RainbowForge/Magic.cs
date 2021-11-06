@@ -841,7 +841,11 @@ namespace RainbowForge
 	{
 		Descriptor = 1,
 		Hash = 6,
-		File = 0x57FBAA34
+
+		// This entire assumption is incorrect and why
+		// RF is being replaced by RS
+		File = 0x57FBAA34,
+		File2 = 0x57FBAA36
 	}
 
 	public enum AssetType

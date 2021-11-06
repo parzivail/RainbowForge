@@ -22,7 +22,7 @@ namespace RainbowForge.Core.Container
 		public static ForgeAsset Read(BinaryReader r, Entry entry)
 		{
 			var magic = r.ReadUInt32();
-			MagicHelper.AssertEquals(Magic.FileContainer, magic);
+			// MagicHelper.AssertEquals(Magic.FileContainer, magic);
 
 			var end = entry.End;
 
@@ -48,6 +48,7 @@ namespace RainbowForge.Core.Container
 			return assetDeserializerType switch
 			{
 				3 => ChunkedDataBlock.Read(r),
+				13 => ChunkedDataBlock.Read(r, true),
 				7 => FlatDataBlock.Read(r, entry),
 				_ => throw new NotImplementedException()
 			};
