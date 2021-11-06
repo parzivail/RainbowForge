@@ -6,8 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AssetDiff\AssetDiff.csproj"/>
       <ProjectReference Include="..\RainbowForge\RainbowForge.csproj" />
-      <ProjectReference Include="..\RainbowScimitar\RainbowScimitar.csproj"/>
+        <ProjectReference Include="..\RainbowScimitar\RainbowScimitar.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

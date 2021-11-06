@@ -111,6 +111,22 @@ namespace RainbowScimitar.Compression
 		private static extern int OodleLZ_Compress(byte[] buffer, int bufferLength, byte[] outputBuffer, int outputBufferLength, ref CompressOptions pOptions, IntPtr dictionaryBuffer, IntPtr lrm,
 			IntPtr scratchMemory, int scratchMemoryLength);
 
+		private static CompressOptions GetDefaultCompressOptions(CompressionLevel level)
+		{
+			var ptr = OodleLZ_CompressOptions_GetDefault(level);
+			return Marshal.PtrToStructure<CompressOptions>(ptr);
+		}
+
+		public static byte[] Compress(byte[] uncompressedData, CompressionLevel level)
+		{
+			var options = GetDefaultCompressOptions(level);
+
+			var compressedData = new byte[uncompressedData.Length];
+			var compressedLength = OodleLZ_Compress(uncompressedData, uncompressedData.Length, compressedData, compressedData.Length, ref options, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, 0);
+
+			return compressedData[..compressedLength];
+		}
+
 		public static byte[] Decompress(byte[] compressedData, int decompressedLength, FuzzSafe fuzzSafe = FuzzSafe.No, CheckCRC checkCrc = CheckCRC.No, Verbosity verbosity = Verbosity.None,
 			ThreadPhase threadPhase = ThreadPhase.Unthreaded)
 		{

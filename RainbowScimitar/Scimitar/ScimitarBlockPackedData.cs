@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using RainbowForge;
 using RainbowScimitar.Compression;
 using RainbowScimitar.Extensions;
@@ -36,13 +37,14 @@ namespace RainbowScimitar.Scimitar
 						{
 							OodleHelper.EnsureOodleLoaded();
 
-							// Contents are compressed
 							var compressed = new byte[size.SerializedSize];
 							bundleStream.Read(compressed, 0, compressed.Length);
 							var decompressed = Oodle2Core8.Decompress(compressed, size.PayloadSize);
 							ms.Write(decompressed, 0, decompressed.Length);
 							break;
 						}
+						default:
+							throw new ArgumentOutOfRangeException(nameof(CompressionMethod), CompressionMethod, null);
 					}
 				}
 				else
@@ -56,7 +58,7 @@ namespace RainbowScimitar.Scimitar
 			return ms;
 		}
 
-		public static void Write(Stream dataStream, Stream bundleStream)
+		public static void Write(Stream dataStream, Stream bundleStream, CompressionMethod compressionMethod)
 		{
 			var w = new BinaryWriter(bundleStream);
 
@@ -82,10 +84,29 @@ namespace RainbowScimitar.Scimitar
 
 				var startPos = msChunks.Position;
 
-				var cs = new CompressionStream(msChunks);
-				msChunk.Position = 0;
-				msChunk.CopyTo(cs);
-				cs.Close();
+				switch (compressionMethod)
+				{
+					case CompressionMethod.Zstd:
+					{
+						var cs = new CompressionStream(msChunks);
+						msChunk.Position = 0;
+						msChunk.CopyTo(cs);
+						cs.Close();
+						break;
+					}
+					case CompressionMethod.Oodle:
+					{
+						OodleHelper.EnsureOodleLoaded();
+
+						var uncompressedData = new byte[msChunk.Length];
+						msChunk.Read(uncompressedData, 0, uncompressedData.Length);
+						var compressed = Oodle2Core8.Compress(uncompressedData, Oodle2Core8.CompressionLevel.Normal);
+						msChunks.Write(compressed, 0, compressed.Length);
+						break;
+					}
+					default:
+						throw new ArgumentOutOfRangeException(nameof(compressionMethod), compressionMethod, null);
+				}
 
 				var serializedSize = (int)(msChunks.Position - startPos);
 

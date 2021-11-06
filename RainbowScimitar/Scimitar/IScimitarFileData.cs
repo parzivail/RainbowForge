@@ -56,7 +56,10 @@ namespace RainbowScimitar.Scimitar
 			switch (packMethod)
 			{
 				case ScimitarFilePackMethod.BlockZstd:
-					ScimitarBlockPackedData.Write(dataStream, bundleStream);
+					ScimitarBlockPackedData.Write(dataStream, bundleStream, CompressionMethod.Zstd);
+					break;
+				case ScimitarFilePackMethod.BlockOodle:
+					ScimitarBlockPackedData.Write(dataStream, bundleStream, CompressionMethod.Oodle);
 					break;
 				case ScimitarFilePackMethod.Streaming:
 					ScimitarStreamingPackedData.Write(dataStream, bundleStream);
