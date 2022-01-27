@@ -835,6 +835,18 @@ namespace RainbowForge
 		LaserReinforcementSystemController = 0x2DF799F3,
 		PhoenixColorPaletteData = 0x037B5227,
 		RuntimeAdaptiveRenderScalingTargetFPSSettings = 0x650f34cf,
+		GenericAnimationData = 0x4b05a1cd,
+		EmoteItemDriverDefinition = 0x468dcf5a,
+		ESrvPlayerFeedbackConfig = 0x6ba7f01d,
+		EntityPreviewDefinition = 0x73cb5999,
+		PassiveItemDriverDefinition = 0xb8de4d1e,
+		ControlPointsScoringLogicDefinition = 0x34c6333d,
+		CustomizedEntitySpawnerDefinition = 0x3b6cb9b8,
+		RandomScoringLogicDefinition = 0x9956838d,
+		HologramManagerDefinition = 0xbc2d08ef,
+		IdleScoringLogicDefinition = 0xbcf6e19b,
+		TutorialDataPack = 0xda8d86e1,
+		LockerScoringLogicDefinition = 0xf27ee029
 	}
 
 	public enum ContainerMagic : uint
