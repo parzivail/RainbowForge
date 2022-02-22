@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Crc32C;
+using Force.Crc32;
 using RainbowScimitar.Scimitar;
 
 namespace AssetDiff
