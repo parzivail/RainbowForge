@@ -29,7 +29,7 @@ namespace RainbowForge.RenderPipeline
 			var magic2 = r.ReadUInt32();
 			MagicHelper.AssertEquals(Magic.UVTransform, magic2);
 
-			var uvTransform1 = r.ReadBytes(43);
+			var uvTransform1 = r.ReadBytes(51);
 
 			var secondaryMipContainers = new TextureSelector[3];
 			for (var i = 0; i < secondaryMipContainers.Length; i++)
@@ -40,7 +40,7 @@ namespace RainbowForge.RenderPipeline
 			var magic3 = r.ReadUInt32();
 			MagicHelper.AssertEquals(Magic.UVTransform, magic3);
 
-			var uvTransform2 = r.ReadBytes(43);
+			var uvTransform2 = r.ReadBytes(51);
 
 			var internalUid1 = r.ReadUInt64();
 			var magic4 = r.ReadUInt32();
